@@ -13,6 +13,7 @@ export default function Engine() {
           range: 1,
           rate: 2,
           speed: 1,
+          value: 1,
         },
         lvl2: {
           name: "Level 2",
@@ -21,11 +22,12 @@ export default function Engine() {
           range: 1,
           rate: 2,
           speed: 1,
+          value: 2,
         },
       },
     },
     arrow: {
-      name: "Arrow",
+      name: "Arrow Turret",
       enemy: false,
       newPosition: undefined,
       levels: {
@@ -36,14 +38,16 @@ export default function Engine() {
           range: 3,
           rate: 2,
           speed: 0,
+          value: 5,
         },
         lvl2: {
           name: "Level 2",
-          hp: 8,
+          hp: 10,
           dmg: 4,
           range: 4,
           rate: 2,
           speed: 0,
+          value: 10,
         },
       },
     },
@@ -70,7 +74,6 @@ export default function Engine() {
   //default positions for goblins to spawn (far side of map)
   const goblinSpawn = "J1";
 
-  
   //function to make the gameboard grid
   let gameboard = new Map();
   function gameboardMaker(gameboard) {
@@ -81,7 +84,7 @@ export default function Engine() {
     return gameboard;
   }
   gameboardMaker(gameboard);
-  
+
   //function to update the gameboard entities
   function gameboardUpdater(activeEntities, gameboard) {
     activeEntities.forEach((entity) => {
@@ -94,8 +97,8 @@ export default function Engine() {
     console.log(gameboard);
     return gameboard;
   }
-  
-  //function to check if the space to the left is free, and if so, moves the enemy
+
+  //function to check if the space to the left is free, and if so, moves the enemy and attacks friendly
   function enemyMovement(currentEntity) {
     let oldPosition = currentEntity.position;
     let newPosition = letterChecker(oldPosition) + oldPosition.charAt(1);
@@ -103,10 +106,37 @@ export default function Engine() {
       gameboard.set(oldPosition, undefined);
       currentEntity.position = newPosition;
       gameboardUpdater(activeEntities, gameboard);
-    } else console.log("position taken");
+    } else if (gameboard.get(newPosition).enemy == false) {
+      activeEntities.forEach((entity) => {
+        if (entity.position == newPosition) {
+          entity.hp--;
+          healthChecker(entity, activeEntities, graveyard, gameboard);
+          console.log(entity);
+        }
+      });
+    } else {
+      console.log("position taken");
+    }
   }
-  nextTurn(activeEntities);
-  
+
+  //stores dead bodies
+  let graveyard = [];
+
+  //checks to see if entity dies and if so, sends to graveyard
+  function healthChecker(entity, activeEntities, graveyard, gameboard) {
+    if (entity.hp <= 0) {
+      graveyard.push(activeEntities.slice(activeEntities.indexOf(entity)));
+      activeEntities.splice(activeEntities.indexOf(entity));
+        gameboard.forEach((value, location) => {
+          if (entity.position == location) {
+            gameboard.set(location, undefined);
+          }
+        });
+        console.log(gameboard);
+    }
+
+  }
+
   //function to initiate next turn actions
   function nextTurn(activeEntities) {
     activeEntities.forEach((entity) => {
@@ -115,8 +145,8 @@ export default function Engine() {
       }
     });
   }
-  
-  //lazy function to go back one in the alphabet
+
+  //very lazy function to go back one in the alphabet
   function letterChecker(position) {
     let letter = position.charAt(0);
     if (letter == "A") {
@@ -146,14 +176,17 @@ export default function Engine() {
   //entities to test the Entity object creator
   const testGoblin = new Entity(
     entityList.goblin,
-    entityList.goblin.levels.lvl2, goblinSpawn,
+    entityList.goblin.levels.lvl2,
+    goblinSpawn,
     activeEntities
   );
   const testArrow = new Entity(
     entityList.arrow,
-    entityList.arrow.levels.lvl2, "B1",
+    entityList.arrow.levels.lvl2,
+    "I1",
     activeEntities
   );
-  
+  nextTurn(activeEntities);
+
   return <></>;
 }
