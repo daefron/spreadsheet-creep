@@ -7,7 +7,7 @@ export default function Engine() {
       levels: {
         lvl1: {
           lvl: 1,
-          hp: 6,
+          hp: 7,
           dmg: 1,
           range: 1,
           rate: 2,
@@ -36,7 +36,7 @@ export default function Engine() {
           hp: 5,
           dmg: 3,
           range: 3,
-          rate: 2,
+          rate: 3,
           speed: 0,
           value: 5,
           neededExp: 3,
@@ -56,7 +56,7 @@ export default function Engine() {
           hp: 14,
           dmg: 5,
           range: 4,
-          rate: 2,
+          rate: 1,
           speed: 0,
           value: 15,
           neededExp: 12,
@@ -65,8 +65,46 @@ export default function Engine() {
     },
   };
 
+  //objects holding wave properties
+  const waves = {
+    wave1: {
+      wave: 1,
+      1: {
+        name: "goblin",
+        level: "lvl1",
+        position: "J1",
+      },
+      2: {
+        name: "arrow",
+        level: "lvl1",
+        position: "A1",
+      },
+      7: {
+        name: "goblin",
+        level: "lvl2",
+        position: "J1",
+      },
+      14: {
+        name: "goblin",
+        level: "lvl2",
+        position: "J1",
+      },
+      19: {
+        name: "goblin",
+        level: "lvl2",
+        position: "J1",
+      },
+    },
+  };
+
   //array that holds active entities
   let activeEntities = [];
+
+  //current money
+  let bank = 0;
+
+  //stores dead bodies
+  let graveyard = [];
 
   //function that creates new active entities
   function Entity(type, level, position, activeEntities, name) {
@@ -78,6 +116,7 @@ export default function Engine() {
     this.dmg = level.dmg;
     this.range = level.range;
     this.rate = level.rate;
+    this.charge = 2;
     this.speed = level.speed;
     this.enemy = type.enemy;
     this.value = level.value;
@@ -100,7 +139,6 @@ export default function Engine() {
       boardWidth.forEach((element) => gameboard.set(element + h));
     }
   }
-  gameboardMaker();
 
   //function to update the gameboard entities
   function gameboardUpdater() {
@@ -118,32 +156,33 @@ export default function Engine() {
     let oldPosition = currentEntity.position;
     let newPosition =
       letterSubtractor(oldPosition.charAt(0)) + oldPosition.charAt(1);
-
-    //selects cell based off entity range
     let rangeLetter = letterSubtractor(oldPosition.charAt(0));
     for (let i = currentEntity.range; i > 1; i--) {
       rangeLetter = letterSubtractor(rangeLetter);
     }
     let rangeTarget = rangeLetter + oldPosition.charAt(1);
-
     if (
       gameboard.get(rangeTarget) !== undefined &&
       gameboard.get(rangeTarget).enemy == false
     ) {
       activeEntities.forEach((entity) => {
         if (entity.position == rangeTarget) {
-          entity.hp = entity.hp - currentEntity.dmg;
-          console.log(
-            currentEntity.name +
-              " attacked " +
-              entity.name +
-              " for " +
-              currentEntity.dmg +
-              " damage. " +
-              entity.name +
-              " HP is " +
-              entity.hp
-          );
+          currentEntity.charge++;
+          if (currentEntity.charge == currentEntity.rate) {
+            currentEntity.charge = 0;
+            entity.hp = entity.hp - currentEntity.dmg;
+            console.log(
+              currentEntity.name +
+                " attacked " +
+                entity.name +
+                " for " +
+                currentEntity.dmg +
+                " damage. " +
+                entity.name +
+                " HP is " +
+                entity.hp
+            );
+          }
           healthChecker(entity, currentEntity);
         }
       });
@@ -160,7 +199,6 @@ export default function Engine() {
   function friendlyTurn(currentEntity) {
     let turnTaken = false;
     let oldPosition = currentEntity.position;
-    //selects cell based off entity range
     let rangeLetter = letterAdder(oldPosition.charAt(0));
     let rangeCells = [];
     for (let i = currentEntity.range; i > 0; i--) {
@@ -172,22 +210,26 @@ export default function Engine() {
         gameboard.get(rangeTarget) !== undefined &&
         gameboard.get(rangeTarget).enemy == true
       ) {
+        currentEntity.charge++;
         activeEntities.forEach((entity) => {
           if (entity.position == rangeTarget) {
-            entity.hp = entity.hp - currentEntity.dmg;
-            console.log(
-              currentEntity.name +
-                " attacked " +
-                entity.name +
-                " for " +
-                currentEntity.dmg +
-                " damage. " +
-                entity.name +
-                " HP is " +
-                entity.hp
-            );
-            healthChecker(entity, currentEntity);
-            turnTaken = true;
+            if (currentEntity.charge == currentEntity.rate) {
+              currentEntity.charge = 0;
+              entity.hp = entity.hp - currentEntity.dmg;
+              console.log(
+                currentEntity.name +
+                  " attacked " +
+                  entity.name +
+                  " for " +
+                  currentEntity.dmg +
+                  " damage. " +
+                  entity.name +
+                  " HP is " +
+                  entity.hp
+              );
+              healthChecker(entity, currentEntity);
+              turnTaken = true;
+            }
           }
         });
       }
@@ -197,30 +239,23 @@ export default function Engine() {
     }
   }
 
-  //current money
-  let bank = 0;
-
-  //stores dead bodies
-  let graveyard = [];
-
-  //checks to see if entity dies and if so, sends to graveyard
+  //checks to see if entity dies
   function healthChecker(entity, currentEntity) {
     if (entity.hp <= 0) {
+      currentEntity.charge = 0;
+      console.log(entity.name + " was killed by " + currentEntity.name);
       if (entity.enemy == true) {
         bank = bank + entity.value;
         expTracker(entity, currentEntity);
-      }
-      console.log(
-        entity.name +
-          " was killed by " +
+        console.log(
           currentEntity.name +
-          ". Total Money: $" +
-          bank +
-          ". EXP: " +
-          currentEntity.currentExp +
-          "/" +
-          currentEntity.neededExp
-      );
+            " EXP: " +
+            currentEntity.currentExp +
+            "/" +
+            currentEntity.neededExp
+        );
+        console.log("Total money: $" + bank);
+      }
       graveyard.push(activeEntities.splice(activeEntities.indexOf(entity), 1));
       gameboard.forEach((value, location) => {
         if (entity.position == location) {
@@ -259,18 +294,6 @@ export default function Engine() {
     console.log(
       currentEntity.name + " has leveled up to level " + currentEntity.level
     );
-  }
-
-  //function to initiate next turn actions
-  function nextTurn(currentTurn) {
-    activeEntities.forEach((entity) => {
-      if (entity.enemy == true) {
-        enemyTurn(entity);
-      } else if (entity.enemy == false) {
-        friendlyTurn(entity);
-      }
-    });
-    console.log("Turn " + currentTurn + " over");
   }
 
   //very lazy function to go back one letter in the alphabet
@@ -320,38 +343,6 @@ export default function Engine() {
     return position;
   }
 
-  //objects holding wave properties
-  const waves = {
-    wave1: {
-      wave: 1,
-      1: {
-        name: "goblin",
-        level: "lvl1",
-        position: "J1",
-      },
-      2: {
-        name: "arrow",
-        level: "lvl1",
-        position: "A1",
-      },
-      7: {
-        name: "goblin",
-        level: "lvl2",
-        position: "J1",
-      },
-      14: {
-        name: "goblin",
-        level: "lvl2",
-        position: "J1",
-      },
-      19: {
-        name: "goblin",
-        level: "lvl2",
-        position: "J1",
-      },
-    },
-  };
-
   //spawns entities based on wave
   function spawner(currentWave, currentTurn) {
     let entityType = entityList[currentWave[currentTurn].name];
@@ -384,6 +375,19 @@ export default function Engine() {
     console.log("Wave over");
   }
 
+  //function to initiate next turn actions
+  function nextTurn(currentTurn) {
+    activeEntities.forEach((entity) => {
+      if (entity.enemy == true) {
+        enemyTurn(entity);
+      } else if (entity.enemy == false) {
+        friendlyTurn(entity);
+      }
+    });
+    console.log("Turn " + currentTurn + " over");
+  }
+
+  gameboardMaker();
   amountOfTurns(40, "wave1");
   //NEED TO USE STATE TO GET BUTTON WORKING
   return <></>;
