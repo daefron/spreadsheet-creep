@@ -58,8 +58,8 @@ export default function Engine() {
   let activeEntities = [];
 
   //function that creates new active entities
-  function Entity(type, level, activeEntities) {
-    this.name = type.name;
+  function Entity(type, level, activeEntities, name) {
+    this.name = name;
     this.level = level.name;
     this.hp = level.hp;
     this.dmg = level.dmg;
@@ -125,7 +125,13 @@ export default function Engine() {
               ". Current HP = " +
               entity.hp
           );
-          healthChecker(entity, activeEntities, graveyard, gameboard);
+          healthChecker(
+            entity,
+            currentEntity,
+            activeEntities,
+            graveyard,
+            gameboard
+          );
         }
       });
     } else if (gameboard.get(newPosition) == undefined) {
@@ -165,7 +171,13 @@ export default function Engine() {
                 ". Current HP = " +
                 entity.hp
             );
-            healthChecker(entity, currentEntity, activeEntities, graveyard, gameboard);
+            healthChecker(
+              entity,
+              currentEntity,
+              activeEntities,
+              graveyard,
+              gameboard
+            );
             turnTaken = true;
           }
         });
@@ -180,7 +192,13 @@ export default function Engine() {
   let graveyard = [];
 
   //checks to see if entity dies and if so, sends to graveyard
-  function healthChecker(entity, currentEntity, activeEntities, graveyard, gameboard) {
+  function healthChecker(
+    entity,
+    currentEntity,
+    activeEntities,
+    graveyard,
+    gameboard
+  ) {
     if (entity.hp <= 0) {
       console.log(entity.name + " was killed by " + currentEntity.name);
       graveyard.push(activeEntities.splice(activeEntities.indexOf(entity), 1));
@@ -193,7 +211,7 @@ export default function Engine() {
   }
 
   //function to initiate next turn actions
-  function nextTurn(activeEntities) {
+  function nextTurn(activeEntities, currentTurn) {
     activeEntities.forEach((entity) => {
       if (entity.enemy == true) {
         enemyTurn(entity);
@@ -201,7 +219,7 @@ export default function Engine() {
         friendlyTurn(entity);
       }
     });
-    console.log("Turn over");
+    console.log("Turn " + currentTurn + " over");
   }
 
   //very lazy function to go back one letter in the alphabet
@@ -252,30 +270,64 @@ export default function Engine() {
   }
 
   //entities to test the Entity object creator
-  const testGoblin = new Entity(
-    entityList.goblin,
-    entityList.goblin.levels.lvl2,
-    activeEntities
-  );
-  const testArrow = new Entity(
-    entityList.arrow,
-    entityList.arrow.levels.lvl1,
-    activeEntities
-  );
+  // const testGoblin = new Entity(
+  //   entityList.goblin,
+  //   entityList.goblin.levels.lvl2,
+  //   activeEntities
+  // );
+  // const testArrow = new Entity(
+  //   entityList.arrow,
+  //   entityList.arrow.levels.lvl1,
+  //   activeEntities,
+  //   "arrow1"
+  // );
 
-  const wave1 = []
-
-  function waveHandler(wave) {
-
-  }
+  const waves = {
+    wave1: {
+      wave: 1,
+      1: {
+        name: "goblin",
+        level: "lvl1",
+      },
+      2: {
+        name: "arrow",
+        level: "lvl1",
+      },
+      12: {
+        name: "goblin",
+        level: "lvl2",
+      },
+      20: {
+        name: "goblin",
+        level: "lvl2",
+      },
+    },
+  };
 
   //temp function to set amount of turns to play
-  function amountOfTurns(amount, activeEntities) {
-    for (let i = amount; i > 0; i--) {
-      nextTurn(activeEntities);
+  function amountOfTurns(waveLength, activeEntities, round, waves) {
+    let currentTurn = 1;
+    let currentWave = waves[round];
+    while (currentTurn <= waveLength) {
+      if (currentWave[currentTurn] !== undefined) {
+        let EntityType = entityList[currentWave[currentTurn].name];
+        let EntityLevel =
+          entityList[currentWave[currentTurn].name].levels[
+            currentWave[currentTurn].level
+          ];
+        let entityID = currentWave[currentTurn].name + currentTurn;
+        entityID = new Entity(
+          EntityType,
+          EntityLevel,
+          activeEntities,
+          entityID
+        );
+      }
+      nextTurn(activeEntities, currentTurn);
+      currentTurn++;
     }
   }
-  amountOfTurns(30, activeEntities);
+  amountOfTurns(30, activeEntities, "wave1", waves);
   //NEED TO USE STATE TO GET BUTTON WORKING
   return <></>;
 }
