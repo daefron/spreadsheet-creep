@@ -54,6 +54,16 @@ export default function Engine() {
           value: 10,
           neededExp: 6,
         },
+        lvl3: {
+          lvl: 3,
+          hp: 14,
+          dmg: 5,
+          range: 4,
+          rate: 2,
+          speed: 0,
+          value: 15,
+          neededExp: 12,
+        },
       },
     },
   };
@@ -208,7 +218,11 @@ export default function Engine() {
           " was killed by " +
           currentEntity.name +
           ". Total Money: $" +
-          bank
+          bank +
+          ". EXP: " +
+          currentEntity.currentExp +
+          "/" +
+          currentEntity.neededExp
       );
       graveyard.push(activeEntities.splice(activeEntities.indexOf(entity), 1));
       gameboard.forEach((value, location) => {
@@ -229,19 +243,25 @@ export default function Engine() {
 
   //applies level up for friendly entity
   function levelUp(currentEntity) {
-    console.log(currentEntity);
     let oldProperties = Object.entries(currentEntity);
-    let newLevel = currentEntity.level +1;
-    let newProperties = Object.entries(entityList[currentEntity.type].levels[("lvl" + newLevel)]);
-    console.log(newProperties);
-    oldProperties.forEach(oldProperty => {
-      newProperties.forEach(newProperty => {
-        if (oldProperty[0] == newProperty[0] && oldProperty[1] !== newProperty[1]) {
+    currentEntity.level++;
+    let newLevel = currentEntity.level;
+    let newProperties = Object.entries(
+      entityList[currentEntity.type].levels["lvl" + newLevel]
+    );
+    oldProperties.forEach((oldProperty) => {
+      newProperties.forEach((newProperty) => {
+        if (
+          oldProperty[0] == newProperty[0] &&
+          oldProperty[1] !== newProperty[1]
+        ) {
           currentEntity[oldProperty[0]] = newProperty[1];
         }
       });
     });
-    console.log(currentEntity.name + " has leveled up.");
+    console.log(
+      currentEntity.name + " has leveled up to level " + currentEntity.level
+    );
   }
 
   //function to initiate next turn actions
