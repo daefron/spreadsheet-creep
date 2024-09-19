@@ -2,12 +2,12 @@ export default function Engine() {
   //object that holds default values of entities
   const entityList = {
     goblin: {
-      type: "Goblin",
+      type: "goblin",
       enemy: true,
       position: "J1",
       levels: {
         lvl1: {
-          name: "Level 1",
+          lvl: 1,
           hp: 6,
           dmg: 1,
           range: 1,
@@ -17,7 +17,7 @@ export default function Engine() {
           exp: 1,
         },
         lvl2: {
-          name: "Level 2",
+          lvl: 2,
           hp: 10,
           dmg: 2,
           range: 1,
@@ -29,30 +29,30 @@ export default function Engine() {
       },
     },
     arrow: {
-      type: "Arrow Turret",
+      type: "arrow",
       enemy: false,
       // POSITION TO BE DECIDED BY USER LATER
       position: "C1",
       levels: {
         lvl1: {
-          name: "Level 1",
+          lvl: 1,
           hp: 5,
           dmg: 3,
           range: 3,
           rate: 2,
           speed: 0,
           value: 5,
-          expLevel: 3,
+          neededExp: 3,
         },
         lvl2: {
-          name: "Level 2",
+          lvl: 2,
           hp: 10,
           dmg: 4,
           range: 4,
           rate: 2,
           speed: 0,
           value: 10,
-          expLevel: 6,
+          neededExp: 6,
         },
       },
     },
@@ -64,7 +64,8 @@ export default function Engine() {
   //function that creates new active entities
   function Entity(type, level, activeEntities, name) {
     this.name = name;
-    this.level = level.name;
+    this.type = type.type;
+    this.level = level.lvl;
     this.hp = level.hp;
     this.dmg = level.dmg;
     this.range = level.range;
@@ -75,6 +76,9 @@ export default function Engine() {
     this.value = level.value;
     if (this.enemy == false) {
       this.currentExp = 0;
+      this.neededExp = level.neededExp;
+    } else {
+      this.exp = level.exp;
     }
     activeEntities.push(this);
     console.log(this.name + " spawned at " + this.position);
@@ -197,6 +201,7 @@ export default function Engine() {
     if (entity.hp <= 0) {
       if (entity.enemy == true) {
         bank = bank + entity.value;
+        expTracker(entity, currentEntity);
       }
       console.log(
         entity.name +
@@ -212,6 +217,31 @@ export default function Engine() {
         }
       });
     }
+  }
+
+  //adds and checks exp on kill
+  function expTracker(entity, currentEntity) {
+    currentEntity.currentExp = currentEntity.currentExp + entity.exp;
+    if (currentEntity.currentExp >= currentEntity.neededExp) {
+      levelUp(currentEntity);
+    }
+  }
+
+  //applies level up for friendly entity
+  function levelUp(currentEntity) {
+    console.log(currentEntity);
+    let oldProperties = Object.entries(currentEntity);
+    let newLevel = currentEntity.level +1;
+    let newProperties = Object.entries(entityList[currentEntity.type].levels[("lvl" + newLevel)]);
+    console.log(newProperties);
+    oldProperties.forEach(oldProperty => {
+      newProperties.forEach(newProperty => {
+        if (oldProperty[0] == newProperty[0] && oldProperty[1] !== newProperty[1]) {
+          currentEntity[oldProperty[0]] = newProperty[1];
+        }
+      });
+    });
+    console.log(currentEntity.name + " has leveled up.");
   }
 
   //function to initiate next turn actions
@@ -302,13 +332,13 @@ export default function Engine() {
 
   //spawns entities based on wave
   function spawner(currentWave, currentTurn) {
-    let EntityType = entityList[currentWave[currentTurn].name];
-    let EntityLevel =
+    let entityType = entityList[currentWave[currentTurn].name];
+    let entityLevel =
       entityList[currentWave[currentTurn].name].levels[
         currentWave[currentTurn].level
       ];
     let entityID = currentWave[currentTurn].name + currentTurn;
-    entityID = new Entity(EntityType, EntityLevel, activeEntities, entityID);
+    entityID = new Entity(entityType, entityLevel, activeEntities, entityID);
   }
 
   //function to set amount of turns to play
