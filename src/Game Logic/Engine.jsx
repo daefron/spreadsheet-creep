@@ -4,7 +4,6 @@ export default function Engine() {
     goblin: {
       type: "goblin",
       enemy: true,
-      position: "J1",
       levels: {
         lvl1: {
           lvl: 1,
@@ -31,8 +30,6 @@ export default function Engine() {
     arrow: {
       type: "arrow",
       enemy: false,
-      // POSITION TO BE DECIDED BY USER LATER
-      position: "C1",
       levels: {
         lvl1: {
           lvl: 1,
@@ -72,9 +69,10 @@ export default function Engine() {
   let activeEntities = [];
 
   //function that creates new active entities
-  function Entity(type, level, activeEntities, name) {
+  function Entity(type, level, position, activeEntities, name) {
     this.name = name;
     this.type = type.type;
+    this.position = position;
     this.level = level.lvl;
     this.hp = level.hp;
     this.dmg = level.dmg;
@@ -82,7 +80,6 @@ export default function Engine() {
     this.rate = level.rate;
     this.speed = level.speed;
     this.enemy = type.enemy;
-    this.position = type.position;
     this.value = level.value;
     if (this.enemy == false) {
       this.currentExp = 0;
@@ -330,22 +327,27 @@ export default function Engine() {
       1: {
         name: "goblin",
         level: "lvl1",
+        position: "J1",
       },
       2: {
         name: "arrow",
         level: "lvl1",
+        position: "A1",
       },
-      12: {
+      7: {
         name: "goblin",
         level: "lvl2",
+        position: "J1",
       },
-      20: {
+      14: {
         name: "goblin",
         level: "lvl2",
+        position: "J1",
       },
-      25: {
+      19: {
         name: "goblin",
         level: "lvl2",
+        position: "J1",
       },
     },
   };
@@ -357,8 +359,15 @@ export default function Engine() {
       entityList[currentWave[currentTurn].name].levels[
         currentWave[currentTurn].level
       ];
+    let position = currentWave[currentTurn].position;
     let entityID = currentWave[currentTurn].name + currentTurn;
-    entityID = new Entity(entityType, entityLevel, activeEntities, entityID);
+    entityID = new Entity(
+      entityType,
+      entityLevel,
+      position,
+      activeEntities,
+      entityID
+    );
   }
 
   //function to set amount of turns to play
