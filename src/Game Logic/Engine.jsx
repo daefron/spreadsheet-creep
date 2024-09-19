@@ -2,7 +2,7 @@ export default function Engine() {
   //object that holds default values of entities
   const entityList = {
     goblin: {
-      name: "Goblin",
+      type: "Goblin",
       enemy: true,
       position: "J1",
       levels: {
@@ -27,7 +27,7 @@ export default function Engine() {
       },
     },
     arrow: {
-      name: "Arrow Turret",
+      type: "Arrow Turret",
       enemy: false,
       // POSITION TO BE DECIDED BY USER LATER
       position: "C1",
@@ -269,19 +269,7 @@ export default function Engine() {
     return position;
   }
 
-  //entities to test the Entity object creator
-  // const testGoblin = new Entity(
-  //   entityList.goblin,
-  //   entityList.goblin.levels.lvl2,
-  //   activeEntities
-  // );
-  // const testArrow = new Entity(
-  //   entityList.arrow,
-  //   entityList.arrow.levels.lvl1,
-  //   activeEntities,
-  //   "arrow1"
-  // );
-
+  //objects holding wave properties
   const waves = {
     wave1: {
       wave: 1,
@@ -304,29 +292,35 @@ export default function Engine() {
     },
   };
 
-  //temp function to set amount of turns to play
+  //spawns entities based on wave
+  function spawner(currentWave, currentTurn) {
+    let EntityType = entityList[currentWave[currentTurn].name];
+    let EntityLevel =
+    entityList[currentWave[currentTurn].name].levels[
+      currentWave[currentTurn].level
+    ];
+    let entityID = currentWave[currentTurn].name + currentTurn;
+    entityID = new Entity(
+      EntityType,
+      EntityLevel,
+      activeEntities,
+      entityID
+    );
+  }
+
+  //function to set amount of turns to play
   function amountOfTurns(waveLength, activeEntities, round, waves) {
     let currentTurn = 1;
     let currentWave = waves[round];
     while (currentTurn <= waveLength) {
       if (currentWave[currentTurn] !== undefined) {
-        let EntityType = entityList[currentWave[currentTurn].name];
-        let EntityLevel =
-          entityList[currentWave[currentTurn].name].levels[
-            currentWave[currentTurn].level
-          ];
-        let entityID = currentWave[currentTurn].name + currentTurn;
-        entityID = new Entity(
-          EntityType,
-          EntityLevel,
-          activeEntities,
-          entityID
-        );
+        spawner(currentWave, currentTurn);
       }
       nextTurn(activeEntities, currentTurn);
       currentTurn++;
     }
   }
+
   amountOfTurns(30, activeEntities, "wave1", waves);
   //NEED TO USE STATE TO GET BUTTON WORKING
   return <></>;
