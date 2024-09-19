@@ -69,7 +69,7 @@ export default function Engine() {
     this.enemy = type.enemy;
     this.position = type.position;
     activeEntities.push(this);
-    console.log(this.name + " spawned");
+    console.log(this.name + " spawned at " + this.position);
     gameboardUpdater(activeEntities, gameboard);
   }
 
@@ -120,8 +120,10 @@ export default function Engine() {
             entity.name +
               " damaged " +
               currentEntity.dmg +
-              " hp by " +
-              currentEntity.name
+              " HP by " +
+              currentEntity.name +
+              ". Current HP = " +
+              entity.hp
           );
           healthChecker(entity, activeEntities, graveyard, gameboard);
         }
@@ -137,6 +139,7 @@ export default function Engine() {
   }
 
   function friendlyTurn(currentEntity) {
+    let turnTaken = false;
     let oldPosition = currentEntity.position;
     //selects cell based off entity range
     let rangeLetter = letterAdder(oldPosition.charAt(0));
@@ -157,26 +160,30 @@ export default function Engine() {
               entity.name +
                 " damaged " +
                 currentEntity.dmg +
-                " hp by " +
-                currentEntity.name
+                " HP by " +
+                currentEntity.name +
+                ". Current HP = " +
+                entity.hp
             );
-            return healthChecker(entity, activeEntities, graveyard, gameboard);
+            healthChecker(entity, currentEntity, activeEntities, graveyard, gameboard);
+            turnTaken = true;
           }
         });
       }
     });
-    // console.log(currentEntity.name + " did nothing");
+    if (turnTaken == false) {
+      console.log(currentEntity.name + " did nothing");
+    }
   }
 
   //stores dead bodies
   let graveyard = [];
 
   //checks to see if entity dies and if so, sends to graveyard
-  function healthChecker(entity, activeEntities, graveyard, gameboard) {
+  function healthChecker(entity, currentEntity, activeEntities, graveyard, gameboard) {
     if (entity.hp <= 0) {
-      console.log(entity.name + " died");
-      graveyard.push(activeEntities.slice(activeEntities.indexOf(entity)));
-      activeEntities.splice(activeEntities.indexOf(entity));
+      console.log(entity.name + " was killed by " + currentEntity.name);
+      graveyard.push(activeEntities.splice(activeEntities.indexOf(entity), 1));
       gameboard.forEach((value, location) => {
         if (entity.position == location) {
           gameboard.set(location, undefined);
@@ -220,7 +227,7 @@ export default function Engine() {
     }
     return position;
   }
-
+  //very lazy function to go forward one letter in the alphabet
   function letterAdder(position) {
     if (position == "A") {
       position = "B";
@@ -256,12 +263,19 @@ export default function Engine() {
     activeEntities
   );
 
+  const wave1 = []
+
+  function waveHandler(wave) {
+
+  }
+
+  //temp function to set amount of turns to play
   function amountOfTurns(amount, activeEntities) {
     for (let i = amount; i > 0; i--) {
       nextTurn(activeEntities);
     }
   }
-  amountOfTurns(10, activeEntities);
+  amountOfTurns(30, activeEntities);
   //NEED TO USE STATE TO GET BUTTON WORKING
   return <></>;
 }
