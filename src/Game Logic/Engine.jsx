@@ -17,7 +17,7 @@ export default function Engine() {
         },
         lvl2: {
           lvl: 2,
-          hp: 10,
+          hp: 12,
           dmg: 3,
           range: 1,
           rate: 2,
@@ -33,19 +33,19 @@ export default function Engine() {
       levels: {
         lvl1: {
           lvl: 1,
-          hp: 8,
+          hp: 10,
           dmg: 3,
           range: 3,
-          rate: 3,
+          rate: 2,
           speed: 0,
           value: 5,
           neededExp: 3,
         },
         lvl2: {
           lvl: 2,
-          hp: 10,
+          hp: 12,
           dmg: 4,
-          range: 4,
+          range: 3,
           rate: 2,
           speed: 0,
           value: 10,
@@ -55,7 +55,7 @@ export default function Engine() {
           lvl: 3,
           hp: 14,
           dmg: 5,
-          range: 4,
+          range: 3,
           rate: 2,
           speed: 0,
           value: 15,
@@ -163,7 +163,7 @@ export default function Engine() {
     }
   }
 
-  //function to update the gameboard entities
+  //function to update the gameboard entities in the gameboard
   function gameboardUpdater() {
     activeEntities.forEach((entity) => {
       gameboard.forEach((value, location) => {
@@ -174,91 +174,40 @@ export default function Engine() {
     });
   }
 
-  //function to check if the space to the left is free, and if so, moves the enemy and attacks friendly
-  function enemyTurn(currentEntity) {
+  //function to tell entities what to do on their turn
+  function entityTurn(currentEntity) {
     let turnTaken = false;
-    let oldPosition = currentEntity.position;
-    let newPosition =
-      letterSubtractor(oldPosition.charAt(0)) + oldPosition.charAt(1);
-    let rangeLetter = letterSubtractor(oldPosition.charAt(0));
-    for (let i = currentEntity.range; i > 1; i--) {
-      rangeLetter = letterSubtractor(rangeLetter);
-    }
-    let rangeTarget = rangeLetter + oldPosition.charAt(1);
+    let rangeCells = [];
     currentEntity.rateCharge++;
     currentEntity.speedCharge++;
-    if (
-      gameboard.get(rangeTarget) !== undefined &&
-      gameboard.get(rangeTarget).enemy == false
-    ) {
-      activeEntities.forEach((entity) => {
-        if (
-          entity.position == rangeTarget &&
-          currentEntity.rateCharge >= currentEntity.rate
-        ) {
-          currentEntity.rateCharge = 0;
-          entity.hp = entity.hp - currentEntity.dmg;
-          console.log(
-            currentEntity.name +
-              " attacked " +
-              entity.name +
-              " for " +
-              currentEntity.dmg +
-              " damage. " +
-              entity.name +
-              " HP is " +
-              entity.hp
-          );
-
-          healthChecker(entity, currentEntity);
-          turnTaken = true;
-        }
-      });
-    } else if (
-      gameboard.get(newPosition) == undefined &&
-      currentEntity.speedCharge >= currentEntity.speed
-    ) {
-      currentEntity.speedCharge = 0;
-      gameboard.set(oldPosition, undefined);
-      currentEntity.position = newPosition;
-      gameboardUpdater();
-      console.log(currentEntity.name + " moved to " + currentEntity.position);
-      turnTaken = true;
-    } else if (gameboard.get(newPosition) !== undefined) {
-      console.log(
-        currentEntity.name + " cannot move. " + newPosition + " is taken."
-      );
-    } else if (
-      currentEntity.rateCharge < currentEntity.rate &&
-      turnTaken == false
-    ) {
-      console.log(currentEntity.name + " charging attack.");
-    } else if (currentEntity.speedCharge < currentEntity.speed) {
-      console.log(currentEntity.name + " charging movement.");
-    } else if (turnTaken == false) {
-      console.log(currentEntity.name + " did nothing.");
-    }
-  }
-
-  function friendlyTurn(currentEntity) {
-    let turnTaken = false;
     let oldPosition = currentEntity.position;
-    let rangeLetter = letterAdder(oldPosition.charAt(0));
-    let rangeCells = [];
+    if (currentEntity.enemy == false) {
+      var rangeLetter = letterAdder(oldPosition.charAt(0));
+      var newPosition =
+        letterAdder(oldPosition.charAt(0)) + oldPosition.charAt(1);
+    } else {
+      var rangeLetter = letterSubtractor(oldPosition.charAt(0));
+      var newPosition =
+        letterSubtractor(oldPosition.charAt(0)) + oldPosition.charAt(1);
+    }
     for (let i = currentEntity.range; i > 0; i--) {
       rangeCells.push(rangeLetter + oldPosition.charAt(1));
-      rangeLetter = letterAdder(rangeLetter);
+      if (currentEntity.enemy == false) {
+        rangeLetter = letterAdder(rangeLetter);
+      } else {
+        rangeLetter = letterSubtractor(rangeLetter);
+      }
     }
-    currentEntity.rateCharge++;
     rangeCells.forEach((rangeTarget) => {
       if (
         gameboard.get(rangeTarget) !== undefined &&
-        gameboard.get(rangeTarget).enemy == true
+        gameboard.get(rangeTarget).enemy !== currentEntity.enemy
       ) {
         activeEntities.forEach((entity) => {
           if (
             entity.position == rangeTarget &&
-            currentEntity.rateCharge >= currentEntity.rate
+            currentEntity.rateCharge >= currentEntity.rate &&
+            gameboard.get(rangeTarget).enemy !== currentEntity.enemy
           ) {
             currentEntity.rateCharge = 0;
             entity.hp = entity.hp - currentEntity.dmg;
@@ -277,10 +226,27 @@ export default function Engine() {
             turnTaken = true;
           }
         });
+      } else if (
+        gameboard.get(newPosition) == undefined &&
+        currentEntity.speedCharge >= currentEntity.speed &&
+        currentEntity.speed !== 0 &&
+        turnTaken == false
+      ) {
+        currentEntity.speedCharge = 0;
+        gameboard.set(oldPosition, undefined);
+        currentEntity.position = newPosition;
+        gameboardUpdater();
+        console.log(currentEntity.name + " moved to " + currentEntity.position);
+        turnTaken = true;
       }
     });
     if (currentEntity.rateCharge < currentEntity.rate && turnTaken == false) {
       console.log(currentEntity.name + " charging attack.");
+    } else if (
+      currentEntity.speedCharge < currentEntity.speed &&
+      currentEntity.speed !== 0
+    ) {
+      console.log(currentEntity.name + " charging movement.");
     } else if (turnTaken == false) {
       console.log(currentEntity.name + " did nothing.");
     }
@@ -425,13 +391,14 @@ export default function Engine() {
   //function to initiate next turn actions
   function nextTurn(currentTurn) {
     activeEntities.forEach((entity) => {
-      if (entity.enemy == true) {
-        enemyTurn(entity);
-      } else if (entity.enemy == false) {
-        friendlyTurn(entity);
-      }
+      // if (entity.enemy == true) {
+      //   enemyTurn(entity);
+      // } else if (entity.enemy == false) {
+      //   friendlyTurn(entity);
+      // }
+      entityTurn(entity);
     });
-    console.log("Turn " + currentTurn + " over");
+    console.log("Turn " + currentTurn + " over.");
   }
 
   gameboardMaker();
