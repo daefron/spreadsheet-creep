@@ -7,21 +7,21 @@ export default function Engine() {
       levels: {
         lvl1: {
           lvl: 1,
-          hp: 7,
-          dmg: 1,
+          hp: 6,
+          dmg: 2,
           range: 1,
           rate: 2,
-          speed: 1,
+          speed: 2,
           value: 1,
           exp: 1,
         },
         lvl2: {
           lvl: 2,
           hp: 10,
-          dmg: 2,
+          dmg: 3,
           range: 1,
           rate: 2,
-          speed: 1,
+          speed: 2,
           value: 3,
           exp: 2,
         },
@@ -33,7 +33,7 @@ export default function Engine() {
       levels: {
         lvl1: {
           lvl: 1,
-          hp: 5,
+          hp: 8,
           dmg: 3,
           range: 3,
           rate: 3,
@@ -56,10 +56,10 @@ export default function Engine() {
           hp: 14,
           dmg: 5,
           range: 4,
-          rate: 1,
+          rate: 2,
           speed: 0,
           value: 15,
-          neededExp: 12,
+          neededExp: 30,
         },
       },
     },
@@ -79,7 +79,7 @@ export default function Engine() {
         level: "lvl1",
         position: "A1",
       },
-      7: {
+      3: {
         name: "goblin",
         level: "lvl2",
         position: "J1",
@@ -90,6 +90,26 @@ export default function Engine() {
         position: "J1",
       },
       19: {
+        name: "goblin",
+        level: "lvl2",
+        position: "J1",
+      },
+      27: {
+        name: "goblin",
+        level: "lvl2",
+        position: "J1",
+      },
+      30: {
+        name: "goblin",
+        level: "lvl2",
+        position: "J1",
+      },
+      40: {
+        name: "goblin",
+        level: "lvl2",
+        position: "J1",
+      },
+      41: {
         name: "goblin",
         level: "lvl2",
         position: "J1",
@@ -116,8 +136,11 @@ export default function Engine() {
     this.dmg = level.dmg;
     this.range = level.range;
     this.rate = level.rate;
-    this.charge = 2;
+    let neededRate = level.rate;
+    this.rateCharge = neededRate;
     this.speed = level.speed;
+    let neededSpeed = level.speed;
+    this.speedCharge = neededSpeed;
     this.enemy = type.enemy;
     this.value = level.value;
     if (this.enemy == false) {
@@ -127,7 +150,7 @@ export default function Engine() {
       this.exp = level.exp;
     }
     activeEntities.push(this);
-    console.log(this.name + " spawned at " + this.position);
+    console.log(this.name + " spawned at " + this.position + ".");
     gameboardUpdater();
   }
 
@@ -153,6 +176,7 @@ export default function Engine() {
 
   //function to check if the space to the left is free, and if so, moves the enemy and attacks friendly
   function enemyTurn(currentEntity) {
+    let turnTaken = false;
     let oldPosition = currentEntity.position;
     let newPosition =
       letterSubtractor(oldPosition.charAt(0)) + oldPosition.charAt(1);
@@ -161,38 +185,58 @@ export default function Engine() {
       rangeLetter = letterSubtractor(rangeLetter);
     }
     let rangeTarget = rangeLetter + oldPosition.charAt(1);
+    currentEntity.rateCharge++;
+    currentEntity.speedCharge++;
     if (
       gameboard.get(rangeTarget) !== undefined &&
       gameboard.get(rangeTarget).enemy == false
     ) {
       activeEntities.forEach((entity) => {
-        if (entity.position == rangeTarget) {
-          currentEntity.charge++;
-          if (currentEntity.charge == currentEntity.rate) {
-            currentEntity.charge = 0;
-            entity.hp = entity.hp - currentEntity.dmg;
-            console.log(
-              currentEntity.name +
-                " attacked " +
-                entity.name +
-                " for " +
-                currentEntity.dmg +
-                " damage. " +
-                entity.name +
-                " HP is " +
-                entity.hp
-            );
-          }
+        if (
+          entity.position == rangeTarget &&
+          currentEntity.rateCharge >= currentEntity.rate
+        ) {
+          currentEntity.rateCharge = 0;
+          entity.hp = entity.hp - currentEntity.dmg;
+          console.log(
+            currentEntity.name +
+              " attacked " +
+              entity.name +
+              " for " +
+              currentEntity.dmg +
+              " damage. " +
+              entity.name +
+              " HP is " +
+              entity.hp
+          );
+
           healthChecker(entity, currentEntity);
+          turnTaken = true;
         }
       });
-    } else if (gameboard.get(newPosition) == undefined) {
+    } else if (
+      gameboard.get(newPosition) == undefined &&
+      currentEntity.speedCharge >= currentEntity.speed
+    ) {
+      currentEntity.speedCharge = 0;
       gameboard.set(oldPosition, undefined);
       currentEntity.position = newPosition;
       gameboardUpdater();
       console.log(currentEntity.name + " moved to " + currentEntity.position);
-    } else {
-      console.log("position taken");
+      turnTaken = true;
+    } else if (gameboard.get(newPosition) !== undefined) {
+      console.log(
+        currentEntity.name + " cannot move. " + newPosition + " is taken."
+      );
+    } else if (
+      currentEntity.rateCharge < currentEntity.rate &&
+      turnTaken == false
+    ) {
+      console.log(currentEntity.name + " charging attack.");
+    } else if (currentEntity.speedCharge < currentEntity.speed) {
+      console.log(currentEntity.name + " charging movement.");
+    } else if (turnTaken == false) {
+      console.log(currentEntity.name + " did nothing.");
     }
   }
 
@@ -205,44 +249,47 @@ export default function Engine() {
       rangeCells.push(rangeLetter + oldPosition.charAt(1));
       rangeLetter = letterAdder(rangeLetter);
     }
+    currentEntity.rateCharge++;
     rangeCells.forEach((rangeTarget) => {
       if (
         gameboard.get(rangeTarget) !== undefined &&
         gameboard.get(rangeTarget).enemy == true
       ) {
-        currentEntity.charge++;
         activeEntities.forEach((entity) => {
-          if (entity.position == rangeTarget) {
-            if (currentEntity.charge == currentEntity.rate) {
-              currentEntity.charge = 0;
-              entity.hp = entity.hp - currentEntity.dmg;
-              console.log(
-                currentEntity.name +
-                  " attacked " +
-                  entity.name +
-                  " for " +
-                  currentEntity.dmg +
-                  " damage. " +
-                  entity.name +
-                  " HP is " +
-                  entity.hp
-              );
-              healthChecker(entity, currentEntity);
-              turnTaken = true;
-            }
+          if (
+            entity.position == rangeTarget &&
+            currentEntity.rateCharge >= currentEntity.rate
+          ) {
+            currentEntity.rateCharge = 0;
+            entity.hp = entity.hp - currentEntity.dmg;
+            console.log(
+              currentEntity.name +
+                " attacked " +
+                entity.name +
+                " for " +
+                currentEntity.dmg +
+                " damage. " +
+                entity.name +
+                " HP is " +
+                entity.hp
+            );
+            healthChecker(entity, currentEntity);
+            turnTaken = true;
           }
         });
       }
     });
-    if (turnTaken == false) {
-      console.log(currentEntity.name + " did nothing");
+    if (currentEntity.rateCharge < currentEntity.rate && turnTaken == false) {
+      console.log(currentEntity.name + " charging attack.");
+    } else if (turnTaken == false) {
+      console.log(currentEntity.name + " did nothing.");
     }
   }
 
   //checks to see if entity dies
   function healthChecker(entity, currentEntity) {
     if (entity.hp <= 0) {
-      currentEntity.charge = 0;
+      currentEntity.rateCharge = 0;
       console.log(entity.name + " was killed by " + currentEntity.name);
       if (entity.enemy == true) {
         bank = bank + entity.value;
@@ -388,7 +435,7 @@ export default function Engine() {
   }
 
   gameboardMaker();
-  amountOfTurns(40, "wave1");
+  amountOfTurns(100, "wave1");
   //NEED TO USE STATE TO GET BUTTON WORKING
   return <></>;
 }
