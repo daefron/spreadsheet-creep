@@ -1,86 +1,109 @@
 import { useState } from "react";
 export default function EngineOutput() {
+  const [activeEntities, setActiveEntities] = useState([]);
   const [gameState, setGameState] = useState({
     gameboard: new Map(),
-    activeEntities: [],
     graveyard: [],
     bank: 0,
     currentTurn: 1,
   });
 
-  function Engine(gameState, waveLength) {
+  //function that creates new active entities
+  function Entity(type, level, position, name) {
+    this.name = name;
+    this.type = type.type;
+    this.position = position;
+    this.level = level.lvl;
+    this.hp = level.hp;
+    this.dmg = level.dmg;
+    this.range = level.range;
+    this.rate = level.rate;
+    let neededRate = level.rate;
+    this.rateCharge = neededRate;
+    this.speed = level.speed;
+    let neededSpeed = level.speed;
+    this.speedCharge = neededSpeed;
+    this.enemy = type.enemy;
+    this.value = level.value;
+    if (this.enemy == false) {
+      this.currentExp = 0;
+      this.neededExp = level.neededExp;
+    } else {
+      this.exp = level.exp;
+    }
+  }
+
+  //object that holds default values of entities
+  const entityList = {
+    goblin: {
+      type: "goblin",
+      enemy: true,
+      levels: {
+        lvl1: {
+          lvl: 1,
+          hp: 9,
+          dmg: 3,
+          range: 1,
+          rate: 2,
+          speed: 2,
+          value: 1,
+          exp: 1,
+        },
+        lvl2: {
+          lvl: 2,
+          hp: 12,
+          dmg: 4,
+          range: 1,
+          rate: 2,
+          speed: 2,
+          value: 3,
+          exp: 2,
+        },
+      },
+    },
+    arrow: {
+      type: "arrow",
+      enemy: false,
+      levels: {
+        lvl1: {
+          lvl: 1,
+          hp: 10,
+          dmg: 3,
+          range: 3,
+          rate: 2,
+          speed: 0,
+          value: 5,
+          neededExp: 3,
+        },
+        lvl2: {
+          lvl: 2,
+          hp: 12,
+          dmg: 4,
+          range: 3,
+          rate: 2,
+          speed: 0,
+          value: 10,
+          neededExp: 6,
+        },
+        lvl3: {
+          lvl: 3,
+          hp: 14,
+          dmg: 5,
+          range: 3,
+          rate: 2,
+          speed: 0,
+          value: 15,
+          neededExp: 30,
+        },
+      },
+    },
+  };
+
+  function Engine(gameState, waveLength, activeEntities) {
     let gameboard = gameState.gameboard;
-    let activeEntities = gameState.activeEntities;
     let graveyard = gameState.graveyard;
     let bank = gameState.bank;
     let currentTurn = gameState.currentTurn;
-
-    //object that holds default values of entities
-    const entityList = {
-      goblin: {
-        type: "goblin",
-        enemy: true,
-        levels: {
-          lvl1: {
-            lvl: 1,
-            hp: 9,
-            dmg: 3,
-            range: 1,
-            rate: 2,
-            speed: 2,
-            value: 1,
-            exp: 1,
-          },
-          lvl2: {
-            lvl: 2,
-            hp: 12,
-            dmg: 4,
-            range: 1,
-            rate: 2,
-            speed: 2,
-            value: 3,
-            exp: 2,
-          },
-        },
-      },
-      arrow: {
-        type: "arrow",
-        enemy: false,
-        levels: {
-          lvl1: {
-            lvl: 1,
-            hp: 10,
-            dmg: 3,
-            range: 3,
-            rate: 2,
-            speed: 0,
-            value: 5,
-            neededExp: 3,
-          },
-          lvl2: {
-            lvl: 2,
-            hp: 12,
-            dmg: 4,
-            range: 3,
-            rate: 2,
-            speed: 0,
-            value: 10,
-            neededExp: 6,
-          },
-          lvl3: {
-            lvl: 3,
-            hp: 14,
-            dmg: 5,
-            range: 3,
-            rate: 2,
-            speed: 0,
-            value: 15,
-            neededExp: 30,
-          },
-        },
-      },
-    };
-
     //objects holding wave properties
     const waves = {
       wave1: {
@@ -89,11 +112,6 @@ export default function EngineOutput() {
           name: "goblin",
           level: "lvl1",
           position: "J1",
-        },
-        2: {
-          name: "arrow",
-          level: "lvl1",
-          position: "A1",
         },
         3: {
           name: "goblin",
@@ -132,34 +150,6 @@ export default function EngineOutput() {
         },
       },
     };
-
-    //function that creates new active entities
-    function Entity(type, level, position, activeEntities, name) {
-      this.name = name;
-      this.type = type.type;
-      this.position = position;
-      this.level = level.lvl;
-      this.hp = level.hp;
-      this.dmg = level.dmg;
-      this.range = level.range;
-      this.rate = level.rate;
-      let neededRate = level.rate;
-      this.rateCharge = neededRate;
-      this.speed = level.speed;
-      let neededSpeed = level.speed;
-      this.speedCharge = neededSpeed;
-      this.enemy = type.enemy;
-      this.value = level.value;
-      if (this.enemy == false) {
-        this.currentExp = 0;
-        this.neededExp = level.neededExp;
-      } else {
-        this.exp = level.exp;
-      }
-      activeEntities.push(this);
-      console.log(this.name + " spawned at " + this.position + ".");
-      gameboardUpdater();
-    }
 
     //function to make the gameboard grid
     function gameboardMaker() {
@@ -367,7 +357,7 @@ export default function EngineOutput() {
     }
 
     //spawns entities based on wave
-    function spawner(currentWave, currentTurn) {
+    function spawner(currentWave, currentTurn, activeEntities) {
       let entityType = entityList[currentWave[currentTurn].name];
       let entityLevel =
         entityList[currentWave[currentTurn].name].levels[
@@ -375,13 +365,10 @@ export default function EngineOutput() {
         ];
       let position = currentWave[currentTurn].position;
       let entityID = currentWave[currentTurn].name + currentTurn;
-      entityID = new Entity(
-        entityType,
-        entityLevel,
-        position,
-        activeEntities,
-        entityID
-      );
+      entityID = new Entity(entityType, entityLevel, position, entityID);
+      activeEntities.push(entityID);
+      console.log(entityID.name + " spawned at " + entityID.position + ".");
+      gameboardUpdater();
     }
 
     //function to set amount of turns to play
@@ -389,7 +376,7 @@ export default function EngineOutput() {
       let currentWave = waves[round];
       while (currentTurn <= waveLength) {
         if (currentWave[currentTurn] !== undefined) {
-          spawner(currentWave, currentTurn);
+          spawner(currentWave, currentTurn, activeEntities);
         }
         nextTurn(currentTurn);
         gameState.gameboard = gameboard;
@@ -443,21 +430,86 @@ export default function EngineOutput() {
     amountOfTurns(waveLength, "wave1");
   }
 
-  const [waveLength, setWaveLength] = useState(0);
+  const [waveLength, setWaveLength] = useState(50);
   function updateWaveLength(e) {
     setWaveLength(e.target.value);
   }
 
+  const [friendlyType, setFriendlyType] = useState("arrow");
+  function updateFriendlyType(e) {
+    setFriendlyType(e.target.value);
+  }
+  const [friendlyPosition, setFriendlyPosition] = useState("A1");
+  function updateFriendlyPosition(e) {
+    setFriendlyPosition(e.target.value);
+  }
+  const [friendlyLevel, setFriendlyLevel] = useState(1);
+  function updateFriendlyLevel(e) {
+    setFriendlyLevel(e.target.value);
+  }
+
+  function friendlyEntityParser(
+    entityType,
+    entityPosition,
+    entityLevel,
+    entityList,
+    activeEntities
+  ) {
+    entityType = entityList[entityType];
+    entityLevel = entityType.levels["lvl" + entityLevel];
+    let entityID = entityType.type + 7;
+    entityID = new Entity(
+      entityType,
+      entityLevel,
+      entityPosition,
+      entityID
+    );
+    activeEntities.push(entityID);
+    console.log(entityID.name + " spawned at " + entityPosition);
+  }
 
   return (
     <>
       <div>
-        <p>Amount of rounds: </p>
-        <input type="number" onChange={updateWaveLength} value={waveLength}></input>
+        <p>Friendly spawner:</p>
+        <p>Type:</p>
+        <input value={friendlyType} onChange={updateFriendlyType}></input>
+        <p>Position:</p>
+        <input
+          value={friendlyPosition}
+          onChange={updateFriendlyPosition}
+        ></input>
+        <p>Level:</p>
+        <input
+          type="number"
+          value={friendlyLevel}
+          onChange={updateFriendlyLevel}
+        ></input>
       </div>
       <button
         onClick={() => {
-          Engine(gameState, waveLength);
+          friendlyEntityParser(
+            friendlyType,
+            friendlyPosition,
+            friendlyLevel,
+            entityList,
+            activeEntities
+          );
+        }}
+      >
+        Add Friendly
+      </button>
+      <div>
+        <p>Amount of rounds: </p>
+        <input
+          type="number"
+          onChange={updateWaveLength}
+          value={waveLength}
+        ></input>
+      </div>
+      <button
+        onClick={() => {
+          Engine(gameState, waveLength, activeEntities);
         }}
       >
         Start Round
