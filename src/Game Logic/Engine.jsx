@@ -1,4 +1,4 @@
-export default function Engine() {
+export default function Engine(gameboard, activeEntities, graveyard, bank) {
   //object that holds default values of entities
   const entityList = {
     goblin: {
@@ -117,15 +117,6 @@ export default function Engine() {
     },
   };
 
-  //array that holds active entities
-  let activeEntities = [];
-
-  //current money
-  let bank = 0;
-
-  //stores dead bodies
-  let graveyard = [];
-
   //function that creates new active entities
   function Entity(type, level, position, activeEntities, name) {
     this.name = name;
@@ -155,7 +146,6 @@ export default function Engine() {
   }
 
   //function to make the gameboard grid
-  let gameboard = new Map();
   function gameboardMaker() {
     const boardWidth = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
     for (let h = 1; h < 10; h++) {
@@ -383,19 +373,42 @@ export default function Engine() {
         spawner(currentWave, currentTurn);
       }
       nextTurn(currentTurn);
+      if (victoryChecker(round, currentTurn, waveLength) == waveLength) {
+        currentTurn = waveLength;
+      }
       currentTurn++;
     }
     console.log("Wave over");
   }
 
-  //function to initiate next turn actions
+  //function to check if and which side has won round
+  function victoryChecker(round, currentTurn, waveLength) {
+    let spawnTurns = [];
+    Object.keys(waves[round]).forEach((element) => {
+      spawnTurns.push(element);
+    });
+    spawnTurns.pop();
+    let finalSpawn = spawnTurns[spawnTurns.length - 1];
+    let activeEnemies = 0;
+    let activeFriendlies = 0;
+    activeEntities.forEach((entity) => {
+      if (entity.enemy == true) {
+        activeEnemies++;
+      } else activeFriendlies++;
+    });
+    // TO BE CHANGED TO DIFFERENT LOSS CONDITIION LATER
+    if (currentTurn > finalSpawn && activeFriendlies < 1) {
+      console.log("Enemy Victory");
+      return waveLength;
+    } else if (currentTurn > finalSpawn && activeEnemies == 0) {
+      console.log("Friendly Victory.");
+      return waveLength;
+    }
+  }
+
+  //function to make all entities take turn
   function nextTurn(currentTurn) {
     activeEntities.forEach((entity) => {
-      // if (entity.enemy == true) {
-      //   enemyTurn(entity);
-      // } else if (entity.enemy == false) {
-      //   friendlyTurn(entity);
-      // }
       entityTurn(entity);
     });
     console.log("Turn " + currentTurn + " over.");
@@ -403,6 +416,5 @@ export default function Engine() {
 
   gameboardMaker();
   amountOfTurns(100, "wave1");
-  //NEED TO USE STATE TO GET BUTTON WORKING
-  return <></>;
+  return gameboard, activeEntities, graveyard, bank;
 }
