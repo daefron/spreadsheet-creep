@@ -448,6 +448,7 @@ export default function EngineOutput() {
     setFriendlyLevel(e.target.value);
   }
 
+  const [friendlyCount, setFriendlyCount] = useState(1);
   function friendlyEntityParser(
     entityType,
     entityPosition,
@@ -455,15 +456,12 @@ export default function EngineOutput() {
     entityList,
     activeEntities
   ) {
+    let ID = friendlyCount + 1;
+    setFriendlyCount(ID);
     entityType = entityList[entityType];
     entityLevel = entityType.levels["lvl" + entityLevel];
-    let entityID = entityType.type + 7;
-    entityID = new Entity(
-      entityType,
-      entityLevel,
-      entityPosition,
-      entityID
-    );
+    let entityID = entityType.type + friendlyCount;
+    entityID = new Entity(entityType, entityLevel, entityPosition, entityID);
     activeEntities.push(entityID);
     console.log(entityID.name + " spawned at " + entityPosition);
   }
