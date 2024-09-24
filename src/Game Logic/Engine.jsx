@@ -207,7 +207,6 @@ export default function EngineOutput() {
         rangeCells.push(rangeLetter + oldPosition.charAt(1));
         rangeLetter = letterParser(rangeLetter, currentEntity.enemy);
       }
-
       rangeCells.forEach((rangeTarget) => {
         if (
           gameboard.get(rangeTarget) !== undefined &&
@@ -388,16 +387,18 @@ export default function EngineOutput() {
     //sets amount of turns to play
     function amountOfTurns(waveLength, round) {
       let currentWave = waves[round];
-      while (currentTurn <= waveLength) {
-        if (currentWave[currentTurn] !== undefined) {
-          spawner(currentWave, currentTurn, activeEntities);
+      setInterval(() => {
+        if (currentTurn <= waveLength) {
+          if (currentWave[currentTurn] !== undefined) {
+            spawner(currentWave, currentTurn, activeEntities);
+          }
+          nextTurn(currentTurn);
+          if (victoryChecker(round, currentTurn, waveLength) == waveLength) {
+            currentTurn = waveLength;
+          }
+          currentTurn++;
         }
-        nextTurn(currentTurn);
-        if (victoryChecker(round, currentTurn, waveLength) == waveLength) {
-          currentTurn = waveLength;
-        }
-        currentTurn++;
-      }
+      }, 500);
     }
 
     //makes all entities take turn
