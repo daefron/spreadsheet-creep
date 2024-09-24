@@ -113,62 +113,63 @@ export default function EngineOutput() {
     },
   };
 
+  //object holding wave properties
+  const waves = {
+    wave1: {
+      wave: 1,
+      1: {
+        name: "goblin",
+        level: "lvl1",
+        position: "J1",
+      },
+      3: {
+        name: "goblin",
+        level: "lvl2",
+        position: "J1",
+      },
+      14: {
+        name: "goblin",
+        level: "lvl2",
+        position: "J1",
+      },
+      19: {
+        name: "goblin",
+        level: "lvl2",
+        position: "J1",
+      },
+      27: {
+        name: "goblin",
+        level: "lvl2",
+        position: "J1",
+      },
+      30: {
+        name: "goblin",
+        level: "lvl2",
+        position: "J1",
+      },
+      40: {
+        name: "goblin",
+        level: "lvl2",
+        position: "J1",
+      },
+      41: {
+        name: "goblin",
+        level: "lvl2",
+        position: "J1",
+      },
+    },
+  };
+
   function Engine(
     activeEntities,
     gameboard,
     graveyard,
     bank,
     currentTurn,
-    waveLength
+    waveLength,
+    waves
   ) {
-    //objects holding wave properties
-    const waves = {
-      wave1: {
-        wave: 1,
-        1: {
-          name: "goblin",
-          level: "lvl1",
-          position: "J1",
-        },
-        3: {
-          name: "goblin",
-          level: "lvl2",
-          position: "J1",
-        },
-        14: {
-          name: "goblin",
-          level: "lvl2",
-          position: "J1",
-        },
-        19: {
-          name: "goblin",
-          level: "lvl2",
-          position: "J1",
-        },
-        27: {
-          name: "goblin",
-          level: "lvl2",
-          position: "J1",
-        },
-        30: {
-          name: "goblin",
-          level: "lvl2",
-          position: "J1",
-        },
-        40: {
-          name: "goblin",
-          level: "lvl2",
-          position: "J1",
-        },
-        41: {
-          name: "goblin",
-          level: "lvl2",
-          position: "J1",
-        },
-      },
-    };
-
-    //function to make the gameboard grid
+    //creates the gameboard grid
     function gameboardMaker() {
       const boardWidth = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
       for (let h = 1; h < 10; h++) {
@@ -177,7 +178,7 @@ export default function EngineOutput() {
       friendlyPositionChecker("king", "A1", 1, entityList, activeEntities);
     }
 
-    //function to update the gameboard entities in the gameboard
+    //updates the gameboard entities in the gameboard
     function gameboardUpdater() {
       activeEntities.forEach((entity) => {
         gameboard.forEach((value, location) => {
@@ -188,30 +189,25 @@ export default function EngineOutput() {
       });
     }
 
-    //function to tell entities what to do on their turn
+    //tells entities what to do on their turn
     function entityTurn(currentEntity) {
       let turnTaken = false;
       let rangeCells = [];
       currentEntity.rateCharge++;
       currentEntity.speedCharge++;
       let oldPosition = currentEntity.position;
-      if (currentEntity.enemy == false) {
-        var rangeLetter = letterAdder(oldPosition.charAt(0));
-        var newPosition =
-          letterAdder(oldPosition.charAt(0)) + oldPosition.charAt(1);
-      } else {
-        var rangeLetter = letterSubtractor(oldPosition.charAt(0));
-        var newPosition =
-          letterSubtractor(oldPosition.charAt(0)) + oldPosition.charAt(1);
-      }
+      let rangeLetter = letterParser(
+        oldPosition.charAt(0),
+        currentEntity.enemy
+      );
+      let newPosition =
+        letterParser(oldPosition.charAt(0), currentEntity.enemy) +
+        oldPosition.charAt(1);
       for (let i = currentEntity.range; i > 0; i--) {
         rangeCells.push(rangeLetter + oldPosition.charAt(1));
-        if (currentEntity.enemy == false) {
-          rangeLetter = letterAdder(rangeLetter);
-        } else {
-          rangeLetter = letterSubtractor(rangeLetter);
-        }
+        rangeLetter = letterParser(rangeLetter, currentEntity.enemy);
       }
+
       rangeCells.forEach((rangeTarget) => {
         if (
           gameboard.get(rangeTarget) !== undefined &&
@@ -327,51 +323,51 @@ export default function EngineOutput() {
       );
     }
 
-    //very lazy function to go back one letter in the alphabet
-    function letterSubtractor(position) {
-      if (position == "B") {
-        position = "A";
-      } else if (position == "C") {
-        position = "B";
-      } else if (position == "D") {
-        position = "C";
-      } else if (position == "E") {
-        position = "D";
-      } else if (position == "F") {
-        position = "E";
-      } else if (position == "G") {
-        position = "F";
-      } else if (position == "H") {
-        position = "G";
-      } else if (position == "I") {
-        position = "H";
-      } else if (position == "J") {
-        position = "I";
+    //lazy function to go back or forward one letter in alphabet depending on if enemy
+    function letterParser(position, enemy) {
+      if (enemy == true) {
+        if (position == "B") {
+          position = "A";
+        } else if (position == "C") {
+          position = "B";
+        } else if (position == "D") {
+          position = "C";
+        } else if (position == "E") {
+          position = "D";
+        } else if (position == "F") {
+          position = "E";
+        } else if (position == "G") {
+          position = "F";
+        } else if (position == "H") {
+          position = "G";
+        } else if (position == "I") {
+          position = "H";
+        } else if (position == "J") {
+          position = "I";
+        }
+        return position;
+      } else if (enemy == false) {
+        if (position == "A") {
+          position = "B";
+        } else if (position == "B") {
+          position = "C";
+        } else if (position == "C") {
+          position = "D";
+        } else if (position == "D") {
+          position = "E";
+        } else if (position == "E") {
+          position = "F";
+        } else if (position == "F") {
+          position = "G";
+        } else if (position == "G") {
+          position = "H";
+        } else if (position == "H") {
+          position = "I";
+        } else if (position == "I") {
+          position = "J";
+        }
+        return position;
       }
-      return position;
-    }
-    //very lazy function to go forward one letter in the alphabet
-    function letterAdder(position) {
-      if (position == "A") {
-        position = "B";
-      } else if (position == "B") {
-        position = "C";
-      } else if (position == "C") {
-        position = "D";
-      } else if (position == "D") {
-        position = "E";
-      } else if (position == "E") {
-        position = "F";
-      } else if (position == "F") {
-        position = "G";
-      } else if (position == "G") {
-        position = "H";
-      } else if (position == "H") {
-        position = "I";
-      } else if (position == "I") {
-        position = "J";
-      }
-      return position;
     }
 
     //spawns entities based on wave
@@ -389,7 +385,7 @@ export default function EngineOutput() {
       gameboardUpdater();
     }
 
-    //function to set amount of turns to play
+    //sets amount of turns to play
     function amountOfTurns(waveLength, round) {
       let currentWave = waves[round];
       while (currentTurn <= waveLength) {
@@ -404,7 +400,7 @@ export default function EngineOutput() {
       }
     }
 
-    //function to make all entities take turn
+    //makes all entities take turn
     function nextTurn(currentTurn) {
       activeEntities.forEach((entity) => {
         entityTurn(entity);
@@ -412,7 +408,7 @@ export default function EngineOutput() {
       console.log("Turn " + currentTurn + " over.");
     }
 
-    //function to check if and which side has won round
+    //checks if and which side has won round
     function victoryChecker(round, currentTurn, waveLength) {
       let spawnTurns = [];
       Object.keys(waves[round]).forEach((element) => {
@@ -464,27 +460,8 @@ export default function EngineOutput() {
     amountOfTurns(waveLength, "wave1");
   }
 
-  const [waveLength, setWaveLength] = useState(200);
-  function updateWaveLength(e) {
-    setWaveLength(e.target.value);
-  }
-
-  const [friendlyType, setFriendlyType] = useState("arrow");
-  function updateFriendlyType(e) {
-    setFriendlyType(e.target.value);
-  }
-  const [friendlyPosition, setFriendlyPosition] = useState("B1");
-  function updateFriendlyPosition(e) {
-    setFriendlyPosition(e.target.value);
-  }
-  const [friendlyLevel, setFriendlyLevel] = useState(1);
-  function updateFriendlyLevel(e) {
-    setFriendlyLevel(e.target.value);
-  }
-
+  //translates user input into data Entity maker can use
   const [friendlyCount, setFriendlyCount] = useState(1);
-
-  //function to translate user input into data Entity maker can use
   function friendlyEntityParser(
     entityType,
     entityPosition,
@@ -502,7 +479,7 @@ export default function EngineOutput() {
     console.log(entityID.name + " spawned at " + entityPosition);
   }
 
-  //function to determine if position is allowed
+  //determines if position for friendly spawn is allowed
   function friendlyPositionChecker(
     friendlyType,
     friendlyPosition,
@@ -531,6 +508,24 @@ export default function EngineOutput() {
         activeEntities
       );
     }
+  }
+
+  //user inputs
+  const [waveLength, setWaveLength] = useState(200);
+  function updateWaveLength(e) {
+    setWaveLength(e.target.value);
+  }
+  const [friendlyType, setFriendlyType] = useState("arrow");
+  function updateFriendlyType(e) {
+    setFriendlyType(e.target.value);
+  }
+  const [friendlyPosition, setFriendlyPosition] = useState("B1");
+  function updateFriendlyPosition(e) {
+    setFriendlyPosition(e.target.value);
+  }
+  const [friendlyLevel, setFriendlyLevel] = useState(1);
+  function updateFriendlyLevel(e) {
+    setFriendlyLevel(e.target.value);
   }
 
   return (
@@ -580,7 +575,8 @@ export default function EngineOutput() {
             graveyard,
             bank,
             currentTurn,
-            waveLength
+            waveLength,
+            waves
           );
         }}
       >
