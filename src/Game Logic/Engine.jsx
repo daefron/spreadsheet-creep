@@ -1,12 +1,10 @@
 import { useState } from "react";
 export default function EngineOutput() {
   const [activeEntities, setActiveEntities] = useState([]);
-  const [gameState, setGameState] = useState({
-    gameboard: new Map(),
-    graveyard: [],
-    bank: 0,
-    currentTurn: 1,
-  });
+  const [gameboard, setGameboard] = useState(new Map());
+  const [graveyard, setGraveyard] = useState([]);
+  const [bank, setBank] = useState(0);
+  const [currentTurn, setCurrentTurn] = useState(1);
 
   //function that creates new active entities
   function Entity(type, level, position, name) {
@@ -97,13 +95,32 @@ export default function EngineOutput() {
         },
       },
     },
+    king: {
+      type: "king",
+      enemy: false,
+      levels: {
+        lvl1: {
+          lvl: 1,
+          hp: 20,
+          dmg: 5,
+          range: 1,
+          rate: 1,
+          speed: 0,
+          value: 30,
+          neededExp: 100,
+        },
+      },
+    },
   };
 
-  function Engine(gameState, waveLength, activeEntities) {
-    let gameboard = gameState.gameboard;
-    let graveyard = gameState.graveyard;
-    let bank = gameState.bank;
-    let currentTurn = gameState.currentTurn;
+  function Engine(
+    activeEntities,
+    gameboard,
+    graveyard,
+    bank,
+    currentTurn,
+    waveLength
+  ) {
     //objects holding wave properties
     const waves = {
       wave1: {
@@ -157,6 +174,7 @@ export default function EngineOutput() {
       for (let h = 1; h < 10; h++) {
         boardWidth.forEach((element) => gameboard.set(element + h));
       }
+      friendlyPositionChecker("king", "A1", 1, entityList, activeEntities);
     }
 
     //function to update the gameboard entities in the gameboard
@@ -379,17 +397,11 @@ export default function EngineOutput() {
           spawner(currentWave, currentTurn, activeEntities);
         }
         nextTurn(currentTurn);
-        gameState.gameboard = gameboard;
-        gameState.activeEntities = activeEntities;
-        gameState.graveyard = graveyard;
-        gameState.bank = bank;
-        gameState.currentTurn = currentTurn;
         if (victoryChecker(round, currentTurn, waveLength) == waveLength) {
           currentTurn = waveLength;
         }
         currentTurn++;
       }
-      console.log("Wave over");
     }
 
     //function to make all entities take turn
@@ -413,24 +425,46 @@ export default function EngineOutput() {
           activeEnemies++;
         } else activeFriendlies++;
       });
-      // TO BE CHANGED TO DIFFERENT LOSS CONDITIION LATER AS FRIENDLY SPAWNING NOT FUNCTIONAL YET
-      if (currentTurn > 10 && activeFriendlies < 1) {
+      let kingAlive;
+      activeEntities.forEach((entity) => {
+        if (entity.type == "king") {
+          return (kingAlive = true);
+        }
+      });
+      if (kingAlive !== true) {
         console.log("Enemy Victory");
+        gameboardClearer(false);
         return waveLength;
       } else if (
         currentTurn > spawnTurns[spawnTurns.length - 2] &&
         activeEnemies == 0
       ) {
-        console.log("Friendly Victory.");
+        console.log("Friendly Victory");
+        gameboardClearer(true);
+        setBank(bank);
         return waveLength;
+      } else if (currentTurn > waveLength) {
+        console.log("Wave Over");
       }
     }
 
+    //clears the gameboard on victory
+    function gameboardClearer(victory) {
+      if (victory == true) {
+        activeEntities.forEach((entity) => {
+          if (entity.enemy == true) {
+            activeEntities.pop(entity);
+          }
+        });
+      } else {
+        setActiveEntities([]);
+      }
+    }
     gameboardMaker();
     amountOfTurns(waveLength, "wave1");
   }
 
-  const [waveLength, setWaveLength] = useState(50);
+  const [waveLength, setWaveLength] = useState(200);
   function updateWaveLength(e) {
     setWaveLength(e.target.value);
   }
@@ -439,7 +473,7 @@ export default function EngineOutput() {
   function updateFriendlyType(e) {
     setFriendlyType(e.target.value);
   }
-  const [friendlyPosition, setFriendlyPosition] = useState("A1");
+  const [friendlyPosition, setFriendlyPosition] = useState("B1");
   function updateFriendlyPosition(e) {
     setFriendlyPosition(e.target.value);
   }
@@ -449,6 +483,8 @@ export default function EngineOutput() {
   }
 
   const [friendlyCount, setFriendlyCount] = useState(1);
+
+  //function to translate user input into data Entity maker can use
   function friendlyEntityParser(
     entityType,
     entityPosition,
@@ -464,6 +500,37 @@ export default function EngineOutput() {
     entityID = new Entity(entityType, entityLevel, entityPosition, entityID);
     activeEntities.push(entityID);
     console.log(entityID.name + " spawned at " + entityPosition);
+  }
+
+  //function to determine if position is allowed
+  function friendlyPositionChecker(
+    friendlyType,
+    friendlyPosition,
+    friendlyLevel,
+    entityList,
+    activeEntities
+  ) {
+    let positionAllowed;
+    if (friendlyPosition == "A1" && friendlyType !== "king") {
+      console.log("Cannot place in A1, position reserved for king");
+      positionAllowed = false;
+    } else {
+      activeEntities.forEach((entity) => {
+        if (entity.position == friendlyPosition) {
+          console.log("Position taken by " + entity.name);
+          return (positionAllowed = false);
+        }
+      });
+    }
+    if (positionAllowed !== false) {
+      friendlyEntityParser(
+        friendlyType,
+        friendlyPosition,
+        friendlyLevel,
+        entityList,
+        activeEntities
+      );
+    }
   }
 
   return (
@@ -486,7 +553,7 @@ export default function EngineOutput() {
       </div>
       <button
         onClick={() => {
-          friendlyEntityParser(
+          friendlyPositionChecker(
             friendlyType,
             friendlyPosition,
             friendlyLevel,
@@ -507,7 +574,14 @@ export default function EngineOutput() {
       </div>
       <button
         onClick={() => {
-          Engine(gameState, waveLength, activeEntities);
+          Engine(
+            activeEntities,
+            gameboard,
+            graveyard,
+            bank,
+            currentTurn,
+            waveLength
+          );
         }}
       >
         Start Round
