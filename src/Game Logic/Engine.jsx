@@ -187,6 +187,7 @@ export default function EngineOutput() {
           }
         });
       });
+      updateGameboardGrid();
     }
 
     //tells entities what to do on their turn
@@ -398,7 +399,7 @@ export default function EngineOutput() {
           }
           currentTurn++;
         }
-      }, 500);
+      }, 50);
     }
 
     //makes all entities take turn
@@ -529,6 +530,49 @@ export default function EngineOutput() {
     setFriendlyLevel(e.target.value);
   }
 
+  const [gameboardGrid, setGameboardGrid] = useState([]);
+  function updateGameboardGrid() {
+    let gameboardPositions = [];
+    gameboard.forEach((entity, position) => {
+      gameboardPositions.push(position);
+    });
+    gameboard.forEach((entity, position) => {
+      let positionIndex = gameboardPositions.indexOf(position);
+      if (gameboardGrid[positionIndex] == undefined) {
+        if (entity !== undefined) {
+          return gameboardGrid.push(
+            <p key={position}>
+              {position} {entity.name}
+            </p>
+          );
+        } else {
+          return gameboardGrid.push(<p key={position}>{position}</p>);
+        }
+      } else {
+        if (entity !== undefined) {
+          return gameboardGrid.splice(
+            gameboardGrid.indexOf(positionIndex),
+            1,
+            <p key={position}>
+              {position} {entity.name}
+            </p>
+          );
+        } else {
+          return gameboardGrid.splice(
+            gameboardGrid.indexOf(positionIndex),
+            1,
+            <p key={position}>{position}</p>
+          );
+        }
+      }
+    });
+    setGameboardGrid(gameboardGrid);
+  }
+  //renders the grid to the DOM
+  function GameboardGrid() {
+    return <>{gameboardGrid}</>;
+  }
+
   return (
     <>
       <div>
@@ -583,6 +627,9 @@ export default function EngineOutput() {
       >
         Start Round
       </button>
+      <div>
+        <GameboardGrid></GameboardGrid>
+      </div>
     </>
   );
 }
