@@ -1,11 +1,20 @@
 import { useState } from "react";
 export default function EngineOutput() {
   const [activeEntities, setActiveEntities] = useState([]);
-  const [gameboard, setGameboard] = useState(new Map());
   const [graveyard, setGraveyard] = useState([]);
   const [bank, setBank] = useState(0);
   const [currentTurn, setCurrentTurn] = useState(1);
 
+  //creates the gameboard as a reference point
+  const gameboard = gameboardMaker();
+  function gameboardMaker() {
+    let grid = [];
+    const boardWidth = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
+    for (let h = 1; h < 10; h++) {
+      boardWidth.forEach((element) => grid.push(element + h));
+    }
+    return grid;
+  }
   //function that creates new active entities
   function Entity(type, level, position, name) {
     this.name = name;
@@ -169,27 +178,6 @@ export default function EngineOutput() {
     waveLength,
     waves
   ) {
-    //creates the gameboard grid
-    function gameboardMaker() {
-      const boardWidth = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
-      for (let h = 1; h < 10; h++) {
-        boardWidth.forEach((element) => gameboard.set(element + h));
-      }
-      friendlyPositionChecker("king", "A1", 1, entityList, activeEntities);
-    }
-
-    //updates the gameboard entities in the gameboard
-    function gameboardUpdater() {
-      activeEntities.forEach((entity) => {
-        gameboard.forEach((value, location) => {
-          if (entity.position == location && location !== undefined) {
-            gameboard.set(location, entity);
-          }
-        });
-      });
-      updateGameboardGrid();
-    }
-
     //tells entities what to do on their turn
     function entityTurn(currentEntity) {
       let turnTaken = false;
@@ -209,54 +197,48 @@ export default function EngineOutput() {
         rangeLetter = letterParser(rangeLetter, currentEntity.enemy);
       }
       rangeCells.forEach((rangeTarget) => {
-        if (
-          gameboard.get(rangeTarget) !== undefined &&
-          gameboard.get(rangeTarget).enemy !== currentEntity.enemy
-        ) {
-          activeEntities.forEach((entity) => {
-            if (
-              entity.position == rangeTarget &&
-              currentEntity.rateCharge >= currentEntity.rate &&
-              gameboard.get(rangeTarget).enemy !== currentEntity.enemy
-            ) {
-              currentEntity.rateCharge = 0;
-              entity.hp = entity.hp - currentEntity.dmg;
-              console.log(
-                currentEntity.name +
-                  " attacked " +
-                  entity.name +
-                  " for " +
-                  currentEntity.dmg +
-                  " damage. " +
-                  entity.name +
-                  " HP is " +
-                  entity.hp
-              );
-              healthChecker(entity, currentEntity);
-              turnTaken = true;
-            }
-          });
-        } else if (
-          gameboard.get(newPosition) == undefined &&
-          currentEntity.speedCharge >= currentEntity.speed &&
-          currentEntity.speed !== 0 &&
-          turnTaken == false
-        ) {
-          currentEntity.speedCharge = 0;
-          gameboard.set(oldPosition, undefined);
-          currentEntity.position = newPosition;
-          gameboardUpdater();
-          console.log(
-            currentEntity.name + " moved to " + currentEntity.position
-          );
-          turnTaken = true;
-        }
+        activeEntities.forEach((entity) => {
+          if (
+            entity.position == rangeTarget &&
+            currentEntity.rateCharge >= currentEntity.rate &&
+            entity.enemy !== currentEntity.enemy
+          ) {
+            currentEntity.rateCharge = 0;
+            entity.hp = entity.hp - currentEntity.dmg;
+            console.log(
+              currentEntity.name +
+                " attacked " +
+                entity.name +
+                " for " +
+                currentEntity.dmg +
+                " damage. " +
+                entity.name +
+                " HP is " +
+                entity.hp
+            );
+            healthChecker(entity, currentEntity);
+            turnTaken = true;
+          } else if (
+            entity.position !== newPosition &&
+            currentEntity.speedCharge >= currentEntity.speed &&
+            currentEntity.speed !== 0 &&
+            turnTaken == false
+          ) {
+            currentEntity.speedCharge = 0;
+            currentEntity.position = newPosition;
+            console.log(
+              currentEntity.name + " moved to " + currentEntity.position
+            );
+            turnTaken = true;
+          }
+        });
       });
       if (currentEntity.rateCharge < currentEntity.rate && turnTaken == false) {
         console.log(currentEntity.name + " charging attack.");
       } else if (
         currentEntity.speedCharge < currentEntity.speed &&
-        currentEntity.speed !== 0
+        currentEntity.speed !== 0 &&
+        turnTaken == false
       ) {
         console.log(currentEntity.name + " charging movement.");
       } else if (turnTaken == false) {
@@ -284,11 +266,6 @@ export default function EngineOutput() {
         graveyard.push(
           activeEntities.splice(activeEntities.indexOf(entity), 1)
         );
-        gameboard.forEach((value, location) => {
-          if (entity.position == location) {
-            gameboard.set(location, undefined);
-          }
-        });
       }
     }
 
@@ -382,7 +359,6 @@ export default function EngineOutput() {
       entityID = new Entity(entityType, entityLevel, position, entityID);
       activeEntities.push(entityID);
       console.log(entityID.name + " spawned at " + entityID.position + ".");
-      gameboardUpdater();
     }
 
     //sets amount of turns to play
@@ -431,14 +407,14 @@ export default function EngineOutput() {
       });
       if (kingAlive !== true) {
         console.log("Enemy Victory");
-        gameboardClearer(false);
+        activeEntitiesClearer(false);
         return waveLength;
       } else if (
         currentTurn > spawnTurns[spawnTurns.length - 2] &&
         activeEnemies == 0
       ) {
-        console.log("Friendly Victory");
-        gameboardClearer(true);
+        console.log("Friendly Victory - Total Money: $" + bank);
+        activeEntitiesClearer(true);
         setBank(bank);
         return waveLength;
       } else if (currentTurn > waveLength) {
@@ -446,8 +422,8 @@ export default function EngineOutput() {
       }
     }
 
-    //clears the gameboard on victory
-    function gameboardClearer(victory) {
+    //clears the activeEntities on victory
+    function activeEntitiesClearer(victory) {
       if (victory == true) {
         activeEntities.forEach((entity) => {
           if (entity.enemy == true) {
@@ -458,7 +434,8 @@ export default function EngineOutput() {
         setActiveEntities([]);
       }
     }
-    gameboardMaker();
+    
+    friendlyPositionChecker("king", "A1", 1, entityList, activeEntities);
     amountOfTurns(waveLength, "wave1");
   }
 
@@ -530,48 +507,49 @@ export default function EngineOutput() {
     setFriendlyLevel(e.target.value);
   }
 
-  const [gameboardGrid, setGameboardGrid] = useState([]);
-  function updateGameboardGrid() {
-    let gameboardPositions = [];
-    gameboard.forEach((entity, position) => {
-      gameboardPositions.push(position);
-    });
-    gameboard.forEach((entity, position) => {
-      let positionIndex = gameboardPositions.indexOf(position);
-      if (gameboardGrid[positionIndex] == undefined) {
-        if (entity !== undefined) {
-          return gameboardGrid.push(
-            <p key={position}>
-              {position} {entity.name}
-            </p>
-          );
-        } else {
-          return gameboardGrid.push(<p key={position}>{position}</p>);
-        }
-      } else {
-        if (entity !== undefined) {
-          return gameboardGrid.splice(
-            gameboardGrid.indexOf(positionIndex),
-            1,
-            <p key={position}>
-              {position} {entity.name}
-            </p>
-          );
-        } else {
-          return gameboardGrid.splice(
-            gameboardGrid.indexOf(positionIndex),
-            1,
-            <p key={position}>{position}</p>
-          );
-        }
-      }
-    });
-    setGameboardGrid(gameboardGrid);
-  }
   //renders the grid to the DOM
-  function GameboardGrid() {
-    return <>{gameboardGrid}</>;
-  }
+  //THIS IS VERY BROKEN
+  // const [gameboardGrid, setGameboardGrid] = useState([]);
+  // function updateGameboardGrid() {
+  //   let gameboardPositions = [];
+  //   gameboard.forEach((entity, position) => {
+  //     gameboardPositions.push(position);
+  //   });
+  //   gameboard.forEach((entity, position) => {
+  //     let positionIndex = gameboardPositions.indexOf(position);
+  //     if (gameboardGrid[positionIndex] == undefined) {
+  //       if (entity !== undefined) {
+  //         return gameboardGrid.push(
+  //           <p key={position}>
+  //             {position} {entity.name}
+  //           </p>
+  //         );
+  //       } else {
+  //         return gameboardGrid.push(<p key={position}>{position}</p>);
+  //       }
+  //     } else {
+  //       if (entity !== undefined) {
+  //         return gameboardGrid.splice(
+  //           gameboardGrid.indexOf(positionIndex),
+  //           1,
+  //           <p key={position}>
+  //             {position} {entity.name}
+  //           </p>
+  //         );
+  //       } else {
+  //         return gameboardGrid.splice(
+  //           gameboardGrid.indexOf(positionIndex),
+  //           1,
+  //           <p key={position}>{position}</p>
+  //         );
+  //       }
+  //     }
+  //   });
+  //   setGameboardGrid(gameboardGrid);
+  // }
+  // function GameboardGrid() {
+  //   return <>{gameboardGrid}</>;
+  // }
 
   return (
     <>
@@ -627,9 +605,7 @@ export default function EngineOutput() {
       >
         Start Round
       </button>
-      <div>
-        <GameboardGrid></GameboardGrid>
-      </div>
+      <div>{/* <GameboardGrid></GameboardGrid> */}</div>
     </>
   );
 }
