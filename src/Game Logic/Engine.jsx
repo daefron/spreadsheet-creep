@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 export default function EngineOutput() {
   const [activeEntities, setActiveEntities] = useState([]);
   const [graveyard, setGraveyard] = useState([]);
@@ -230,10 +230,9 @@ export default function EngineOutput() {
         let spotFree = true;
         activeEntities.forEach((entity) => {
           if (entity.position == newPosition) {
-            return spotFree = false;
+            return (spotFree = false);
           }
         });
-        console.log(spotFree);
         if (spotFree == true) {
           currentEntity.speedCharge = 0;
           currentEntity.position = newPosition;
@@ -393,7 +392,7 @@ export default function EngineOutput() {
       activeEntities.forEach((entity) => {
         entityTurn(entity);
       });
-      GameboardRender();
+      updateGameboardEntities();
       console.log("Turn " + currentTurn + " over.");
     }
 
@@ -518,48 +517,29 @@ export default function EngineOutput() {
     setFriendlyLevel(e.target.value);
   }
 
-  function initialGameboard() {
+  //handles making a usable array for the grid renderer
+  const [gameboardEntities, setGameboardEntities] = useState([]);
+  function updateGameboardEntities() {
     let grid = [];
     const boardWidth = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
     for (let h = 1; h < 10; h++) {
-      boardWidth.forEach((element) => grid.push(element + h));
-    }
-    return grid;
-  }
-  const [gameboardEntities, setGameboardEntities] = useState(
-    initialGameboard()
-  );
-
-  function updateGameboardEntities() {
-    activeEntities.forEach((entity) => {
-      gameboardEntities.forEach((position) => {
-        //if position on grid is default and entity position => make entity name
-        if (
-          position == entity.position &&
-          position == gameboard[gameboardEntities.indexOf(position)]
-        ) {
-          gameboardEntities.splice(
-            [gameboardEntities.indexOf(entity.position)],
-            1,
-            entity.name
-          );
-        }
-        //if position on grid is not the entities position and the position is the entities name => make default name
-        else if (position !== entity.position && position == entity.name) {
-          gameboardEntities.splice(
-            [gameboardEntities.indexOf(position)],
-            1,
-            gameboard[gameboardEntities.indexOf(position)]
-          );
+      boardWidth.forEach((element) => {
+        let entityMade = false;
+        activeEntities.forEach((entity) => {
+          if (entity.position == element + h) {
+            grid.push(entity.name);
+            entityMade = true;
+          }
+        });
+        if ((entityMade == false)) {
+          grid.push(element + h);
         }
       });
-      console.log(entity.position);
-    });
-    // setGameboardEntities(gameboardEntities);
+    }
+    setGameboardEntities(grid);
   }
 
   function GameboardRender() {
-    updateGameboardEntities();
     return (
       <div>
         {gameboardEntities.map((position) => {
@@ -568,49 +548,6 @@ export default function EngineOutput() {
       </div>
     );
   }
-  //renders the grid to the DOM
-  //THIS IS VERY BROKEN
-  // const [gameboardGrid, setGameboardGrid] = useState([]);
-  // function updateGameboardGrid() {
-  //   let gameboardPositions = [];
-  //   gameboard.forEach((entity, position) => {
-  //     gameboardPositions.push(position);
-  //   });
-  //   gameboard.forEach((entity, position) => {
-  //     let positionIndex = gameboardPositions.indexOf(position);
-  //     if (gameboardGrid[positionIndex] == undefined) {
-  //       if (entity !== undefined) {
-  //         return gameboardGrid.push(
-  //           <p key={position}>
-  //             {position} {entity.name}
-  //           </p>
-  //         );
-  //       } else {
-  //         return gameboardGrid.push(<p key={position}>{position}</p>);
-  //       }
-  //     } else {
-  //       if (entity !== undefined) {
-  //         return gameboardGrid.splice(
-  //           gameboardGrid.indexOf(positionIndex),
-  //           1,
-  //           <p key={position}>
-  //             {position} {entity.name}
-  //           </p>
-  //         );
-  //       } else {
-  //         return gameboardGrid.splice(
-  //           gameboardGrid.indexOf(positionIndex),
-  //           1,
-  //           <p key={position}>{position}</p>
-  //         );
-  //       }
-  //     }
-  //   });
-  //   setGameboardGrid(gameboardGrid);
-  // }
-  // function GameboardGrid() {
-  //   return <>{gameboardGrid}</>;
-  // }
 
   return (
     <>
