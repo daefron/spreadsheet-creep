@@ -5,17 +5,6 @@ export default function EngineOutput() {
   const [bank, setBank] = useState(0);
   const [currentTurn, setCurrentTurn] = useState(1);
 
-  //creates the gameboard as a reference point
-  const gameboard = gameboardMaker();
-  function gameboardMaker() {
-    let grid = [];
-    const boardWidth = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
-    for (let h = 1; h < 10; h++) {
-      boardWidth.forEach((element) => grid.push(element + h));
-    }
-    return grid;
-  }
-
   //function that creates new active entities
   function Entity(type, level, position, name) {
     this.name = name;
@@ -172,7 +161,6 @@ export default function EngineOutput() {
 
   function Engine(
     activeEntities,
-    gameboard,
     graveyard,
     bank,
     currentTurn,
@@ -445,6 +433,7 @@ export default function EngineOutput() {
       }
     }
 
+    //spawns the king every round
     friendlyPositionChecker("king", "A1", 1, entityList, activeEntities);
     amountOfTurns(waveLength, "wave1");
   }
@@ -592,7 +581,6 @@ export default function EngineOutput() {
         onClick={() => {
           Engine(
             activeEntities,
-            gameboard,
             graveyard,
             bank,
             currentTurn,
