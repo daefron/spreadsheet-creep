@@ -15,6 +15,7 @@ export default function EngineOutput() {
     }
     return grid;
   }
+
   //function that creates new active entities
   function Entity(type, level, position, name) {
     this.name = name;
@@ -218,21 +219,30 @@ export default function EngineOutput() {
             );
             healthChecker(entity, currentEntity);
             turnTaken = true;
-          } else if (
-            entity.position !== newPosition &&
-            currentEntity.speedCharge >= currentEntity.speed &&
-            currentEntity.speed !== 0 &&
-            turnTaken == false
-          ) {
-            currentEntity.speedCharge = 0;
-            currentEntity.position = newPosition;
-            console.log(
-              currentEntity.name + " moved to " + currentEntity.position
-            );
-            turnTaken = true;
           }
         });
       });
+      if (
+        currentEntity.speedCharge >= currentEntity.speed &&
+        currentEntity.speed !== 0 &&
+        turnTaken == false
+      ) {
+        let spotFree = true;
+        activeEntities.forEach((entity) => {
+          if (entity.position == newPosition) {
+            return spotFree = false;
+          }
+        });
+        console.log(spotFree);
+        if (spotFree == true) {
+          currentEntity.speedCharge = 0;
+          currentEntity.position = newPosition;
+          console.log(
+            currentEntity.name + " moved to " + currentEntity.position
+          );
+          turnTaken = true;
+        }
+      }
       if (currentEntity.rateCharge < currentEntity.rate && turnTaken == false) {
         console.log(currentEntity.name + " charging attack.");
       } else if (
@@ -383,6 +393,7 @@ export default function EngineOutput() {
       activeEntities.forEach((entity) => {
         entityTurn(entity);
       });
+      GameboardRender();
       console.log("Turn " + currentTurn + " over.");
     }
 
@@ -434,7 +445,7 @@ export default function EngineOutput() {
         setActiveEntities([]);
       }
     }
-    
+
     friendlyPositionChecker("king", "A1", 1, entityList, activeEntities);
     amountOfTurns(waveLength, "wave1");
   }
@@ -507,6 +518,56 @@ export default function EngineOutput() {
     setFriendlyLevel(e.target.value);
   }
 
+  function initialGameboard() {
+    let grid = [];
+    const boardWidth = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
+    for (let h = 1; h < 10; h++) {
+      boardWidth.forEach((element) => grid.push(element + h));
+    }
+    return grid;
+  }
+  const [gameboardEntities, setGameboardEntities] = useState(
+    initialGameboard()
+  );
+
+  function updateGameboardEntities() {
+    activeEntities.forEach((entity) => {
+      gameboardEntities.forEach((position) => {
+        //if position on grid is default and entity position => make entity name
+        if (
+          position == entity.position &&
+          position == gameboard[gameboardEntities.indexOf(position)]
+        ) {
+          gameboardEntities.splice(
+            [gameboardEntities.indexOf(entity.position)],
+            1,
+            entity.name
+          );
+        }
+        //if position on grid is not the entities position and the position is the entities name => make default name
+        else if (position !== entity.position && position == entity.name) {
+          gameboardEntities.splice(
+            [gameboardEntities.indexOf(position)],
+            1,
+            gameboard[gameboardEntities.indexOf(position)]
+          );
+        }
+      });
+      console.log(entity.position);
+    });
+    // setGameboardEntities(gameboardEntities);
+  }
+
+  function GameboardRender() {
+    updateGameboardEntities();
+    return (
+      <div>
+        {gameboardEntities.map((position) => {
+          return <p key={position}>{position}</p>;
+        })}
+      </div>
+    );
+  }
   //renders the grid to the DOM
   //THIS IS VERY BROKEN
   // const [gameboardGrid, setGameboardGrid] = useState([]);
@@ -605,7 +666,7 @@ export default function EngineOutput() {
       >
         Start Round
       </button>
-      <div>{/* <GameboardGrid></GameboardGrid> */}</div>
+      <GameboardRender></GameboardRender>
     </>
   );
 }
