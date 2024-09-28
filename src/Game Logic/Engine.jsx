@@ -18,8 +18,7 @@ export default function EngineOutput() {
     let neededRate = level.rate;
     this.rateCharge = neededRate;
     this.speed = level.speed;
-    let neededSpeed = level.speed;
-    this.speedCharge = neededSpeed;
+    this.speedCharge = 0;
     this.enemy = type.enemy;
     this.value = level.value;
     if (this.enemy == false) {
@@ -372,7 +371,7 @@ export default function EngineOutput() {
           }
           currentTurn++;
         }
-      }, 50);
+      }, 100);
     }
 
     //makes all entities take turn
@@ -516,12 +515,12 @@ export default function EngineOutput() {
         let entityMade = false;
         activeEntities.forEach((entity) => {
           if (entity.position == element + h) {
-            grid.push(entity.name);
+            grid.push([[entity.name], [entity.type + " LVL: " + entity.level + " HP: " + entity.hp]]);
             entityMade = true;
           }
         });
         if ((entityMade == false)) {
-          grid.push(element + h);
+          grid.push([[element + h], [element + h]]);
         }
       });
     }
@@ -532,7 +531,7 @@ export default function EngineOutput() {
     return (
       <div>
         {gameboardEntities.map((position) => {
-          return <p key={position}>{position}</p>;
+          return <p key={position[0]}>{position[1]}</p>;
         })}
       </div>
     );
