@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 export default function EngineOutput() {
   const [activeEntities, setActiveEntities] = useState([]);
   const [graveyard, setGraveyard] = useState([]);
-  const [bank, setBank] = useState(0);
+  const [bank, setBank] = useState(10);
   const [currentTurn, setCurrentTurn] = useState(1);
 
   //function that creates new active entities
@@ -40,8 +40,8 @@ export default function EngineOutput() {
           hp: 9,
           dmg: 3,
           range: 1,
-          rate: 2,
-          speed: 2,
+          rate: 2 * 30,
+          speed: 2 * 30,
           value: 1,
           exp: 1,
         },
@@ -50,8 +50,34 @@ export default function EngineOutput() {
           hp: 12,
           dmg: 4,
           range: 1,
-          rate: 2,
-          speed: 2,
+          rate: 2 * 30,
+          speed: 2 * 30,
+          value: 3,
+          exp: 2,
+        },
+      },
+    },
+    skeleton: {
+      type: "skeleton",
+      enemy: true,
+      levels: {
+        lvl1: {
+          lvl: 1,
+          hp: 5,
+          dmg: 2,
+          range: 3,
+          rate: 2 * 30,
+          speed: 3 * 30,
+          value: 1,
+          exp: 1,
+        },
+        lvl2: {
+          lvl: 2,
+          hp: 8,
+          dmg: 3,
+          range: 3,
+          rate: 2 * 30,
+          speed: 2 * 30,
           value: 3,
           exp: 2,
         },
@@ -66,8 +92,8 @@ export default function EngineOutput() {
           hp: 10,
           dmg: 3,
           range: 3,
-          rate: 2,
-          speed: 0,
+          rate: 2 * 30,
+          speed: 0 * 30,
           value: 5,
           neededExp: 3,
         },
@@ -76,8 +102,8 @@ export default function EngineOutput() {
           hp: 12,
           dmg: 4,
           range: 3,
-          rate: 2,
-          speed: 0,
+          rate: 2 * 30,
+          speed: 0 * 30,
           value: 10,
           neededExp: 6,
         },
@@ -86,8 +112,8 @@ export default function EngineOutput() {
           hp: 14,
           dmg: 5,
           range: 3,
-          rate: 2,
-          speed: 0,
+          rate: 2 * 30,
+          speed: 0 * 30,
           value: 15,
           neededExp: 30,
         },
@@ -102,8 +128,8 @@ export default function EngineOutput() {
           hp: 20,
           dmg: 5,
           range: 1,
-          rate: 1,
-          speed: 0,
+          rate: 1 * 30,
+          speed: 0 * 30,
           value: 30,
           neededExp: 100,
         },
@@ -115,45 +141,98 @@ export default function EngineOutput() {
   const waves = {
     wave1: {
       wave: 1,
-      1: {
+      360: {
         name: "goblin",
         level: "lvl1",
         position: "J1",
       },
-      3: {
+      423: {
         name: "goblin",
         level: "lvl2",
         position: "J1",
       },
-      14: {
+      840: {
+        name: "skeleton",
+        level: "lvl1",
+        position: "J1",
+      },
+      1103: {
         name: "goblin",
         level: "lvl2",
         position: "J1",
       },
-      19: {
+      1605: {
+        name: "skeleton",
+        level: "lvl2",
+        position: "J1",
+      },
+      1932: {
         name: "goblin",
         level: "lvl2",
         position: "J1",
       },
-      27: {
+      2134: {
         name: "goblin",
         level: "lvl2",
         position: "J1",
       },
-      30: {
+      2234: {
         name: "goblin",
         level: "lvl2",
         position: "J1",
       },
-      40: {
+      2342: {
         name: "goblin",
         level: "lvl2",
         position: "J1",
       },
-      41: {
+    },
+    wave2: {
+      wave: 2,
+      360: {
+        name: "goblin",
+        level: "lvl1",
+        position: "I1",
+      },
+      423: {
         name: "goblin",
         level: "lvl2",
-        position: "J1",
+        position: "I1",
+      },
+      840: {
+        name: "skeleton",
+        level: "lvl1",
+        position: "I1",
+      },
+      1103: {
+        name: "goblin",
+        level: "lvl2",
+        position: "I1",
+      },
+      1605: {
+        name: "skeleton",
+        level: "lvl2",
+        position: "I1",
+      },
+      1932: {
+        name: "goblin",
+        level: "lvl2",
+        position: "I1",
+      },
+      2134: {
+        name: "goblin",
+        level: "lvl2",
+        position: "I1",
+      },
+      2234: {
+        name: "goblin",
+        level: "lvl2",
+        position: "I1",
+      },
+      2342: {
+        name: "goblin",
+        level: "lvl2",
+        position: "I1",
       },
     },
   };
@@ -371,15 +450,15 @@ export default function EngineOutput() {
           }
           currentTurn++;
         }
-      }, 100);
+      }, 1);
     }
 
     //makes all entities take turn
     function nextTurn(currentTurn) {
       activeEntities.forEach((entity) => {
         entityTurn(entity);
+        updateGameboardEntities();
       });
-      updateGameboardEntities();
       console.log("Turn " + currentTurn + " over.");
     }
 
@@ -389,19 +468,11 @@ export default function EngineOutput() {
       Object.keys(waves[round]).forEach((element) => {
         spawnTurns.push(element);
       });
-      let activeEnemies = 0;
-      let activeFriendlies = 0;
-      activeEntities.forEach((entity) => {
-        if (entity.enemy == true) {
-          activeEnemies++;
-        } else activeFriendlies++;
-      });
-      let kingAlive;
-      activeEntities.forEach((entity) => {
-        if (entity.type == "king") {
-          return (kingAlive = true);
-        }
-      });
+      let activeEnemies = activeEntities.filter(
+        (entity) => entity.enemy
+      ).length;
+      let kingAlive =
+        activeEntities.find((entity) => entity.type == "king") !== undefined;
       if (kingAlive !== true) {
         console.log("Enemy Victory");
         activeEntitiesClearer(false);
@@ -422,11 +493,13 @@ export default function EngineOutput() {
     //clears the activeEntities on victory
     function activeEntitiesClearer(victory) {
       if (victory == true) {
-        activeEntities.forEach((entity) => {
-          if (entity.enemy == true) {
-            activeEntities.pop(entity);
-          }
-        });
+        // activeEntities.forEach((entity) => {
+        //   if (entity.enemy == true) {
+        //     activeEntities.pop(entity);
+        //   }
+        // });
+
+        activeEntities = activeEntities.filter((entity) => !entity.enemy);
       } else {
         setActiveEntities([]);
       }
@@ -439,13 +512,7 @@ export default function EngineOutput() {
 
   //translates user input into data Entity maker can use
   const [friendlyCount, setFriendlyCount] = useState(1);
-  function friendlyEntityParser(
-    entityType,
-    entityPosition,
-    entityLevel,
-    entityList,
-    activeEntities
-  ) {
+  function friendlyEntityParser(entityType, entityPosition, entityLevel) {
     let ID = friendlyCount + 1;
     setFriendlyCount(ID);
     entityType = entityList[entityType];
@@ -456,13 +523,46 @@ export default function EngineOutput() {
     console.log(entityID.name + " spawned at " + entityPosition);
   }
 
+  function friendlySpawner(friendlyType, friendlyPosition, friendlyLevel) {
+    let friendlyCost =
+      entityList[friendlyType].levels["lvl" + friendlyLevel].value;
+    if (bankChecker(friendlyCost) == true) {
+      if (
+        friendlyPositionChecker(
+          friendlyType,
+          friendlyPosition,
+          friendlyLevel
+        ) == true
+      ) {
+        setBank(bank - friendlyCost);
+        console.log(
+          "Purchased " +
+            friendlyType +
+            " for $" +
+            friendlyCost +
+            ". Total money: $" +
+            (bank - friendlyCost)
+        );
+        friendlyEntityParser(friendlyType, friendlyPosition, friendlyLevel);
+      }
+    } else {
+      console.log("Insufficient funds");
+    }
+  }
+
+  //determines if enough money in bank to spawn friendly
+  function bankChecker(friendlyCost) {
+    if (friendlyCost <= bank) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   //determines if position for friendly spawn is allowed
   function friendlyPositionChecker(
     friendlyType,
     friendlyPosition,
-    friendlyLevel,
-    entityList,
-    activeEntities
   ) {
     let positionAllowed;
     if (friendlyPosition == "A1" && friendlyType !== "king") {
@@ -477,18 +577,12 @@ export default function EngineOutput() {
       });
     }
     if (positionAllowed !== false) {
-      friendlyEntityParser(
-        friendlyType,
-        friendlyPosition,
-        friendlyLevel,
-        entityList,
-        activeEntities
-      );
+      return true;
     }
   }
 
   //user inputs
-  const [waveLength, setWaveLength] = useState(200);
+  const [waveLength, setWaveLength] = useState(100000);
   function updateWaveLength(e) {
     setWaveLength(e.target.value);
   }
@@ -515,11 +609,21 @@ export default function EngineOutput() {
         let entityMade = false;
         activeEntities.forEach((entity) => {
           if (entity.position == element + h) {
-            grid.push([[entity.name], [entity.type + " LVL: " + entity.level + " HP: " + entity.hp]]);
+            grid.push([
+              [entity.name],
+              [
+                entity.type +
+                  " (lvl: " +
+                  entity.level +
+                  " hp: " +
+                  entity.hp +
+                  ")",
+              ],
+            ]);
             entityMade = true;
           }
         });
-        if ((entityMade == false)) {
+        if (entityMade == false) {
           grid.push([[element + h], [element + h]]);
         }
       });
@@ -527,6 +631,7 @@ export default function EngineOutput() {
     setGameboardEntities(grid);
   }
 
+  //pushes the active entities from updateGameboardEntities to the DOM
   function GameboardRender() {
     return (
       <div>
@@ -557,12 +662,10 @@ export default function EngineOutput() {
       </div>
       <button
         onClick={() => {
-          friendlyPositionChecker(
+          friendlySpawner(
             friendlyType,
             friendlyPosition,
-            friendlyLevel,
-            entityList,
-            activeEntities
+            friendlyLevel
           );
         }}
       >
