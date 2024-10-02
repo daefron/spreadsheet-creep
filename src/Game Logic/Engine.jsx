@@ -266,7 +266,7 @@ export default function EngineOutput() {
       rangeCells.forEach((rangeTarget) => {
         activeEntities.forEach((entity) => {
           if (
-            entity.position == rangeTarget &&
+            entity.position === rangeTarget &&
             currentEntity.rateCharge >= currentEntity.rate &&
             entity.enemy !== currentEntity.enemy
           ) {
@@ -295,7 +295,7 @@ export default function EngineOutput() {
       ) {
         let spotFree = true;
         if (
-          activeEntities.find((entity) => entity.position == newPosition) !==
+          activeEntities.find((entity) => entity.position === newPosition) !==
           undefined
         ) {
           return (spotFree = false);
@@ -369,7 +369,7 @@ export default function EngineOutput() {
       oldProperties.forEach((oldProperty) => {
         newProperties.forEach((newProperty) => {
           if (
-            oldProperty[0] == newProperty[0] &&
+            oldProperty[0] === newProperty[0] &&
             oldProperty[1] !== newProperty[1]
           ) {
             currentEntity[oldProperty[0]] = newProperty[1];
@@ -384,44 +384,44 @@ export default function EngineOutput() {
     //lazy function to go back or forward one letter in alphabet depending on if enemy
     function letterParser(position, enemy) {
       if (enemy) {
-        if (position == "B") {
+        if (position === "B") {
           position = "A";
-        } else if (position == "C") {
+        } else if (position === "C") {
           position = "B";
-        } else if (position == "D") {
+        } else if (position === "D") {
           position = "C";
-        } else if (position == "E") {
+        } else if (position === "E") {
           position = "D";
-        } else if (position == "F") {
+        } else if (position === "F") {
           position = "E";
-        } else if (position == "G") {
+        } else if (position === "G") {
           position = "F";
-        } else if (position == "H") {
+        } else if (position === "H") {
           position = "G";
-        } else if (position == "I") {
+        } else if (position === "I") {
           position = "H";
-        } else if (position == "J") {
+        } else if (position === "J") {
           position = "I";
         }
         return position;
       } else if (!enemy) {
-        if (position == "A") {
+        if (position === "A") {
           position = "B";
-        } else if (position == "B") {
+        } else if (position === "B") {
           position = "C";
-        } else if (position == "C") {
+        } else if (position === "C") {
           position = "D";
-        } else if (position == "D") {
+        } else if (position === "D") {
           position = "E";
-        } else if (position == "E") {
+        } else if (position === "E") {
           position = "F";
-        } else if (position == "F") {
+        } else if (position === "F") {
           position = "G";
-        } else if (position == "G") {
+        } else if (position === "G") {
           position = "H";
-        } else if (position == "H") {
+        } else if (position === "H") {
           position = "I";
-        } else if (position == "I") {
+        } else if (position === "I") {
           position = "J";
         }
         return position;
@@ -458,7 +458,7 @@ export default function EngineOutput() {
         spawner(currentWave, currentTurn, activeEntities);
       }
       nextTurn(currentTurn);
-      if (victoryChecker(wave, currentTurn) == "friendly victory") {
+      if (victoryChecker(wave, currentTurn) === "friendly victory") {
         clearInterval(timer);
         console.log("Friendly Victory - Total Money: $" + bank);
         currentTurn = 1;
@@ -467,7 +467,7 @@ export default function EngineOutput() {
         } else {
           amountOfTurns(i + 1, false);
         }
-      } else if (victoryChecker(wave, currentTurn) == "enemy victory") {
+      } else if (victoryChecker(wave, currentTurn) === "enemy victory") {
         clearInterval(timer);
         console.log("Enemy Victory");
       }
@@ -493,13 +493,13 @@ export default function EngineOutput() {
         (entity) => entity.enemy
       ).length;
       let kingAlive =
-        activeEntities.find((entity) => entity.type == "king") !== undefined;
+        activeEntities.find((entity) => entity.type === "king") !== undefined;
       if (!kingAlive) {
         activeEntitiesClearer(false);
         return "enemy victory";
       } else if (
         currentTurn > spawnTurns[spawnTurns.length - 2] &&
-        activeEnemies == 0
+        activeEnemies === 0
       ) {
         activeEntitiesClearer(true);
         setBank(bank);
@@ -555,12 +555,12 @@ export default function EngineOutput() {
   //determines if position for friendly spawn is allowed
   function friendlyPositionChecker(friendlyPosition, friendlyType) {
     let positionAllowed = true;
-    if (friendlyPosition == "A1" && friendlyType !== "king") {
+    if (friendlyPosition === "A1" && friendlyType !== "king") {
       console.log("Cannot place in A1, position reserved for king");
       positionAllowed = false;
     } else {
       if (
-        activeEntities.find((entity) => entity.position == friendlyPosition) !==
+        activeEntities.find((entity) => entity.position === friendlyPosition) !==
         undefined
       ) {
         console.log("Position taken");
@@ -608,7 +608,7 @@ export default function EngineOutput() {
       boardWidth.forEach((element) => {
         let entityMade = false;
         activeEntities.forEach((entity) => {
-          if (entity.position == element + h) {
+          if (entity.position === element + h) {
             grid.push([
               [entity.name],
               [
