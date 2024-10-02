@@ -294,11 +294,9 @@ export default function EngineOutput() {
         turnTaken == false
       ) {
         let spotFree = true;
-        activeEntities.forEach((entity) => {
-          if (entity.position == newPosition) {
-            return (spotFree = false);
-          }
-        });
+        if (activeEntities.find((entity) => entity.position == newPosition) !== undefined) {
+          return (spotFree = false);
+        }    
         if (spotFree == true) {
           currentEntity.speedCharge = 0;
           currentEntity.position = newPosition;
@@ -530,13 +528,7 @@ export default function EngineOutput() {
     let friendlyCost =
       entityList[friendlyType].levels["lvl" + friendlyLevel].value;
     if (bankChecker(friendlyCost) == true) {
-      if (
-        friendlyPositionChecker(
-          friendlyType,
-          friendlyPosition,
-          friendlyLevel
-        ) == true
-      ) {
+      if (friendlyPositionChecker(friendlyPosition, friendlyType) == true) {
         setBank(bank - friendlyCost);
         console.log(
           "Purchased " +
@@ -563,18 +555,19 @@ export default function EngineOutput() {
   }
 
   //determines if position for friendly spawn is allowed
-  function friendlyPositionChecker(friendlyType, friendlyPosition) {
+  function friendlyPositionChecker(friendlyPosition, friendlyType) {
     let positionAllowed;
     if (friendlyPosition == "A1" && friendlyType !== "king") {
       console.log("Cannot place in A1, position reserved for king");
       positionAllowed = false;
     } else {
-      activeEntities.forEach((entity) => {
-        if (entity.position == friendlyPosition) {
-          console.log("Position taken by " + entity.name);
-          return (positionAllowed = false);
-        }
-      });
+      if (
+        activeEntities.find((entity) => entity.position == friendlyPosition) !==
+        undefined
+      ) {
+        console.log("Position taken");
+        return (positionAllowed = false);
+      }
     }
     if (positionAllowed !== false) {
       return true;
