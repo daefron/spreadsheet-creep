@@ -450,7 +450,7 @@ export default function EngineOutput() {
       if (gameFinished == false) {
         let timer = setInterval(() => {
           turnCycler(currentWave, wave, waveLength, timer, i);
-        }, 1);
+        }, 10);
       } else console.log("Game Over");
     }
 
@@ -626,7 +626,9 @@ export default function EngineOutput() {
             grid.push([
               [entity.name],
               [
-                entity.type +
+                entity.position +
+                  " " +
+                  entity.type +
                   " (lvl: " +
                   entity.level +
                   " hp: " +
@@ -650,7 +652,11 @@ export default function EngineOutput() {
     return (
       <div>
         {gameboardEntities.map((position) => {
-          return <p key={position[0]}>{position[1]}</p>;
+          return (
+            <p style={{ textAlign: "left" }} key={position[0]}>
+              {position[1]}
+            </p>
+          );
         })}
       </div>
     );
