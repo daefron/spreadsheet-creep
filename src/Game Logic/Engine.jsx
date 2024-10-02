@@ -21,7 +21,7 @@ export default function EngineOutput() {
     this.speedCharge = 0;
     this.enemy = type.enemy;
     this.value = level.value;
-    if (this.enemy == false) {
+    if (!this.enemy) {
       this.currentExp = 0;
       this.neededExp = level.neededExp;
     } else {
@@ -291,7 +291,7 @@ export default function EngineOutput() {
       if (
         currentEntity.speedCharge >= currentEntity.speed &&
         currentEntity.speed !== 0 &&
-        turnTaken == false
+        !turnTaken
       ) {
         let spotFree = true;
         if (
@@ -300,7 +300,7 @@ export default function EngineOutput() {
         ) {
           return (spotFree = false);
         }
-        if (spotFree == true) {
+        if (spotFree) {
           currentEntity.speedCharge = 0;
           currentEntity.position = newPosition;
           console.log(
@@ -309,15 +309,15 @@ export default function EngineOutput() {
           turnTaken = true;
         }
       }
-      if (currentEntity.rateCharge < currentEntity.rate && turnTaken == false) {
+      if (currentEntity.rateCharge < currentEntity.rate && !turnTaken) {
         console.log(currentEntity.name + " charging attack.");
       } else if (
         currentEntity.speedCharge < currentEntity.speed &&
         currentEntity.speed !== 0 &&
-        turnTaken == false
+        !turnTaken
       ) {
         console.log(currentEntity.name + " charging movement.");
-      } else if (turnTaken == false) {
+      } else if (!turnTaken) {
         console.log(currentEntity.name + " did nothing.");
       }
     }
@@ -327,7 +327,7 @@ export default function EngineOutput() {
       if (entity.hp <= 0) {
         currentEntity.rateCharge = 0;
         console.log(entity.name + " was killed by " + currentEntity.name);
-        if (entity.enemy == true) {
+        if (entity.enemy) {
           bank = bank + entity.value;
           expTracker(entity, currentEntity);
           console.log(
@@ -383,7 +383,7 @@ export default function EngineOutput() {
 
     //lazy function to go back or forward one letter in alphabet depending on if enemy
     function letterParser(position, enemy) {
-      if (enemy == true) {
+      if (enemy) {
         if (position == "B") {
           position = "A";
         } else if (position == "C") {
@@ -404,7 +404,7 @@ export default function EngineOutput() {
           position = "I";
         }
         return position;
-      } else if (enemy == false) {
+      } else if (!enemy) {
         if (position == "A") {
           position = "B";
         } else if (position == "B") {
@@ -444,10 +444,8 @@ export default function EngineOutput() {
 
     //sets amount of turns to play
     function amountOfTurns(i, finished) {
-      let wave = "wave" + i;
-      let gameFinished = finished;
-      let currentWave = waves[wave];
-      if (gameFinished == false) {
+      let wave = "wave" + i, gameFinished = finished, currentWave = waves[wave];
+      if (!gameFinished) {
         let timer = setInterval(() => {
           turnCycler(currentWave, wave, timer, i);
         }, 10);
@@ -496,7 +494,7 @@ export default function EngineOutput() {
       ).length;
       let kingAlive =
         activeEntities.find((entity) => entity.type == "king") !== undefined;
-      if (kingAlive !== true) {
+      if (!kingAlive) {
         activeEntitiesClearer(false);
         return "enemy victory";
       } else if (
@@ -511,7 +509,7 @@ export default function EngineOutput() {
 
     //clears the activeEntities on victory
     function activeEntitiesClearer(victory) {
-      if (victory == true) {
+      if (victory) {
         activeEntities = activeEntities.filter((entity) => !entity.enemy);
       } else {
         setActiveEntities([]);
@@ -527,8 +525,8 @@ export default function EngineOutput() {
   function friendlySpawner(friendlyType, friendlyPosition, friendlyLevel) {
     let friendlyCost =
       entityList[friendlyType].levels["lvl" + friendlyLevel].value;
-    if (bankChecker(friendlyCost) == true) {
-      if (friendlyPositionChecker(friendlyPosition, friendlyType) == true) {
+    if (bankChecker(friendlyCost)) {
+      if (friendlyPositionChecker(friendlyPosition, friendlyType)) {
         setBank(bank - friendlyCost);
         console.log(
           "Purchased " +
@@ -556,7 +554,7 @@ export default function EngineOutput() {
 
   //determines if position for friendly spawn is allowed
   function friendlyPositionChecker(friendlyPosition, friendlyType) {
-    let positionAllowed;
+    let positionAllowed = true;
     if (friendlyPosition == "A1" && friendlyType !== "king") {
       console.log("Cannot place in A1, position reserved for king");
       positionAllowed = false;
@@ -569,7 +567,7 @@ export default function EngineOutput() {
         return (positionAllowed = false);
       }
     }
-    if (positionAllowed !== false) {
+    if (positionAllowed) {
       return true;
     }
   }
@@ -627,7 +625,7 @@ export default function EngineOutput() {
             entityMade = true;
           }
         });
-        if (entityMade == false) {
+        if (!entityMade) {
           grid.push([[element + h], [element + h]]);
         }
       });
