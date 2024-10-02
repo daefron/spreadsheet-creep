@@ -242,7 +242,7 @@ export default function EngineOutput() {
     graveyard,
     bank,
     currentTurn,
-    waveLength,
+
     waves
   ) {
     //tells entities what to do on their turn
@@ -443,43 +443,37 @@ export default function EngineOutput() {
     }
 
     //sets amount of turns to play
-    function amountOfTurns(waveLength, i, finished) {
+    function amountOfTurns(i, finished) {
       let wave = "wave" + i;
       let gameFinished = finished;
       let currentWave = waves[wave];
       if (gameFinished == false) {
         let timer = setInterval(() => {
-          turnCycler(currentWave, wave, waveLength, timer, i);
+          turnCycler(currentWave, wave, timer, i);
         }, 10);
       } else console.log("Game Over");
     }
 
     //runs turn functions under a timer
-    function turnCycler(currentWave, wave, waveLength, timer, i) {
-      if (currentTurn <= waveLength) {
-        if (currentWave[currentTurn] !== undefined) {
-          spawner(currentWave, currentTurn, activeEntities);
-        }
-        nextTurn(currentTurn);
-        if (
-          victoryChecker(wave, currentTurn, waveLength) == "friendly victory"
-        ) {
-          clearInterval(timer);
-          console.log("Friendly Victory - Total Money: $" + bank);
-          currentTurn = 1;
-          if (i + 1 > Object.keys(waves).length) {
-            amountOfTurns(waveLength, i + 1, true);
-          } else {
-            amountOfTurns(waveLength, i + 1, false);
-          }
-        } else if (
-          victoryChecker(wave, currentTurn, waveLength) == "enemy victory"
-        ) {
-          clearInterval(timer);
-          console.log("Enemy Victory");
-        }
-        currentTurn++;
+    function turnCycler(currentWave, wave, timer, i) {
+      if (currentWave[currentTurn] !== undefined) {
+        spawner(currentWave, currentTurn, activeEntities);
       }
+      nextTurn(currentTurn);
+      if (victoryChecker(wave, currentTurn) == "friendly victory") {
+        clearInterval(timer);
+        console.log("Friendly Victory - Total Money: $" + bank);
+        currentTurn = 1;
+        if (i + 1 > Object.keys(waves).length) {
+          amountOfTurns(i + 1, true);
+        } else {
+          amountOfTurns(i + 1, false);
+        }
+      } else if (victoryChecker(wave, currentTurn) == "enemy victory") {
+        clearInterval(timer);
+        console.log("Enemy Victory");
+      }
+      currentTurn++;
     }
 
     //makes all entities take turn
@@ -492,7 +486,7 @@ export default function EngineOutput() {
     }
 
     //checks if and which side has won round
-    function victoryChecker(round, currentTurn, waveLength) {
+    function victoryChecker(round, currentTurn) {
       let spawnTurns = [];
       Object.keys(waves[round]).forEach((element) => {
         spawnTurns.push(element);
@@ -512,8 +506,6 @@ export default function EngineOutput() {
         activeEntitiesClearer(true);
         setBank(bank);
         return "friendly victory";
-      } else if (currentTurn > waveLength) {
-        console.log("Wave Over");
       }
     }
 
@@ -528,7 +520,7 @@ export default function EngineOutput() {
 
     //spawns the king every round
     friendlySpawner("king", "A1", 1);
-    amountOfTurns(waveLength, 1, false);
+    amountOfTurns(1, false);
   }
 
   //runs friendly through checks before spawning
@@ -596,10 +588,6 @@ export default function EngineOutput() {
   }
 
   //user inputs
-  const [waveLength, setWaveLength] = useState(100000);
-  function updateWaveLength(e) {
-    setWaveLength(e.target.value);
-  }
   const [friendlyType, setFriendlyType] = useState("arrow");
   function updateFriendlyType(e) {
     setFriendlyType(e.target.value);
@@ -687,14 +675,6 @@ export default function EngineOutput() {
       >
         Add Friendly
       </button>
-      <div>
-        <p>Amount of rounds: </p>
-        <input
-          type="number"
-          onChange={updateWaveLength}
-          value={waveLength}
-        ></input>
-      </div>
       <button
         onClick={() => {
           Engine(
@@ -702,7 +682,7 @@ export default function EngineOutput() {
             graveyard,
             bank,
             currentTurn,
-            waveLength,
+
             waves
           );
         }}
