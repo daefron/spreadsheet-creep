@@ -294,9 +294,12 @@ export default function EngineOutput() {
         turnTaken == false
       ) {
         let spotFree = true;
-        if (activeEntities.find((entity) => entity.position == newPosition) !== undefined) {
+        if (
+          activeEntities.find((entity) => entity.position == newPosition) !==
+          undefined
+        ) {
           return (spotFree = false);
-        }    
+        }
         if (spotFree == true) {
           currentEntity.speedCharge = 0;
           currentEntity.position = newPosition;
@@ -345,7 +348,12 @@ export default function EngineOutput() {
     //adds and checks exp on kill
     function expTracker(entity, currentEntity) {
       currentEntity.currentExp = currentEntity.currentExp + entity.exp;
-      if (currentEntity.currentExp >= currentEntity.neededExp) {
+      if (
+        currentEntity.currentExp >= currentEntity.neededExp &&
+        entityList[currentEntity.type].levels[
+          "lvl" + (currentEntity.level + 1)
+        ] !== undefined
+      ) {
         levelUp(currentEntity);
       }
     }
