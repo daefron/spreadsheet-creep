@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 export default function EngineOutput() {
   const [activeEntities, setActiveEntities] = useState([]);
   const [graveyard, setGraveyard] = useState([]);
@@ -285,6 +285,7 @@ export default function EngineOutput() {
             );
             healthChecker(entity, currentEntity);
             turnTaken = true;
+            updateGameboardEntities(activeEntities);
           }
         });
       });
@@ -307,6 +308,7 @@ export default function EngineOutput() {
             currentEntity.name + " moved to " + currentEntity.position
           );
           turnTaken = true;
+          updateGameboardEntities(activeEntities);
         }
       }
       if (currentEntity.rateCharge < currentEntity.rate && !turnTaken) {
@@ -440,15 +442,18 @@ export default function EngineOutput() {
       entityID = new Entity(entityType, entityLevel, position, entityID);
       activeEntities.push(entityID);
       console.log(entityID.name + " spawned at " + entityID.position + ".");
+      updateGameboardEntities(activeEntities);
     }
 
     //sets amount of turns to play
     function amountOfTurns(i, finished) {
-      let wave = "wave" + i, gameFinished = finished, currentWave = waves[wave];
+      let wave = "wave" + i,
+        gameFinished = finished,
+        currentWave = waves[wave];
       if (!gameFinished) {
         let timer = setInterval(() => {
           turnCycler(currentWave, wave, timer, i);
-        }, 10);
+        }, 1);
       } else console.log("Game Over");
     }
 
@@ -478,7 +483,6 @@ export default function EngineOutput() {
     function nextTurn(currentTurn) {
       activeEntities.forEach((entity) => {
         entityTurn(entity);
-        updateGameboardEntities(activeEntities);
       });
       console.log("Turn " + currentTurn + " over.");
     }
@@ -518,6 +522,7 @@ export default function EngineOutput() {
 
     //spawns the king every round
     friendlySpawner("king", "A1", 1);
+    updateGameboardEntities(activeEntities);
     amountOfTurns(1, false);
   }
 
@@ -560,8 +565,9 @@ export default function EngineOutput() {
       positionAllowed = false;
     } else {
       if (
-        activeEntities.find((entity) => entity.position === friendlyPosition) !==
-        undefined
+        activeEntities.find(
+          (entity) => entity.position === friendlyPosition
+        ) !== undefined
       ) {
         console.log("Position taken");
         return (positionAllowed = false);
