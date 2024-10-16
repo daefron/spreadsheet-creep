@@ -607,6 +607,7 @@ export default function EngineOutput() {
 
   //handles making a usable array for the grid renderer
   const [gameboardEntities, setGameboardEntities] = useState([]);
+
   function updateGameboardEntities(activeEntities) {
     let grid = [];
     const boardWidth = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
@@ -643,16 +644,21 @@ export default function EngineOutput() {
   function GameboardRender() {
     return (
       <table>
-        {gameboardEntities.map((row) => {
-          return (
-            <tr>
-              {row.map((position) => {
-                console.log(position);
-                return <th style={{width:"400px"}} key={position[0]}>{position[1]}</th>;
-              })}
-            </tr>
-          );
-        })}
+        <tbody>
+          {gameboardEntities.map((row) => {
+            return (
+              <tr style={{ display: "flex", justifyContent: "space-between" }}>
+                {row.map((position) => {
+                  return (
+                    <th key={position[0]}>
+                      <input type="text" defaultValue={position[1]}></input>
+                    </th>
+                  );
+                })}
+              </tr>
+            );
+          })}
+        </tbody>
       </table>
     );
   }
