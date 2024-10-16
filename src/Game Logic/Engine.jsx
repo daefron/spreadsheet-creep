@@ -144,47 +144,47 @@ export default function EngineOutput() {
       360: {
         name: "goblin",
         level: "lvl1",
-        position: "J1",
+        position: "J9",
       },
       423: {
         name: "goblin",
         level: "lvl2",
-        position: "J1",
+        position: "J9",
       },
       840: {
         name: "skeleton",
         level: "lvl1",
-        position: "J1",
+        position: "J9",
       },
       1103: {
         name: "goblin",
         level: "lvl2",
-        position: "J1",
+        position: "J9",
       },
       1605: {
         name: "skeleton",
         level: "lvl2",
-        position: "J1",
+        position: "J9",
       },
       1932: {
         name: "goblin",
         level: "lvl2",
-        position: "J1",
+        position: "J9",
       },
       2134: {
         name: "goblin",
         level: "lvl2",
-        position: "J1",
+        position: "J9",
       },
       2234: {
         name: "goblin",
         level: "lvl2",
-        position: "J1",
+        position: "J9",
       },
       2342: {
         name: "goblin",
         level: "lvl2",
-        position: "J1",
+        position: "J9",
       },
     },
     wave2: {
@@ -192,47 +192,47 @@ export default function EngineOutput() {
       360: {
         name: "goblin",
         level: "lvl1",
-        position: "I1",
+        position: "I9",
       },
       423: {
         name: "goblin",
         level: "lvl2",
-        position: "I1",
+        position: "I9",
       },
       840: {
         name: "skeleton",
         level: "lvl1",
-        position: "I1",
+        position: "I9",
       },
       1103: {
         name: "goblin",
         level: "lvl2",
-        position: "I1",
+        position: "I9",
       },
       1605: {
         name: "skeleton",
         level: "lvl2",
-        position: "I1",
+        position: "I9",
       },
       1932: {
         name: "goblin",
         level: "lvl2",
-        position: "I1",
+        position: "I9",
       },
       2134: {
         name: "goblin",
         level: "lvl2",
-        position: "I1",
+        position: "I9",
       },
       2234: {
         name: "goblin",
         level: "lvl2",
-        position: "I1",
+        position: "I9",
       },
       2342: {
         name: "goblin",
         level: "lvl2",
-        position: "I1",
+        position: "I9",
       },
     },
   };
@@ -521,7 +521,7 @@ export default function EngineOutput() {
     }
 
     //spawns the king every round
-    friendlySpawner("king", "A1", 1);
+    friendlySpawner("king", "A9", 1);
     updateGameboardEntities(activeEntities);
     amountOfTurns(1, false);
   }
@@ -596,7 +596,7 @@ export default function EngineOutput() {
   function updateFriendlyType(e) {
     setFriendlyType(e.target.value);
   }
-  const [friendlyPosition, setFriendlyPosition] = useState("B1");
+  const [friendlyPosition, setFriendlyPosition] = useState("B9");
   function updateFriendlyPosition(e) {
     setFriendlyPosition(e.target.value);
   }
@@ -611,16 +611,15 @@ export default function EngineOutput() {
     let grid = [];
     const boardWidth = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
     for (let h = 1; h < 10; h++) {
+      let subGrid = [];
       boardWidth.forEach((element) => {
         let entityMade = false;
         activeEntities.forEach((entity) => {
           if (entity.position === element + h) {
-            grid.push([
+            subGrid.push([
               [entity.name],
               [
-                entity.position +
-                  " " +
-                  entity.type +
+                entity.type +
                   " (lvl: " +
                   entity.level +
                   " hp: " +
@@ -632,9 +631,10 @@ export default function EngineOutput() {
           }
         });
         if (!entityMade) {
-          grid.push([[element + h], [element + h]]);
+          subGrid.push([[element + h], [element + h]]);
         }
       });
+      grid.push(subGrid);
     }
     setGameboardEntities(grid);
   }
@@ -642,15 +642,18 @@ export default function EngineOutput() {
   //pushes the active entities from updateGameboardEntities to the DOM
   function GameboardRender() {
     return (
-      <div>
-        {gameboardEntities.map((position) => {
+      <table>
+        {gameboardEntities.map((row) => {
           return (
-            <p style={{ textAlign: "left" }} key={position[0]}>
-              {position[1]}
-            </p>
+            <tr>
+              {row.map((position) => {
+                console.log(position);
+                return <th style={{width:"400px"}} key={position[0]}>{position[1]}</th>;
+              })}
+            </tr>
           );
         })}
-      </div>
+      </table>
     );
   }
 
