@@ -617,17 +617,35 @@ export default function EngineOutput() {
         let entityMade = false;
         activeEntities.forEach((entity) => {
           if (entity.position === element + h) {
-            subGrid.push([
-              [entity.name],
-              [
-                entity.type +
-                  " (lvl: " +
+            if (entity.enemy === true) {
+              subGrid.push([
+                [entity.name],
+                [
+                  entity.type +
+                    "Lvl" +
+                    entity.level +
+                    " (hp: " +
+                    entity.hp +
+                    ")",
+                ],
+              ]);
+            } else {
+              subGrid.push([
+                [entity.name],
+                [
+                  entity.type +
+                  "Lvl" +
                   entity.level +
-                  " hp: " +
-                  entity.hp +
-                  ")",
-              ],
-            ]);
+                    " (hp: " +
+                    entity.hp +
+                    " exp: " +
+                    entity.currentExp +
+                    "/" +
+                    entity.neededExp +
+                    ")",
+                ],
+              ]);
+            }
             entityMade = true;
           }
         });
@@ -647,12 +665,17 @@ export default function EngineOutput() {
         <tbody>
           {gameboardEntities.map((row) => {
             return (
-              <tr style={{ display: "flex", justifyContent: "space-between" }}>
+              <tr
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                }}
+              >
                 {row.map((position) => {
                   return (
-                    <th key={position[0]}>
+                    <td key={position[0]}>
                       <input type="text" defaultValue={position[1]}></input>
-                    </th>
+                    </td>
                   );
                 })}
               </tr>
