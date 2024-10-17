@@ -28,7 +28,7 @@ export default function EngineOutput() {
       this.exp = level.exp;
     }
     this.fallSpeed = 10;
-    this.fallCharge = 0;
+    this.fallCharge = 10;
   }
 
   //object that holds default values of entities
@@ -314,6 +314,9 @@ export default function EngineOutput() {
             activeEntities.find((entity) => entity.position === newPosition) !==
             undefined
           ) {
+            if (climbChecker(currentEntity)) {
+              turnTaken = true;
+            }
             return (spotFree = false);
           }
           if (spotFree) {
@@ -369,6 +372,32 @@ export default function EngineOutput() {
         console.log(entity.name + " fell to " + newPosition);
         entity.position = newPosition;
         updateGameboardEntities(activeEntities);
+      }
+    }
+
+    //checks if entity wants to climb
+    function climbChecker(currentEntity) {
+      let letter = currentEntity.position.charAt(0);
+      let number = parseInt(currentEntity.position.charAt(1));
+      let positionNextTo = letterParser(letter, currentEntity.enemy) + number;
+      if (
+        activeEntities.find((entity) => entity.position === positionNextTo) !==
+        undefined
+      ) {
+        let positionAbove =
+          positionNextTo.charAt(0) + (positionNextTo.charAt(1) - 1);
+        let positionAboveAbove =
+          positionAbove.charAt(0) + (positionAbove.charAt(1) - 1);
+        console.log(positionAbove + " " + positionAboveAbove);
+        if (
+          activeEntities.find(
+            (entity) => entity.position === positionAboveAbove
+          ) === undefined
+        ) {
+          currentEntity.position = positionAbove;
+          updateGameboardEntities(activeEntities);
+          return true;
+        }
       }
     }
 
@@ -436,46 +465,44 @@ export default function EngineOutput() {
     function letterParser(position, enemy) {
       if (enemy) {
         if (position === "B") {
-          position = "A";
+          return (position = "A");
         } else if (position === "C") {
-          position = "B";
+          return (position = "B");
         } else if (position === "D") {
-          position = "C";
+          return (position = "C");
         } else if (position === "E") {
-          position = "D";
+          return (position = "D");
         } else if (position === "F") {
-          position = "E";
+          return (position = "E");
         } else if (position === "G") {
-          position = "F";
+          return (position = "F");
         } else if (position === "H") {
-          position = "G";
+          return (position = "G");
         } else if (position === "I") {
-          position = "H";
+          return (position = "H");
         } else if (position === "J") {
-          position = "I";
+          return (position = "I");
         }
-        return position;
       } else if (!enemy) {
         if (position === "A") {
-          position = "B";
+          return (position = "B");
         } else if (position === "B") {
-          position = "C";
+          return (position = "C");
         } else if (position === "C") {
-          position = "D";
+          return (position = "D");
         } else if (position === "D") {
-          position = "E";
+          return (position = "E");
         } else if (position === "E") {
-          position = "F";
+          return (position = "F");
         } else if (position === "F") {
-          position = "G";
+          return (position = "G");
         } else if (position === "G") {
-          position = "H";
+          return (position = "H");
         } else if (position === "H") {
-          position = "I";
+          return (position = "I");
         } else if (position === "I") {
-          position = "J";
+          return (position = "J");
         }
-        return position;
       }
     }
 
@@ -811,13 +838,7 @@ export default function EngineOutput() {
       </button>
       <button
         onClick={() => {
-          Engine(
-            activeEntities,
-            graveyard,
-            bank,
-            currentTurn,
-            waves
-          );
+          Engine(activeEntities, graveyard, bank, currentTurn, waves);
         }}
       >
         Start Round
