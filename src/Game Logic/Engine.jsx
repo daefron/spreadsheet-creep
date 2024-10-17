@@ -529,28 +529,33 @@ export default function EngineOutput() {
   //runs friendly through checks before spawning
   function friendlySpawner(friendlyType, friendlyPosition, friendlyLevel) {
     if (entityList[friendlyType] !== undefined) {
-
-      let friendlyCost =
-      entityList[friendlyType].levels["lvl" + friendlyLevel].value;
-      if (bankChecker(friendlyCost)) {
-        if (friendlyPositionChecker(friendlyPosition, friendlyType)) {
-          setBank(bank - friendlyCost);
-        console.log(
-          "Purchased " +
-          friendlyType +
-          " for $" +
-          friendlyCost +
-          ". Total money: $" +
-          (bank - friendlyCost)
-        );
-        friendlyEntityParser(friendlyType, friendlyPosition, friendlyLevel);
+      if (
+        entityList[friendlyType].levels["lvl" + friendlyLevel] !== undefined
+      ) {
+        let friendlyCost =
+          entityList[friendlyType].levels["lvl" + friendlyLevel].value;
+        if (bankChecker(friendlyCost)) {
+          if (friendlyPositionChecker(friendlyPosition, friendlyType)) {
+            setBank(bank - friendlyCost);
+            console.log(
+              "Purchased " +
+                friendlyType +
+                " for $" +
+                friendlyCost +
+                ". Total money: $" +
+                (bank - friendlyCost)
+            );
+            friendlyEntityParser(friendlyType, friendlyPosition, friendlyLevel);
+          }
+        } else {
+          console.log("Insufficient funds");
+        }
+      } else {
+        console.log("Entity level does not exist");
       }
     } else {
-      console.log("Insufficient funds");
+      console.log("Entity does not exist");
     }
-  } else {
-    console.log("Entity does not exist");
-  }
   }
 
   //determines if enough money in bank to spawn friendly
@@ -641,8 +646,8 @@ export default function EngineOutput() {
                 [entity.name],
                 [
                   entity.type +
-                  "Lvl" +
-                  entity.level +
+                    "Lvl" +
+                    entity.level +
                     " (hp: " +
                     entity.hp +
                     " exp: " +
