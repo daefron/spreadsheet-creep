@@ -379,6 +379,7 @@ export default function EngineOutput() {
         console.log(entity.name + " was killed by " + currentEntity.name);
         if (entity.enemy) {
           bank = bank + entity.value;
+          setBank(bank);
           expTracker(entity, currentEntity);
           console.log(
             currentEntity.name +
@@ -815,7 +816,6 @@ export default function EngineOutput() {
             graveyard,
             bank,
             currentTurn,
-
             waves
           );
         }}
