@@ -40,8 +40,8 @@ export default function EngineOutput() {
           hp: 9,
           dmg: 3,
           range: 1,
-          rate: 2 * 30,
-          speed: 2 * 30,
+          rate: 60,
+          speed: 60,
           value: 1,
           exp: 1,
         },
@@ -50,8 +50,8 @@ export default function EngineOutput() {
           hp: 12,
           dmg: 4,
           range: 1,
-          rate: 2 * 30,
-          speed: 2 * 30,
+          rate: 50,
+          speed: 50,
           value: 3,
           exp: 2,
         },
@@ -66,8 +66,8 @@ export default function EngineOutput() {
           hp: 5,
           dmg: 2,
           range: 3,
-          rate: 2 * 30,
-          speed: 3 * 30,
+          rate: 60,
+          speed: 90,
           value: 1,
           exp: 1,
         },
@@ -76,8 +76,8 @@ export default function EngineOutput() {
           hp: 8,
           dmg: 3,
           range: 3,
-          rate: 2 * 30,
-          speed: 2 * 30,
+          rate: 50,
+          speed: 60,
           value: 3,
           exp: 2,
         },
@@ -92,8 +92,8 @@ export default function EngineOutput() {
           hp: 10,
           dmg: 3,
           range: 3,
-          rate: 2 * 30,
-          speed: 0 * 30,
+          rate: 60,
+          speed: 0,
           value: 5,
           neededExp: 3,
         },
@@ -102,8 +102,8 @@ export default function EngineOutput() {
           hp: 12,
           dmg: 4,
           range: 3,
-          rate: 2 * 25,
-          speed: 0 * 30,
+          rate: 50,
+          speed: 0,
           value: 10,
           neededExp: 6,
         },
@@ -112,8 +112,8 @@ export default function EngineOutput() {
           hp: 14,
           dmg: 5,
           range: 3,
-          rate: 2 * 20,
-          speed: 0 * 30,
+          rate: 40,
+          speed: 0,
           value: 15,
           neededExp: 30,
         },
@@ -128,8 +128,8 @@ export default function EngineOutput() {
           hp: 10,
           dmg: 0,
           range: 0,
-          rate: 0 * 30,
-          speed: 0 * 30,
+          rate: 0,
+          speed: 0,
           value: 2,
           neededExp: 100,
         },
@@ -268,6 +268,7 @@ export default function EngineOutput() {
       currentEntity.rateCharge++;
       currentEntity.speedCharge++;
       let oldPosition = currentEntity.position;
+      groundChecker(currentEntity.position);
       let rangeLetter = letterParser(
         oldPosition.charAt(0),
         currentEntity.enemy
@@ -337,6 +338,23 @@ export default function EngineOutput() {
         console.log(currentEntity.name + " charging movement.");
       } else if (!turnTaken) {
         console.log(currentEntity.name + " did nothing.");
+      }
+    }
+
+    //function to determine if there is anything under the current entity
+    function groundChecker(position) {
+      let letter = position.charAt(0);
+      let number = position.charAt(1);
+      if (number != 9) {
+        let positionBelow = letter + (number + 1);
+        if (
+          activeEntities.find((entity) => entity.position === positionBelow) ==
+          undefined
+        ) {
+          return false;
+        }
+      } else {
+        return true;
       }
     }
 
@@ -594,18 +612,28 @@ export default function EngineOutput() {
       let name = entity[0];
       let levels = Object.entries(Object.entries(entity[1])[2][1]);
       levels.forEach((level) => {
-        parsedFriendlyEntityArray.push(name + " lvl" + level[1].lvl + " cost: $" + level[1].value + " dmg: " + level[1].dmg + " range: " + level[1].range + " attack speed: " + level[1].rate);
+        parsedFriendlyEntityArray.push(
+          name +
+            " lvl" +
+            level[1].lvl +
+            " cost: $" +
+            level[1].value +
+            " dmg: " +
+            level[1].dmg +
+            " range: " +
+            level[1].range +
+            " attack speed: " +
+            level[1].rate
+        );
       });
     });
     return (
       <div>
         {parsedFriendlyEntityArray.map((entity) => {
-          return (
-            <p key={entity}>{entity}</p>
-          )
+          return <p key={entity}>{entity}</p>;
         })}
       </div>
-    )
+    );
   }
 
   //determines if position for friendly spawn is allowed
