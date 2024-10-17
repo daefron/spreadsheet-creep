@@ -27,6 +27,8 @@ export default function EngineOutput() {
     } else {
       this.exp = level.exp;
     }
+    this.fallSpeed = 10;
+    this.fallCharge = 0;
   }
 
   //object that holds default values of entities
@@ -258,86 +260,89 @@ export default function EngineOutput() {
     graveyard,
     bank,
     currentTurn,
-
     waves
   ) {
     //tells entities what to do on their turn
     function entityTurn(currentEntity) {
       let turnTaken = false;
-      let rangeCells = [];
-      currentEntity.rateCharge++;
-      currentEntity.speedCharge++;
-      let oldPosition = currentEntity.position;
-      groundChecker(currentEntity.position);
-      let rangeLetter = letterParser(
-        oldPosition.charAt(0),
-        currentEntity.enemy
-      );
-      let newPosition =
-        letterParser(oldPosition.charAt(0), currentEntity.enemy) +
-        oldPosition.charAt(1);
-      for (let i = currentEntity.range; i > 0; i--) {
-        rangeCells.push(rangeLetter + oldPosition.charAt(1));
-        rangeLetter = letterParser(rangeLetter, currentEntity.enemy);
-      }
-      rangeCells.forEach((rangeTarget) => {
-        activeEntities.forEach((entity) => {
+      if (!groundChecker(currentEntity.position)) {
+        gravity(currentEntity);
+        turnTaken = true;
+      } else {
+        let rangeCells = [];
+        currentEntity.rateCharge++;
+        currentEntity.speedCharge++;
+        let oldPosition = currentEntity.position;
+        let rangeLetter = letterParser(
+          oldPosition.charAt(0),
+          currentEntity.enemy
+        );
+        let newPosition =
+          letterParser(oldPosition.charAt(0), currentEntity.enemy) +
+          oldPosition.charAt(1);
+        for (let i = currentEntity.range; i > 0; i--) {
+          rangeCells.push(rangeLetter + oldPosition.charAt(1));
+          rangeLetter = letterParser(rangeLetter, currentEntity.enemy);
+        }
+        rangeCells.forEach((rangeTarget) => {
+          activeEntities.forEach((entity) => {
+            if (
+              entity.position === rangeTarget &&
+              currentEntity.rateCharge >= currentEntity.rate &&
+              entity.enemy !== currentEntity.enemy
+            ) {
+              currentEntity.rateCharge = 0;
+              entity.hp = entity.hp - currentEntity.dmg;
+              console.log(
+                currentEntity.name +
+                  " attacked " +
+                  entity.name +
+                  " for " +
+                  currentEntity.dmg +
+                  " damage. " +
+                  entity.name +
+                  " HP is " +
+                  entity.hp
+              );
+              healthChecker(entity, currentEntity);
+              turnTaken = true;
+              updateGameboardEntities(activeEntities);
+            }
+          });
+        });
+        if (
+          currentEntity.speedCharge >= currentEntity.speed &&
+          currentEntity.speed !== 0 &&
+          !turnTaken
+        ) {
+          let spotFree = true;
           if (
-            entity.position === rangeTarget &&
-            currentEntity.rateCharge >= currentEntity.rate &&
-            entity.enemy !== currentEntity.enemy
+            activeEntities.find((entity) => entity.position === newPosition) !==
+            undefined
           ) {
-            currentEntity.rateCharge = 0;
-            entity.hp = entity.hp - currentEntity.dmg;
+            return (spotFree = false);
+          }
+          if (spotFree) {
+            currentEntity.speedCharge = 0;
+            currentEntity.position = newPosition;
             console.log(
-              currentEntity.name +
-                " attacked " +
-                entity.name +
-                " for " +
-                currentEntity.dmg +
-                " damage. " +
-                entity.name +
-                " HP is " +
-                entity.hp
+              currentEntity.name + " moved to " + currentEntity.position
             );
-            healthChecker(entity, currentEntity);
             turnTaken = true;
             updateGameboardEntities(activeEntities);
           }
-        });
-      });
-      if (
-        currentEntity.speedCharge >= currentEntity.speed &&
-        currentEntity.speed !== 0 &&
-        !turnTaken
-      ) {
-        let spotFree = true;
-        if (
-          activeEntities.find((entity) => entity.position === newPosition) !==
-          undefined
+        }
+        if (currentEntity.rateCharge < currentEntity.rate && !turnTaken) {
+          console.log(currentEntity.name + " charging attack.");
+        } else if (
+          currentEntity.speedCharge < currentEntity.speed &&
+          currentEntity.speed !== 0 &&
+          !turnTaken
         ) {
-          return (spotFree = false);
+          console.log(currentEntity.name + " charging movement.");
+        } else if (!turnTaken) {
+          console.log(currentEntity.name + " did nothing.");
         }
-        if (spotFree) {
-          currentEntity.speedCharge = 0;
-          currentEntity.position = newPosition;
-          console.log(
-            currentEntity.name + " moved to " + currentEntity.position
-          );
-          turnTaken = true;
-          updateGameboardEntities(activeEntities);
-        }
-      }
-      if (currentEntity.rateCharge < currentEntity.rate && !turnTaken) {
-        console.log(currentEntity.name + " charging attack.");
-      } else if (
-        currentEntity.speedCharge < currentEntity.speed &&
-        currentEntity.speed !== 0 &&
-        !turnTaken
-      ) {
-        console.log(currentEntity.name + " charging movement.");
-      } else if (!turnTaken) {
-        console.log(currentEntity.name + " did nothing.");
       }
     }
 
@@ -355,6 +360,21 @@ export default function EngineOutput() {
         }
       } else {
         return true;
+      }
+    }
+
+    //moves entities down if falling
+    function gravity(entity) {
+      if (entity.fallCharge < entity.fallSpeed) {
+        console.log(entity.name + " is falling");
+        entity.fallCharge++;
+      } else {
+        entity.fallCharge = 0;
+        let newPosition =
+          entity.position.charAt(0) + (parseInt(entity.position.charAt(1)) + 1);
+        console.log(entity.name + " fell to " + newPosition);
+        entity.position = newPosition;
+        updateGameboardEntities(activeEntities);
       }
     }
 
