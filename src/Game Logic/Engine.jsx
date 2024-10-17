@@ -2,7 +2,7 @@ import { useState } from "react";
 export default function EngineOutput() {
   const [activeEntities, setActiveEntities] = useState([]);
   const [graveyard, setGraveyard] = useState([]);
-  const [bank, setBank] = useState(10);
+  const [bank, setBank] = useState(1000);
   const [currentTurn, setCurrentTurn] = useState(1);
 
   //function that creates new active entities
@@ -29,6 +29,7 @@ export default function EngineOutput() {
     }
     this.fallSpeed = type.fallSpeed;
     this.fallCharge = type.fallSpeed;
+    this.climber = type.climber;
   }
 
   //object that holds default values of entities
@@ -37,6 +38,7 @@ export default function EngineOutput() {
       type: "goblin",
       enemy: true,
       fallSpeed: 10,
+      climber: true,
       levels: {
         lvl1: {
           lvl: 1,
@@ -64,6 +66,7 @@ export default function EngineOutput() {
       type: "skeleton",
       enemy: true,
       fallSpeed: 10,
+      climber: false,
       levels: {
         lvl1: {
           lvl: 1,
@@ -91,6 +94,7 @@ export default function EngineOutput() {
       type: "arrow",
       enemy: false,
       fallSpeed: 1,
+      climber: false,
       levels: {
         lvl1: {
           lvl: 1,
@@ -128,10 +132,11 @@ export default function EngineOutput() {
       type: "wall",
       enemy: false,
       fallSpeed: 1,
+      climber: false,
       levels: {
         lvl1: {
           lvl: 1,
-          hp: 1000000,
+          hp: 10,
           dmg: 0,
           range: 0,
           rate: 0,
@@ -145,6 +150,7 @@ export default function EngineOutput() {
       type: "king",
       enemy: false,
       fallSpeed: 10,
+      climber: false,
       levels: {
         lvl1: {
           lvl: 1,
@@ -365,8 +371,10 @@ export default function EngineOutput() {
             activeEntities.find((entity) => entity.position === newPosition) !==
             undefined
           ) {
-            if (climbChecker(currentEntity)) {
-              turnTaken = true;
+            if (currentEntity.climber === true) {
+              if (climbChecker(currentEntity)) {
+                turnTaken = true;
+              }
             }
             return (spotFree = false);
           }
@@ -442,9 +450,8 @@ export default function EngineOutput() {
         let positionAbove =
           positionNextTo.charAt(0) + (positionNextTo.charAt(1) - 1);
         if (
-          activeEntities.find(
-            (entity) => entity.position === positionAbove
-          ) === undefined
+          activeEntities.find((entity) => entity.position === positionAbove) ===
+          undefined
         ) {
           if (currentEntity.speed <= currentEntity.speedCharge) {
             currentEntity.position = positionAbove;
