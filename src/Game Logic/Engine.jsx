@@ -255,13 +255,7 @@ export default function EngineOutput() {
     },
   };
 
-  function Engine(
-    activeEntities,
-    graveyard,
-    bank,
-    currentTurn,
-    waves
-  ) {
+  function Engine(activeEntities, graveyard, bank, currentTurn, waves) {
     //tells entities what to do on their turn
     function entityTurn(currentEntity) {
       let turnTaken = false;
@@ -349,15 +343,15 @@ export default function EngineOutput() {
     //function to determine if there is anything under the current entity
     function groundChecker(position) {
       let letter = position.charAt(0);
-      let number = position.charAt(1);
+      let number = parseInt(position.charAt(1));
       if (number != 9) {
         let positionBelow = letter + (number + 1);
         if (
-          activeEntities.find((entity) => entity.position === positionBelow) ==
+          activeEntities.find((entity) => entity.position === positionBelow) ===
           undefined
         ) {
           return false;
-        }
+        } else return true;
       } else {
         return true;
       }
@@ -659,8 +653,8 @@ export default function EngineOutput() {
   //determines if position for friendly spawn is allowed
   function friendlyPositionChecker(friendlyPosition, friendlyType) {
     let positionAllowed = true;
-    if (friendlyPosition === "A1" && friendlyType !== "king") {
-      console.log("Cannot place in A1, position reserved for king");
+    if (friendlyPosition === "A9" && friendlyType !== "king") {
+      console.log("Cannot place in A9, position reserved for king");
       positionAllowed = false;
     } else {
       if (
