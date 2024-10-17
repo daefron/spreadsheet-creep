@@ -702,6 +702,7 @@ export default function EngineOutput() {
     <>
       <div>
         <p>Friendly spawner:</p>
+        <p>Money: {bank}</p>
         <p>Type:</p>
         <input value={friendlyType} onChange={updateFriendlyType}></input>
         <p>Position:</p>
