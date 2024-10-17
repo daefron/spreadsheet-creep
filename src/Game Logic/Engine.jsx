@@ -119,6 +119,22 @@ export default function EngineOutput() {
         },
       },
     },
+    wall: {
+      type: "wall",
+      enemy: false,
+      levels: {
+        lvl1: {
+          lvl: 1,
+          hp: 10,
+          dmg: 0,
+          range: 0,
+          rate: 0 * 30,
+          speed: 0 * 30,
+          value: 2,
+          neededExp: 100,
+        },
+      },
+    },
     king: {
       type: "king",
       enemy: false,
@@ -567,6 +583,32 @@ export default function EngineOutput() {
     }
   }
 
+  //makes a list of purchasble entities
+  function Purchasables() {
+    let entityArray = Object.entries(entityList);
+    let friendlyEntityArray = entityArray.filter((entity) => !entity[1].enemy);
+    //removes king from array
+    friendlyEntityArray.pop();
+    let parsedFriendlyEntityArray = [];
+    friendlyEntityArray.forEach((entity) => {
+      let name = entity[0];
+      let levels = Object.entries(Object.entries(entity[1])[2][1]);
+      levels.forEach((level) => {
+        console.log(level[1]);
+        parsedFriendlyEntityArray.push(name + " lvl" + level[1].lvl + " cost: $" + level[1].value);
+      });
+    });
+    return (
+      <div>
+        {parsedFriendlyEntityArray.map((entity) => {
+          return (
+            <p key={entity}>{entity}</p>
+          )
+        })}
+      </div>
+    )
+  }
+
   //determines if position for friendly spawn is allowed
   function friendlyPositionChecker(friendlyPosition, friendlyType) {
     let positionAllowed = true;
@@ -702,7 +744,8 @@ export default function EngineOutput() {
     <>
       <div>
         <p>Friendly spawner:</p>
-        <p>Money: {bank}</p>
+        <p>Money: ${bank}</p>
+        <Purchasables></Purchasables>
         <p>Type:</p>
         <input value={friendlyType} onChange={updateFriendlyType}></input>
         <p>Position:</p>
