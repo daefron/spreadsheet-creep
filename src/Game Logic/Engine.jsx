@@ -209,6 +209,51 @@ export default function EngineOutput() {
         level: "lvl2",
         position: "J9",
       },
+      2600: {
+        name: "goblin",
+        level: "lvl1",
+        position: "J9",
+      },
+      2800: {
+        name: "goblin",
+        level: "lvl2",
+        position: "J9",
+      },
+      2950: {
+        name: "skeleton",
+        level: "lvl1",
+        position: "J9",
+      },
+      3140: {
+        name: "goblin",
+        level: "lvl2",
+        position: "J9",
+      },
+      3250: {
+        name: "skeleton",
+        level: "lvl2",
+        position: "J9",
+      },
+      3380: {
+        name: "goblin",
+        level: "lvl2",
+        position: "J9",
+      },
+      3480: {
+        name: "goblin",
+        level: "lvl2",
+        position: "J9",
+      },
+      3550: {
+        name: "goblin",
+        level: "lvl2",
+        position: "J9",
+      },
+      3785: {
+        name: "goblin",
+        level: "lvl2",
+        position: "J9",
+      },
     },
     wave2: {
       wave: 2,
@@ -396,12 +441,9 @@ export default function EngineOutput() {
       ) {
         let positionAbove =
           positionNextTo.charAt(0) + (positionNextTo.charAt(1) - 1);
-        let positionAboveAbove =
-          positionAbove.charAt(0) + (positionAbove.charAt(1) - 1);
-        console.log(positionAbove + " " + positionAboveAbove);
         if (
           activeEntities.find(
-            (entity) => entity.position === positionAboveAbove
+            (entity) => entity.position === positionAbove
           ) === undefined
         ) {
           if (currentEntity.speed <= currentEntity.speedCharge) {
@@ -545,7 +587,7 @@ export default function EngineOutput() {
       if (!gameFinished) {
         let timer = setInterval(() => {
           turnCycler(currentWave, wave, timer, i);
-        }, 5);
+        }, 1);
       } else console.log("Game Over");
     }
 
