@@ -102,7 +102,7 @@ export default function EngineOutput() {
           hp: 12,
           dmg: 4,
           range: 3,
-          rate: 2 * 30,
+          rate: 2 * 25,
           speed: 0 * 30,
           value: 10,
           neededExp: 6,
@@ -112,7 +112,7 @@ export default function EngineOutput() {
           hp: 14,
           dmg: 5,
           range: 3,
-          rate: 2 * 30,
+          rate: 2 * 20,
           speed: 0 * 30,
           value: 15,
           neededExp: 30,
@@ -594,8 +594,7 @@ export default function EngineOutput() {
       let name = entity[0];
       let levels = Object.entries(Object.entries(entity[1])[2][1]);
       levels.forEach((level) => {
-        console.log(level[1]);
-        parsedFriendlyEntityArray.push(name + " lvl" + level[1].lvl + " cost: $" + level[1].value);
+        parsedFriendlyEntityArray.push(name + " lvl" + level[1].lvl + " cost: $" + level[1].value + " dmg: " + level[1].dmg + " range: " + level[1].range + " attack speed: " + level[1].rate);
       });
     });
     return (
