@@ -27,8 +27,8 @@ export default function EngineOutput() {
     } else {
       this.exp = level.exp;
     }
-    this.fallSpeed = 10;
-    this.fallCharge = 10;
+    this.fallSpeed = type.fallSpeed;
+    this.fallCharge = type.fallSpeed;
   }
 
   //object that holds default values of entities
@@ -36,6 +36,7 @@ export default function EngineOutput() {
     goblin: {
       type: "goblin",
       enemy: true,
+      fallSpeed: 10,
       levels: {
         lvl1: {
           lvl: 1,
@@ -62,6 +63,7 @@ export default function EngineOutput() {
     skeleton: {
       type: "skeleton",
       enemy: true,
+      fallSpeed: 10,
       levels: {
         lvl1: {
           lvl: 1,
@@ -88,6 +90,7 @@ export default function EngineOutput() {
     arrow: {
       type: "arrow",
       enemy: false,
+      fallSpeed: 1,
       levels: {
         lvl1: {
           lvl: 1,
@@ -124,10 +127,11 @@ export default function EngineOutput() {
     wall: {
       type: "wall",
       enemy: false,
+      fallSpeed: 1,
       levels: {
         lvl1: {
           lvl: 1,
-          hp: 10,
+          hp: 1000000,
           dmg: 0,
           range: 0,
           rate: 0,
@@ -140,6 +144,7 @@ export default function EngineOutput() {
     king: {
       type: "king",
       enemy: false,
+      fallSpeed: 10,
       levels: {
         lvl1: {
           lvl: 1,
@@ -299,8 +304,9 @@ export default function EngineOutput() {
                   entity.hp
               );
               healthChecker(entity, currentEntity);
-              turnTaken = true;
               updateGameboardEntities(activeEntities);
+              currentEntity.speedCharge = 0;
+              turnTaken = true;
             }
           });
         });
@@ -380,9 +386,13 @@ export default function EngineOutput() {
       let letter = currentEntity.position.charAt(0);
       let number = parseInt(currentEntity.position.charAt(1));
       let positionNextTo = letterParser(letter, currentEntity.enemy) + number;
+      let entityInPositionNextTo = activeEntities.find(
+        (entity) => entity.position === positionNextTo
+      );
+      console.log(entityInPositionNextTo);
       if (
-        activeEntities.find((entity) => entity.position === positionNextTo) !==
-        undefined
+        entityInPositionNextTo !== undefined &&
+        entityInPositionNextTo.enemy === currentEntity.enemy
       ) {
         let positionAbove =
           positionNextTo.charAt(0) + (positionNextTo.charAt(1) - 1);
@@ -394,9 +404,15 @@ export default function EngineOutput() {
             (entity) => entity.position === positionAboveAbove
           ) === undefined
         ) {
-          currentEntity.position = positionAbove;
-          updateGameboardEntities(activeEntities);
-          return true;
+          if (currentEntity.speed <= currentEntity.speedCharge) {
+            currentEntity.position = positionAbove;
+            currentEntity.speedCharge = 0;
+            updateGameboardEntities(activeEntities);
+            return true;
+          } else {
+            currentEntity.speed++;
+            return true;
+          }
         }
       }
     }
@@ -529,7 +545,7 @@ export default function EngineOutput() {
       if (!gameFinished) {
         let timer = setInterval(() => {
           turnCycler(currentWave, wave, timer, i);
-        }, 1);
+        }, 5);
       } else console.log("Game Over");
     }
 
