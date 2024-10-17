@@ -361,43 +361,55 @@ export default function EngineOutput() {
             }
           });
         });
+        if (entityCanMove(currentEntity)) {
+          entityMovement(currentEntity, newPosition);
+          if (currentEntity.rateCharge < currentEntity.rate && !turnTaken) {
+            console.log(currentEntity.name + " charging attack.");
+          } else if (
+            currentEntity.speedCharge < currentEntity.speed &&
+            currentEntity.speed !== 0 &&
+            !turnTaken
+          ) {
+            console.log(currentEntity.name + " charging movement.");
+          } else if (!turnTaken) {
+            console.log(currentEntity.name + " did nothing.");
+          }
+        }
+      }
+
+      //function to determine if entity can move this turn
+      function entityCanMove(currentEntity) {
         if (
           currentEntity.speedCharge >= currentEntity.speed &&
           currentEntity.speed !== 0 &&
           !turnTaken
         ) {
-          let spotFree = true;
-          if (
-            activeEntities.find((entity) => entity.position === newPosition) !==
-            undefined
-          ) {
-            if (currentEntity.climber === true) {
-              if (climbChecker(currentEntity)) {
-                turnTaken = true;
-              }
-            }
-            return (spotFree = false);
-          }
-          if (spotFree) {
-            currentEntity.speedCharge = 0;
-            currentEntity.position = newPosition;
-            console.log(
-              currentEntity.name + " moved to " + currentEntity.position
-            );
-            turnTaken = true;
-            updateGameboardEntities(activeEntities);
-          }
+          return true;
         }
-        if (currentEntity.rateCharge < currentEntity.rate && !turnTaken) {
-          console.log(currentEntity.name + " charging attack.");
-        } else if (
-          currentEntity.speedCharge < currentEntity.speed &&
-          currentEntity.speed !== 0 &&
-          !turnTaken
+      }
+
+      //function to determine how entity moves if it can
+      function entityMovement(currentEntity, newPosition) {
+        let spotFree = true;
+        if (
+          activeEntities.find((entity) => entity.position === newPosition) !==
+          undefined
         ) {
-          console.log(currentEntity.name + " charging movement.");
-        } else if (!turnTaken) {
-          console.log(currentEntity.name + " did nothing.");
+          if (currentEntity.climber) {
+            if (climbChecker(currentEntity)) {
+              turnTaken = true;
+            }
+          }
+          return (spotFree = false);
+        }
+        if (spotFree) {
+          currentEntity.speedCharge = 0;
+          currentEntity.position = newPosition;
+          console.log(
+            currentEntity.name + " moved to " + currentEntity.position
+          );
+          updateGameboardEntities(activeEntities);
+          return (turnTaken = true);
         }
       }
     }
