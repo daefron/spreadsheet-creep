@@ -319,21 +319,15 @@ export default function EngineOutput() {
         gravity(currentEntity);
         turnTaken = true;
       } else {
-        let rangeCells = [];
         currentEntity.rateCharge++;
         currentEntity.speedCharge++;
         let oldPosition = currentEntity.position;
-        let rangeLetter = letterParser(
-          oldPosition.charAt(0),
-          currentEntity.enemy
-        );
         let newPosition =
           letterParser(oldPosition.charAt(0), currentEntity.enemy) +
           oldPosition.charAt(1);
-        for (let i = currentEntity.range; i > 0; i--) {
-          rangeCells.push(rangeLetter + oldPosition.charAt(1));
-          rangeLetter = letterParser(rangeLetter, currentEntity.enemy);
-        }
+        let rangeCells = [];
+        rangeGetter(currentEntity, oldPosition, rangeCells);
+        console.log(attackTargetter(currentEntity, rangeCells));
         rangeCells.forEach((rangeTarget) => {
           activeEntities.forEach((entity) => {
             if (
@@ -363,19 +357,57 @@ export default function EngineOutput() {
         });
         if (entityCanMove(currentEntity)) {
           entityMovement(currentEntity, newPosition);
-          if (currentEntity.rateCharge < currentEntity.rate && !turnTaken) {
-            console.log(currentEntity.name + " charging attack.");
-          } else if (
-            currentEntity.speedCharge < currentEntity.speed &&
-            currentEntity.speed !== 0 &&
-            !turnTaken
-          ) {
-            console.log(currentEntity.name + " charging movement.");
-          } else if (!turnTaken) {
-            console.log(currentEntity.name + " did nothing.");
-          }
+        }
+        if (currentEntity.rateCharge < currentEntity.rate && !turnTaken) {
+          console.log(currentEntity.name + " charging attack.");
+        } else if (
+          currentEntity.speedCharge < currentEntity.speed &&
+          currentEntity.speed !== 0 &&
+          !turnTaken
+        ) {
+          console.log(currentEntity.name + " charging movement.");
+        } else if (!turnTaken) {
+          console.log(currentEntity.name + " did nothing.");
         }
       }
+
+      //function to return array of cells entity can target
+      function rangeGetter(currentEntity, oldPosition, rangeCells) {
+        let rangeLetter = letterParser(
+          oldPosition.charAt(0),
+          currentEntity.enemy
+        );
+        for (let i = currentEntity.range; i > 0; i--) {
+          rangeCells.push(rangeLetter + oldPosition.charAt(1));
+          rangeLetter = letterParser(rangeLetter, currentEntity.enemy);
+        }
+        return rangeCells;
+      }
+
+      //function to return entity to attack
+      function attackTargetter(currentEntity, rangeCells) {
+        let targetFound = false;
+        let target;
+        rangeCells.forEach((cell) => {
+          if (targetFound === false) {
+            let targetEntity = activeEntities.find(
+              (entity) => entity.position === cell
+            );
+            if (targetEntity !== undefined) {
+              if (
+                targetEntity.position === cell &&
+                targetEntity.enemy !== currentEntity.enemy
+              ) {
+                targetFound = true;
+                return target = targetEntity;
+              }
+            }
+          }
+        });
+        return target;
+      }
+
+      function entityCanAttack(currentEntity, rangeCells) {}
 
       //function to determine if entity can move this turn
       function entityCanMove(currentEntity) {
@@ -454,7 +486,6 @@ export default function EngineOutput() {
       let entityInPositionNextTo = activeEntities.find(
         (entity) => entity.position === positionNextTo
       );
-      console.log(entityInPositionNextTo);
       if (
         entityInPositionNextTo !== undefined &&
         entityInPositionNextTo.enemy === currentEntity.enemy
