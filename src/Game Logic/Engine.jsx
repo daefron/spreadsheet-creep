@@ -528,24 +528,29 @@ export default function EngineOutput() {
 
   //runs friendly through checks before spawning
   function friendlySpawner(friendlyType, friendlyPosition, friendlyLevel) {
-    let friendlyCost =
+    if (entityList[friendlyType] !== undefined) {
+
+      let friendlyCost =
       entityList[friendlyType].levels["lvl" + friendlyLevel].value;
-    if (bankChecker(friendlyCost)) {
-      if (friendlyPositionChecker(friendlyPosition, friendlyType)) {
-        setBank(bank - friendlyCost);
+      if (bankChecker(friendlyCost)) {
+        if (friendlyPositionChecker(friendlyPosition, friendlyType)) {
+          setBank(bank - friendlyCost);
         console.log(
           "Purchased " +
-            friendlyType +
-            " for $" +
-            friendlyCost +
-            ". Total money: $" +
-            (bank - friendlyCost)
+          friendlyType +
+          " for $" +
+          friendlyCost +
+          ". Total money: $" +
+          (bank - friendlyCost)
         );
         friendlyEntityParser(friendlyType, friendlyPosition, friendlyLevel);
       }
     } else {
       console.log("Insufficient funds");
     }
+  } else {
+    console.log("Entity does not exist");
+  }
   }
 
   //determines if enough money in bank to spawn friendly
@@ -573,8 +578,10 @@ export default function EngineOutput() {
         return (positionAllowed = false);
       }
     }
-    if (positionAllowed) {
+    if (positionAllowed && !entityList[friendlyType].enemy) {
       return true;
+    } else {
+      console.log("Cannot spwawn enemy units");
     }
   }
 
