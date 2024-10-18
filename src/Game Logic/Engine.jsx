@@ -317,8 +317,8 @@ export default function EngineOutput() {
       currentEntity.rateCharge++;
       currentEntity.speedCharge++;
       let turnTaken = false;
-      if (fallChecker(currentEntity.position)) {
-        gravity(currentEntity);
+      if (entityCanFall(currentEntity.position)) {
+        entityFall(currentEntity);
         turnTaken = true;
       }
       if (entityCanAttack(currentEntity, turnTaken)) {
@@ -332,7 +332,7 @@ export default function EngineOutput() {
       turnLogs(currentEntity, turnTaken);
 
       //function to determine if there is anything under the current entity
-      function fallChecker(position) {
+      function entityCanFall(position) {
         let letter = position.charAt(0);
         let number = parseInt(position.charAt(1));
         if (number != 9) {
@@ -343,14 +343,12 @@ export default function EngineOutput() {
             ) === undefined
           ) {
             return true;
-          } else return false;
-        } else {
-          return false;
-        }
+          }
+        } else return false;
       }
 
       //moves entities down if falling
-      function gravity(entity) {
+      function entityFall(entity) {
         if (entity.fallCharge < entity.fallSpeed) {
           console.log(entity.name + " is falling");
           entity.fallCharge++;
@@ -363,6 +361,43 @@ export default function EngineOutput() {
           entity.position = newPosition;
           updateGameboardEntities(activeEntities);
         }
+      }
+
+      //function to determine if entity can attack this turn
+      function entityCanAttack(currentEntity, turnTaken) {
+        if (
+          currentEntity.rateCharge >= currentEntity.rate &&
+          currentEntity.rate !== 0 &&
+          !turnTaken
+        ) {
+          let rangeCells = rangeGetter(currentEntity);
+          let targetEntity = attackTargetter(currentEntity, rangeCells);
+          if (targetEntity !== undefined) {
+            return true;
+          }
+        }
+      }
+
+      //function to execute attack if can
+      function entityAttack(currentEntity) {
+        let rangeCells = rangeGetter(currentEntity);
+        let targetEntity = attackTargetter(currentEntity, rangeCells);
+        targetEntity.hp = targetEntity.hp - currentEntity.dmg;
+        console.log(
+          currentEntity.name +
+            " attacked " +
+            targetEntity.name +
+            " for " +
+            currentEntity.dmg +
+            " damage. " +
+            targetEntity.name +
+            " HP is " +
+            targetEntity.hp
+        );
+        healthChecker(targetEntity, currentEntity);
+        updateGameboardEntities(activeEntities);
+        currentEntity.rateCharge = 0;
+        currentEntity.speedCharge = 0;
       }
 
       //function to return array of cells entity can target
@@ -400,39 +435,6 @@ export default function EngineOutput() {
           }
         });
         return target;
-      }
-
-      //function to determine if entity can attack this turn
-      function entityCanAttack(currentEntity, turnTaken) {
-        if (currentEntity.rateCharge >= currentEntity.rate && !turnTaken) {
-          let rangeCells = rangeGetter(currentEntity);
-          let targetEntity = attackTargetter(currentEntity, rangeCells);
-          if (targetEntity !== undefined) {
-            return true;
-          }
-        }
-      }
-
-      //function to execute attack if can
-      function entityAttack(currentEntity) {
-        let rangeCells = rangeGetter(currentEntity);
-        let targetEntity = attackTargetter(currentEntity, rangeCells);
-        currentEntity.rateCharge = 0;
-        targetEntity.hp = targetEntity.hp - currentEntity.dmg;
-        console.log(
-          currentEntity.name +
-            " attacked " +
-            targetEntity.name +
-            " for " +
-            currentEntity.dmg +
-            " damage. " +
-            targetEntity.name +
-            " HP is " +
-            targetEntity.hp
-        );
-        healthChecker(targetEntity, currentEntity);
-        updateGameboardEntities(activeEntities);
-        currentEntity.speedCharge = 0;
       }
 
       //function to determine if entity can move this turn
@@ -544,6 +546,8 @@ export default function EngineOutput() {
       //applies level up for friendly entity
       function levelUp(currentEntity) {
         let oldProperties = Object.entries(currentEntity);
+        let oldHP =
+          entityList[currentEntity.type].levels["lvl" + currentEntity.level].hp;
         currentEntity.level++;
         let newLevel = currentEntity.level;
         let newProperties = Object.entries(
@@ -555,7 +559,12 @@ export default function EngineOutput() {
               oldProperty[0] === newProperty[0] &&
               oldProperty[1] !== newProperty[1]
             ) {
-              currentEntity[oldProperty[0]] = newProperty[1];
+              if (oldProperty[0] === "hp") {
+                let adjustedHP = newProperty[1] - oldHP;
+                currentEntity[oldProperty[0]] = currentEntity.hp + adjustedHP;
+              } else {
+                currentEntity[oldProperty[0]] = newProperty[1];
+              }
             }
           });
         });
