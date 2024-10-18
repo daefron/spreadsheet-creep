@@ -3,7 +3,7 @@ export default function EngineOutput() {
   const [activeEntities, setActiveEntities] = useState([]);
   const [activeProjectiles, setActProjectiles] = useState([]);
   const [graveyard, setGraveyard] = useState([]);
-  const [bank, setBank] = useState(10);
+  const [bank, setBank] = useState(10000);
   const [currentTurn, setCurrentTurn] = useState(1);
 
   //function that creates new active entities
@@ -168,6 +168,16 @@ export default function EngineOutput() {
           value: 2,
           neededExp: 100,
         },
+        lvl2 : {
+          lvl: 1,
+          hp: 100000000,
+          dmg: 0,
+          range: 0,
+          rate: 0,
+          speed: 0,
+          value: 2,
+          neededExp: 100,
+        }
       },
     },
     king: {
@@ -515,7 +525,10 @@ export default function EngineOutput() {
             }
           }
         }
-        if (spotFree) {
+        if (
+          spotFree &&
+          !activeEntities.find((entity) => entity.position === newPosition)
+        ) {
           currentEntity.speedCharge = 0;
           currentEntity.position = newPosition;
           console.log(
