@@ -2,7 +2,7 @@ import { useState } from "react";
 export default function EngineOutput() {
   const [activeEntities, setActiveEntities] = useState([]);
   const [graveyard, setGraveyard] = useState([]);
-  const [bank, setBank] = useState(1000);
+  const [bank, setBank] = useState(10);
   const [currentTurn, setCurrentTurn] = useState(1);
 
   //function that creates new active entities
@@ -634,21 +634,6 @@ export default function EngineOutput() {
       }
     }
 
-    //spawns entities based on wave
-    function spawner(currentWave, currentTurn, activeEntities) {
-      let entityType = entityList[currentWave[currentTurn].name];
-      let entitylvl =
-        entityList[currentWave[currentTurn].name].lvls[
-          currentWave[currentTurn].lvl
-        ];
-      let position = currentWave[currentTurn].position;
-      let entityID = currentWave[currentTurn].name + currentTurn;
-      entityID = new Entity(entityType, entitylvl, position, entityID);
-      activeEntities.push(entityID);
-      console.log(entityID.name + " spawned at " + entityID.position + ".");
-      updateGameboardEntities(activeEntities);
-    }
-
     //sets amount of turns to play
     function amountOfTurns(i, finished) {
       let wave = "wave" + i,
@@ -659,68 +644,83 @@ export default function EngineOutput() {
           turnCycler(currentWave, wave, timer, i);
         }, 1);
       } else console.log("Game Over");
-    }
 
-    //runs turn functions under a timer
-    function turnCycler(currentWave, wave, timer, i) {
-      if (currentWave[currentTurn] !== undefined) {
-        spawner(currentWave, currentTurn, activeEntities);
-      }
-      nextTurn(currentTurn);
-      if (victoryChecker(wave, currentTurn) === "friendly victory") {
-        clearInterval(timer);
-        console.log("Friendly Victory - Total Money: $" + bank);
-        currentTurn = 1;
-        if (i + 1 > Object.keys(waves).length) {
-          amountOfTurns(i + 1, true);
-        } else {
-          amountOfTurns(i + 1, false);
+      //runs turn functions under a timer
+      function turnCycler(currentWave, wave, timer, i) {
+        if (currentWave[currentTurn] !== undefined) {
+          spawner(currentWave, currentTurn, activeEntities);
         }
-      } else if (victoryChecker(wave, currentTurn) === "enemy victory") {
-        clearInterval(timer);
-        console.log("Enemy Victory");
+        nextTurn(currentTurn);
+        if (victoryChecker(wave, currentTurn) === "friendly victory") {
+          clearInterval(timer);
+          console.log("Friendly Victory - Total Money: $" + bank);
+          currentTurn = 1;
+          if (i + 1 > Object.keys(waves).length) {
+            amountOfTurns(i + 1, true);
+          } else {
+            amountOfTurns(i + 1, false);
+          }
+        } else if (victoryChecker(wave, currentTurn) === "enemy victory") {
+          clearInterval(timer);
+          console.log("Enemy Victory");
+        }
+        currentTurn++;
       }
-      currentTurn++;
-    }
 
-    //makes all entities take turn
-    function nextTurn(currentTurn) {
-      activeEntities.forEach((entity) => {
-        entityTurn(entity);
-      });
-      console.log("Turn " + currentTurn + " over.");
-    }
-
-    //checks if and which side has won round
-    function victoryChecker(round, currentTurn) {
-      let spawnTurns = [];
-      Object.keys(waves[round]).forEach((element) => {
-        spawnTurns.push(element);
-      });
-      let activeEnemies = activeEntities.filter(
-        (entity) => entity.enemy
-      ).length;
-      let kingAlive =
-        activeEntities.find((entity) => entity.type === "king") !== undefined;
-      if (!kingAlive) {
-        activeEntitiesClearer(false);
-        return "enemy victory";
-      } else if (
-        currentTurn > spawnTurns[spawnTurns.length - 2] &&
-        activeEnemies === 0
-      ) {
-        activeEntitiesClearer(true);
-        setBank(bank);
-        return "friendly victory";
+      //spawns entities based on wave
+      function spawner(currentWave, currentTurn, activeEntities) {
+        let entityType = entityList[currentWave[currentTurn].name];
+        let entitylvl =
+          entityList[currentWave[currentTurn].name].lvls[
+            currentWave[currentTurn].lvl
+          ];
+        let position = currentWave[currentTurn].position;
+        let entityID = currentWave[currentTurn].name + currentTurn;
+        entityID = new Entity(entityType, entitylvl, position, entityID);
+        activeEntities.push(entityID);
+        console.log(entityID.name + " spawned at " + entityID.position + ".");
+        updateGameboardEntities(activeEntities);
       }
-    }
 
-    //clears the activeEntities on victory
-    function activeEntitiesClearer(victory) {
-      if (victory) {
-        activeEntities = activeEntities.filter((entity) => !entity.enemy);
-      } else {
-        setActiveEntities([]);
+      //makes all entities take turn
+      function nextTurn(currentTurn) {
+        activeEntities.forEach((entity) => {
+          entityTurn(entity);
+        });
+        console.log("Turn " + currentTurn + " over.");
+      }
+
+      //checks if and which side has won round
+      function victoryChecker(round, currentTurn) {
+        let spawnTurns = [];
+        Object.keys(waves[round]).forEach((element) => {
+          spawnTurns.push(element);
+        });
+        let activeEnemies = activeEntities.filter(
+          (entity) => entity.enemy
+        ).length;
+        let kingAlive =
+          activeEntities.find((entity) => entity.type === "king") !== undefined;
+        if (!kingAlive) {
+          activeEntitiesClearer(false);
+          return "enemy victory";
+        } else if (
+          currentTurn > spawnTurns[spawnTurns.length - 2] &&
+          activeEnemies === 0
+        ) {
+          activeEntitiesClearer(true);
+          setBank(bank);
+          return "friendly victory";
+        }
+      }
+
+      //clears the activeEntities on victory
+      function activeEntitiesClearer(victory) {
+        if (victory) {
+          activeEntities = activeEntities.filter((entity) => !entity.enemy);
+        } else {
+          setActiveEntities([]);
+        }
       }
     }
 
@@ -731,27 +731,32 @@ export default function EngineOutput() {
   }
 
   //runs friendly through checks before spawning
-  function friendlySpawner(friendlyType, friendlyPosition, friendlylvl) {
-    if (entityList[friendlyType] !== undefined) {
-      if (entityList[friendlyType].lvls["lvl" + friendlylvl] !== undefined) {
-        let friendlyCost =
-          entityList[friendlyType].lvls["lvl" + friendlylvl].value;
-        if (bankChecker(friendlyCost)) {
-          if (friendlyPositionChecker(friendlyPosition, friendlyType)) {
-            setBank(bank - friendlyCost);
-            console.log(
-              "Purchased " +
-                friendlyType +
-                " for $" +
-                friendlyCost +
-                ". Total money: $" +
-                (bank - friendlyCost)
-            );
-            friendlyEntityParser(friendlyType, friendlyPosition, friendlylvl);
-          }
-        } else {
-          console.log("Insufficient funds");
+  function friendlySpawner(friendlyType, friendlyPosition, friendlyLvl) {
+    if (validFriendly(friendlyType, friendlyLvl)) {
+      let friendlyCost =
+        entityList[friendlyType].lvls["lvl" + friendlyLvl].value;
+      if (bankChecker(friendlyType, friendlyCost)) {
+        if (friendlyPositionChecker(friendlyPosition, friendlyType)) {
+          setBank(bank - friendlyCost);
+          console.log(
+            "Purchased " +
+              friendlyType +
+              " for $" +
+              friendlyCost +
+              ". Total money: $" +
+              (bank - friendlyCost)
+          );
+          friendlyEntityParser(friendlyType, friendlyPosition, friendlyLvl);
         }
+      }
+    }
+  }
+
+  //determins if entity name and level are valid
+  function validFriendly(friendlyType, friendlyLvl) {
+    if (entityList[friendlyType] !== undefined) {
+      if (entityList[friendlyType].lvls["lvl" + friendlyLvl] !== undefined) {
+        return true;
       } else {
         console.log("Entity lvl does not exist");
       }
@@ -765,8 +770,44 @@ export default function EngineOutput() {
     if (friendlyCost <= bank) {
       return true;
     } else {
-      return false;
+      console.log("Insufficient funds");
     }
+  }
+
+  //determines if position for friendly spawn is allowed
+  function friendlyPositionChecker(friendlyPosition, friendlyType) {
+    let positionAllowed = true;
+    if (friendlyPosition === "A9" && friendlyType !== "king") {
+      console.log("Cannot place in A9, position reserved for king");
+      positionAllowed = false;
+    } else {
+      if (
+        activeEntities.find(
+          (entity) => entity.position === friendlyPosition
+        ) !== undefined
+      ) {
+        console.log("Position taken");
+        return (positionAllowed = false);
+      }
+    }
+    if (positionAllowed && !entityList[friendlyType].enemy) {
+      return true;
+    } else {
+      console.log("Cannot spwawn enemy units");
+    }
+  }
+
+  //translates user input into data Entity maker can use
+  const [friendlyCount, setFriendlyCount] = useState(1);
+  function friendlyEntityParser(entityType, entityPosition, entitylvl) {
+    let ID = friendlyCount + 1;
+    setFriendlyCount(ID);
+    entityType = entityList[entityType];
+    entitylvl = entityType.lvls["lvl" + entitylvl];
+    let entityID = entityType.type + friendlyCount;
+    entityID = new Entity(entityType, entitylvl, entityPosition, entityID);
+    activeEntities.push(entityID);
+    console.log(entityID.name + " spawned at " + entityPosition);
   }
 
   //makes a list of purchasble entities
@@ -806,42 +847,6 @@ export default function EngineOutput() {
     );
   }
 
-  //determines if position for friendly spawn is allowed
-  function friendlyPositionChecker(friendlyPosition, friendlyType) {
-    let positionAllowed = true;
-    if (friendlyPosition === "A9" && friendlyType !== "king") {
-      console.log("Cannot place in A9, position reserved for king");
-      positionAllowed = false;
-    } else {
-      if (
-        activeEntities.find(
-          (entity) => entity.position === friendlyPosition
-        ) !== undefined
-      ) {
-        console.log("Position taken");
-        return (positionAllowed = false);
-      }
-    }
-    if (positionAllowed && !entityList[friendlyType].enemy) {
-      return true;
-    } else {
-      console.log("Cannot spwawn enemy units");
-    }
-  }
-
-  //translates user input into data Entity maker can use
-  const [friendlyCount, setFriendlyCount] = useState(1);
-  function friendlyEntityParser(entityType, entityPosition, entitylvl) {
-    let ID = friendlyCount + 1;
-    setFriendlyCount(ID);
-    entityType = entityList[entityType];
-    entitylvl = entityType.lvls["lvl" + entitylvl];
-    let entityID = entityType.type + friendlyCount;
-    entityID = new Entity(entityType, entitylvl, entityPosition, entityID);
-    activeEntities.push(entityID);
-    console.log(entityID.name + " spawned at " + entityPosition);
-  }
-
   //user inputs
   const [friendlyType, setFriendlyType] = useState("arrow");
   function updateFriendlyType(e) {
@@ -851,9 +856,9 @@ export default function EngineOutput() {
   function updateFriendlyPosition(e) {
     setFriendlyPosition(e.target.value);
   }
-  const [friendlylvl, setFriendlylvl] = useState(1);
-  function updateFriendlylvl(e) {
-    setFriendlylvl(e.target.value);
+  const [friendlyLvl, setFriendlyLvl] = useState(1);
+  function updateFriendlyLvl(e) {
+    setFriendlyLvl(e.target.value);
   }
 
   //handles making a usable array for the grid renderer
@@ -946,13 +951,13 @@ export default function EngineOutput() {
         <p>lvl:</p>
         <input
           type="number"
-          value={friendlylvl}
-          onChange={updateFriendlylvl}
+          value={friendlyLvl}
+          onChange={updateFriendlyLvl}
         ></input>
       </div>
       <button
         onClick={() => {
-          friendlySpawner(friendlyType, friendlyPosition, friendlylvl);
+          friendlySpawner(friendlyType, friendlyPosition, friendlyLvl);
         }}
       >
         Add Friendly
