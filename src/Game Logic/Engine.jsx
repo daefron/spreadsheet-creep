@@ -314,71 +314,66 @@ export default function EngineOutput() {
   function Engine(activeEntities, graveyard, bank, currentTurn, waves) {
     //tells entities what to do on their turn
     function entityTurn(currentEntity) {
+      currentEntity.rateCharge++;
+      currentEntity.speedCharge++;
       let turnTaken = false;
-      if (!groundChecker(currentEntity.position)) {
+      if (fallChecker(currentEntity.position)) {
         gravity(currentEntity);
         turnTaken = true;
-      } else {
-        currentEntity.rateCharge++;
-        currentEntity.speedCharge++;
-        let oldPosition = currentEntity.position;
-        let newPosition =
-          letterParser(oldPosition.charAt(0), currentEntity.enemy) +
-          oldPosition.charAt(1);
-        let rangeCells = [];
-        rangeGetter(currentEntity, oldPosition, rangeCells);
-        console.log(attackTargetter(currentEntity, rangeCells));
-        rangeCells.forEach((rangeTarget) => {
-          activeEntities.forEach((entity) => {
-            if (
-              entity.position === rangeTarget &&
-              currentEntity.rateCharge >= currentEntity.rate &&
-              entity.enemy !== currentEntity.enemy
-            ) {
-              currentEntity.rateCharge = 0;
-              entity.hp = entity.hp - currentEntity.dmg;
-              console.log(
-                currentEntity.name +
-                  " attacked " +
-                  entity.name +
-                  " for " +
-                  currentEntity.dmg +
-                  " damage. " +
-                  entity.name +
-                  " HP is " +
-                  entity.hp
-              );
-              healthChecker(entity, currentEntity);
-              updateGameboardEntities(activeEntities);
-              currentEntity.speedCharge = 0;
-              turnTaken = true;
-            }
-          });
-        });
-        if (entityCanMove(currentEntity)) {
-          entityMovement(currentEntity, newPosition);
+      }
+      if (entityCanAttack(currentEntity, turnTaken)) {
+        entityAttack(currentEntity);
+        turnTaken = true;
+      }
+      if (entityCanMove(currentEntity, turnTaken)) {
+        entityMovement(currentEntity);
+        turnTaken = true;
+      }
+      turnLogs(currentEntity, turnTaken);
+
+      //function to determine if there is anything under the current entity
+      function fallChecker(position) {
+        let letter = position.charAt(0);
+        let number = parseInt(position.charAt(1));
+        if (number != 9) {
+          let positionBelow = letter + (number + 1);
+          if (
+            activeEntities.find(
+              (entity) => entity.position === positionBelow
+            ) === undefined
+          ) {
+            return true;
+          } else return false;
+        } else {
+          return false;
         }
-        if (currentEntity.rateCharge < currentEntity.rate && !turnTaken) {
-          console.log(currentEntity.name + " charging attack.");
-        } else if (
-          currentEntity.speedCharge < currentEntity.speed &&
-          currentEntity.speed !== 0 &&
-          !turnTaken
-        ) {
-          console.log(currentEntity.name + " charging movement.");
-        } else if (!turnTaken) {
-          console.log(currentEntity.name + " did nothing.");
+      }
+
+      //moves entities down if falling
+      function gravity(entity) {
+        if (entity.fallCharge < entity.fallSpeed) {
+          console.log(entity.name + " is falling");
+          entity.fallCharge++;
+        } else {
+          entity.fallCharge = 0;
+          let newPosition =
+            entity.position.charAt(0) +
+            (parseInt(entity.position.charAt(1)) + 1);
+          console.log(entity.name + " fell to " + newPosition);
+          entity.position = newPosition;
+          updateGameboardEntities(activeEntities);
         }
       }
 
       //function to return array of cells entity can target
-      function rangeGetter(currentEntity, oldPosition, rangeCells) {
+      function rangeGetter(currentEntity) {
+        let rangeCells = [];
         let rangeLetter = letterParser(
-          oldPosition.charAt(0),
+          currentEntity.position.charAt(0),
           currentEntity.enemy
         );
         for (let i = currentEntity.range; i > 0; i--) {
-          rangeCells.push(rangeLetter + oldPosition.charAt(1));
+          rangeCells.push(rangeLetter + currentEntity.position.charAt(1));
           rangeLetter = letterParser(rangeLetter, currentEntity.enemy);
         }
         return rangeCells;
@@ -399,7 +394,7 @@ export default function EngineOutput() {
                 targetEntity.enemy !== currentEntity.enemy
               ) {
                 targetFound = true;
-                return target = targetEntity;
+                return (target = targetEntity);
               }
             }
           }
@@ -407,10 +402,41 @@ export default function EngineOutput() {
         return target;
       }
 
-      function entityCanAttack(currentEntity, rangeCells) {}
+      //function to determine if entity can attack this turn
+      function entityCanAttack(currentEntity, turnTaken) {
+        if (currentEntity.rateCharge >= currentEntity.rate && !turnTaken) {
+          let rangeCells = rangeGetter(currentEntity);
+          let targetEntity = attackTargetter(currentEntity, rangeCells);
+          if (targetEntity !== undefined) {
+            return true;
+          }
+        }
+      }
+
+      //function to execute attack if can
+      function entityAttack(currentEntity) {
+        let rangeCells = rangeGetter(currentEntity);
+        let targetEntity = attackTargetter(currentEntity, rangeCells);
+        currentEntity.rateCharge = 0;
+        targetEntity.hp = targetEntity.hp - currentEntity.dmg;
+        console.log(
+          currentEntity.name +
+            " attacked " +
+            targetEntity.name +
+            " for " +
+            currentEntity.dmg +
+            " damage. " +
+            targetEntity.name +
+            " HP is " +
+            targetEntity.hp
+        );
+        healthChecker(targetEntity, currentEntity);
+        updateGameboardEntities(activeEntities);
+        currentEntity.speedCharge = 0;
+      }
 
       //function to determine if entity can move this turn
-      function entityCanMove(currentEntity) {
+      function entityCanMove(currentEntity, turnTaken) {
         if (
           currentEntity.speedCharge >= currentEntity.speed &&
           currentEntity.speed !== 0 &&
@@ -421,7 +447,10 @@ export default function EngineOutput() {
       }
 
       //function to determine how entity moves if it can
-      function entityMovement(currentEntity, newPosition) {
+      function entityMovement(currentEntity) {
+        let newPosition =
+          letterParser(currentEntity.position.charAt(0), currentEntity.enemy) +
+          currentEntity.position.charAt(1);
         let spotFree = true;
         if (
           activeEntities.find((entity) => entity.position === newPosition) !==
@@ -429,10 +458,9 @@ export default function EngineOutput() {
         ) {
           if (currentEntity.climber) {
             if (climbChecker(currentEntity)) {
-              turnTaken = true;
+              spotFree = false;
             }
           }
-          return (spotFree = false);
         }
         if (spotFree) {
           currentEntity.speedCharge = 0;
@@ -441,175 +469,158 @@ export default function EngineOutput() {
             currentEntity.name + " moved to " + currentEntity.position
           );
           updateGameboardEntities(activeEntities);
-          return (turnTaken = true);
         }
       }
-    }
 
-    //function to determine if there is anything under the current entity
-    function groundChecker(position) {
-      let letter = position.charAt(0);
-      let number = parseInt(position.charAt(1));
-      if (number != 9) {
-        let positionBelow = letter + (number + 1);
+      //checks if entity wants to climb
+      function climbChecker(currentEntity) {
+        let letter = currentEntity.position.charAt(0);
+        let number = parseInt(currentEntity.position.charAt(1));
+        let positionNextTo = letterParser(letter, currentEntity.enemy) + number;
+        let entityInPositionNextTo = activeEntities.find(
+          (entity) => entity.position === positionNextTo
+        );
         if (
-          activeEntities.find((entity) => entity.position === positionBelow) ===
-          undefined
+          entityInPositionNextTo !== undefined &&
+          entityInPositionNextTo.enemy === currentEntity.enemy
         ) {
-          return false;
-        } else return true;
-      } else {
-        return true;
-      }
-    }
-
-    //moves entities down if falling
-    function gravity(entity) {
-      if (entity.fallCharge < entity.fallSpeed) {
-        console.log(entity.name + " is falling");
-        entity.fallCharge++;
-      } else {
-        entity.fallCharge = 0;
-        let newPosition =
-          entity.position.charAt(0) + (parseInt(entity.position.charAt(1)) + 1);
-        console.log(entity.name + " fell to " + newPosition);
-        entity.position = newPosition;
-        updateGameboardEntities(activeEntities);
-      }
-    }
-
-    //checks if entity wants to climb
-    function climbChecker(currentEntity) {
-      let letter = currentEntity.position.charAt(0);
-      let number = parseInt(currentEntity.position.charAt(1));
-      let positionNextTo = letterParser(letter, currentEntity.enemy) + number;
-      let entityInPositionNextTo = activeEntities.find(
-        (entity) => entity.position === positionNextTo
-      );
-      if (
-        entityInPositionNextTo !== undefined &&
-        entityInPositionNextTo.enemy === currentEntity.enemy
-      ) {
-        let positionAbove =
-          positionNextTo.charAt(0) + (positionNextTo.charAt(1) - 1);
-        if (
-          activeEntities.find((entity) => entity.position === positionAbove) ===
-          undefined
-        ) {
-          if (currentEntity.speed <= currentEntity.speedCharge) {
-            currentEntity.position = positionAbove;
-            currentEntity.speedCharge = 0;
-            updateGameboardEntities(activeEntities);
-            return true;
-          } else {
-            currentEntity.speed++;
-            return true;
+          let positionAbove =
+            positionNextTo.charAt(0) + (positionNextTo.charAt(1) - 1);
+          if (
+            activeEntities.find(
+              (entity) => entity.position === positionAbove
+            ) === undefined
+          ) {
+            if (currentEntity.speed <= currentEntity.speedCharge) {
+              currentEntity.position = positionAbove;
+              currentEntity.speedCharge = 0;
+              updateGameboardEntities(activeEntities);
+              return true;
+            } else {
+              currentEntity.speed++;
+              return true;
+            }
           }
         }
       }
-    }
 
-    //checks to see if entity dies
-    function healthChecker(entity, currentEntity) {
-      if (entity.hp <= 0) {
-        currentEntity.rateCharge = 0;
-        console.log(entity.name + " was killed by " + currentEntity.name);
-        if (entity.enemy) {
-          bank = bank + entity.value;
-          setBank(bank);
-          expTracker(entity, currentEntity);
-          console.log(
-            currentEntity.name +
-              " EXP: " +
-              currentEntity.currentExp +
-              "/" +
-              currentEntity.neededExp
+      //checks to see if entity dies
+      function healthChecker(entity, currentEntity) {
+        if (entity.hp <= 0) {
+          currentEntity.rateCharge = 0;
+          console.log(entity.name + " was killed by " + currentEntity.name);
+          if (entity.enemy) {
+            bank = bank + entity.value;
+            setBank(bank);
+            expTracker(entity, currentEntity);
+            console.log(
+              currentEntity.name +
+                " EXP: " +
+                currentEntity.currentExp +
+                "/" +
+                currentEntity.neededExp
+            );
+            console.log("Total money: $" + bank);
+          }
+          graveyard.push(
+            activeEntities.splice(activeEntities.indexOf(entity), 1)
           );
-          console.log("Total money: $" + bank);
         }
-        graveyard.push(
-          activeEntities.splice(activeEntities.indexOf(entity), 1)
+      }
+
+      //adds and checks exp on kill
+      function expTracker(entity, currentEntity) {
+        currentEntity.currentExp = currentEntity.currentExp + entity.exp;
+        if (
+          currentEntity.currentExp >= currentEntity.neededExp &&
+          entityList[currentEntity.type].levels[
+            "lvl" + (currentEntity.level + 1)
+          ] !== undefined
+        ) {
+          levelUp(currentEntity);
+        }
+      }
+
+      //applies level up for friendly entity
+      function levelUp(currentEntity) {
+        let oldProperties = Object.entries(currentEntity);
+        currentEntity.level++;
+        let newLevel = currentEntity.level;
+        let newProperties = Object.entries(
+          entityList[currentEntity.type].levels["lvl" + newLevel]
+        );
+        oldProperties.forEach((oldProperty) => {
+          newProperties.forEach((newProperty) => {
+            if (
+              oldProperty[0] === newProperty[0] &&
+              oldProperty[1] !== newProperty[1]
+            ) {
+              currentEntity[oldProperty[0]] = newProperty[1];
+            }
+          });
+        });
+        console.log(
+          currentEntity.name + " has leveled up to level " + currentEntity.level
         );
       }
-    }
 
-    //adds and checks exp on kill
-    function expTracker(entity, currentEntity) {
-      currentEntity.currentExp = currentEntity.currentExp + entity.exp;
-      if (
-        currentEntity.currentExp >= currentEntity.neededExp &&
-        entityList[currentEntity.type].levels[
-          "lvl" + (currentEntity.level + 1)
-        ] !== undefined
-      ) {
-        levelUp(currentEntity);
-      }
-    }
-
-    //applies level up for friendly entity
-    function levelUp(currentEntity) {
-      let oldProperties = Object.entries(currentEntity);
-      currentEntity.level++;
-      let newLevel = currentEntity.level;
-      let newProperties = Object.entries(
-        entityList[currentEntity.type].levels["lvl" + newLevel]
-      );
-      oldProperties.forEach((oldProperty) => {
-        newProperties.forEach((newProperty) => {
-          if (
-            oldProperty[0] === newProperty[0] &&
-            oldProperty[1] !== newProperty[1]
-          ) {
-            currentEntity[oldProperty[0]] = newProperty[1];
+      //lazy function to go back or forward one letter in alphabet depending on if enemy
+      function letterParser(position, enemy) {
+        if (enemy) {
+          if (position === "B") {
+            return (position = "A");
+          } else if (position === "C") {
+            return (position = "B");
+          } else if (position === "D") {
+            return (position = "C");
+          } else if (position === "E") {
+            return (position = "D");
+          } else if (position === "F") {
+            return (position = "E");
+          } else if (position === "G") {
+            return (position = "F");
+          } else if (position === "H") {
+            return (position = "G");
+          } else if (position === "I") {
+            return (position = "H");
+          } else if (position === "J") {
+            return (position = "I");
           }
-        });
-      });
-      console.log(
-        currentEntity.name + " has leveled up to level " + currentEntity.level
-      );
-    }
-
-    //lazy function to go back or forward one letter in alphabet depending on if enemy
-    function letterParser(position, enemy) {
-      if (enemy) {
-        if (position === "B") {
-          return (position = "A");
-        } else if (position === "C") {
-          return (position = "B");
-        } else if (position === "D") {
-          return (position = "C");
-        } else if (position === "E") {
-          return (position = "D");
-        } else if (position === "F") {
-          return (position = "E");
-        } else if (position === "G") {
-          return (position = "F");
-        } else if (position === "H") {
-          return (position = "G");
-        } else if (position === "I") {
-          return (position = "H");
-        } else if (position === "J") {
-          return (position = "I");
+        } else if (!enemy) {
+          if (position === "A") {
+            return (position = "B");
+          } else if (position === "B") {
+            return (position = "C");
+          } else if (position === "C") {
+            return (position = "D");
+          } else if (position === "D") {
+            return (position = "E");
+          } else if (position === "E") {
+            return (position = "F");
+          } else if (position === "F") {
+            return (position = "G");
+          } else if (position === "G") {
+            return (position = "H");
+          } else if (position === "H") {
+            return (position = "I");
+          } else if (position === "I") {
+            return (position = "J");
+          }
         }
-      } else if (!enemy) {
-        if (position === "A") {
-          return (position = "B");
-        } else if (position === "B") {
-          return (position = "C");
-        } else if (position === "C") {
-          return (position = "D");
-        } else if (position === "D") {
-          return (position = "E");
-        } else if (position === "E") {
-          return (position = "F");
-        } else if (position === "F") {
-          return (position = "G");
-        } else if (position === "G") {
-          return (position = "H");
-        } else if (position === "H") {
-          return (position = "I");
-        } else if (position === "I") {
-          return (position = "J");
+      }
+
+      //function purely to log things to the console
+      function turnLogs(currentEntity, turnTaken) {
+        if (currentEntity.rateCharge < currentEntity.rate && !turnTaken) {
+          console.log(currentEntity.name + " charging attack.");
+        } else if (
+          currentEntity.speedCharge < currentEntity.speed &&
+          currentEntity.speed !== 0 &&
+          !turnTaken
+        ) {
+          console.log(currentEntity.name + " charging movement.");
+        } else if (!turnTaken) {
+          console.log(currentEntity.name + " did nothing.");
         }
       }
     }
