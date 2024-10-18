@@ -5,7 +5,7 @@ export default function EngineOutput() {
   const [graveyard, setGraveyard] = useState([]);
   const [bank, setBank] = useState(10);
   const [currentTurn, setCurrentTurn] = useState(1);
-  
+
   //function that creates new active entities
   function Entity(type, lvl, position, name) {
     this.name = name;
@@ -35,7 +35,7 @@ export default function EngineOutput() {
   }
 
   //function the creates new active projectiles
-  function Projectile(parent, ID) {
+  function Projectile(parent, name) {
     this.type = parent.projectile;
     this.parent = parent;
     let type = projectileList[this.type];
@@ -47,9 +47,9 @@ export default function EngineOutput() {
     this.position = parent.position;
     this.distance = parent.range;
     if (this.enemy) {
-      this.name = type.enemySymbol;
-    } else this.name = type.friendlySymbol;
-    this.id = ID;
+      this.symbol = type.enemySymbol;
+    } else this.symbol = type.friendlySymbol;
+    this.name = name;
   }
 
   //object that holds default values of entities
@@ -370,12 +370,16 @@ export default function EngineOutput() {
       }
       turnLogs(currentEntity, turnTaken);
 
+      //function to spawn projectile
       function rangedAttack(currentEntity) {
-        let projectileID = currentTurn + currentEntity.projectile + currentEntity.position;
+        let projectileID =
+          currentEntity.projectile + currentTurn + currentEntity.name;
         activeProjectiles.push(new Projectile(currentEntity, projectileID));
         currentEntity.rateCharge = 0;
         currentEntity.speedCharge = 0;
-        console.log(currentEntity.name + " shot an " + currentEntity.projectile);
+        console.log(
+          currentEntity.name + " shot an " + currentEntity.projectile
+        );
       }
 
       //function to determine if there is anything under the current entity
@@ -680,6 +684,7 @@ export default function EngineOutput() {
       );
     }
 
+    //tells the projectile what to do on its turn
     function projectileTurn(projectile) {
       if (projectile.distance === 0) {
         activeProjectiles.splice(activeProjectiles.indexOf(projectile), 1);
@@ -690,12 +695,14 @@ export default function EngineOutput() {
         projectileMovement(projectile);
       }
 
+      //checks if the projectile can move this turn
       function projectileCanMove(projectile) {
         if (projectile.speedCharge >= projectile.speed) {
           return true;
         }
       }
 
+      //checks to see if projectile will move or attack enemy
       function projectileMovement(projectile) {
         let newPosition =
           letterParser(projectile.position.charAt(0), projectile.enemy) +
@@ -882,7 +889,7 @@ export default function EngineOutput() {
     if (positionAllowed && !entityList[friendlyType].enemy) {
       return true;
     } else {
-      console.log("Cannot spwawn enemy units");
+      console.log("Cannot spawn enemy units");
     }
   }
 
@@ -994,8 +1001,7 @@ export default function EngineOutput() {
                 (entity) => entity.position === projectile.position
               ) === undefined
             ) {
-              console.log(activeProjectiles);
-              subGrid.push([[projectile.ID], [projectile.name]]);
+              subGrid.push([[projectile.name], [projectile.symbol]]);
               entityMade = true;
             }
           }
