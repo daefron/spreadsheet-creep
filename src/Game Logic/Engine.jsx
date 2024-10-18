@@ -168,7 +168,7 @@ export default function EngineOutput() {
           value: 2,
           neededExp: 100,
         },
-        lvl2 : {
+        lvl2: {
           lvl: 1,
           hp: 100000000,
           dmg: 0,
@@ -177,7 +177,7 @@ export default function EngineOutput() {
           speed: 0,
           value: 2,
           neededExp: 100,
-        }
+        },
       },
     },
     king: {
@@ -534,6 +534,20 @@ export default function EngineOutput() {
           console.log(
             currentEntity.name + " moved to " + currentEntity.position
           );
+          let projectileInPosition = activeProjectiles.find(
+            (projectile) => projectile.position === currentEntity.position
+          );
+          if (
+            projectileInPosition !== undefined &&
+            projectileInPosition.enemy !== currentEntity.enemy
+          ) {
+            currentEntity.hp = currentEntity.hp - projectileInPosition.dmg;
+            activeProjectiles.splice(
+              activeProjectiles.indexOf(projectileInPosition),
+              1
+            );
+            healthChecker(currentEntity, projectileInPosition.parent);
+          }
           updateGameboardEntities(activeEntities, activeProjectiles);
         }
       }
@@ -790,11 +804,11 @@ export default function EngineOutput() {
 
       //makes all entities take turn
       function nextTurn(currentTurn) {
-        activeProjectiles.forEach((projectile) => {
-          projectileTurn(projectile);
-        });
         activeEntities.forEach((entity) => {
           entityTurn(entity);
+        });
+        activeProjectiles.forEach((projectile) => {
+          projectileTurn(projectile);
         });
         console.log("Turn " + currentTurn + " over.");
       }
