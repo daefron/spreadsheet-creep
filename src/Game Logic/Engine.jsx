@@ -1,10 +1,11 @@
 import { useState } from "react";
 export default function EngineOutput() {
   const [activeEntities, setActiveEntities] = useState([]);
+  const [activeProjectiles, setActProjectiles] = useState([]);
   const [graveyard, setGraveyard] = useState([]);
   const [bank, setBank] = useState(10);
   const [currentTurn, setCurrentTurn] = useState(1);
-
+  
   //function that creates new active entities
   function Entity(type, lvl, position, name) {
     this.name = name;
@@ -30,6 +31,25 @@ export default function EngineOutput() {
     this.fallSpeed = type.fallSpeed;
     this.fallCharge = type.fallSpeed;
     this.climber = type.climber;
+    this.projectile = type.projectile;
+  }
+
+  //function the creates new active projectiles
+  function Projectile(parent, ID) {
+    this.type = parent.projectile;
+    this.parent = parent;
+    let type = projectileList[this.type];
+    this.dmg = parent.dmg;
+    this.speed = type.speed;
+    this.speedCharge = 0;
+    this.fallSpeed = type.fallSpeed;
+    this.enemy = parent.enemy;
+    this.position = parent.position;
+    this.distance = parent.range;
+    if (this.enemy) {
+      this.name = type.enemySymbol;
+    } else this.name = type.friendlySymbol;
+    this.id = ID;
   }
 
   //object that holds default values of entities
@@ -37,6 +57,7 @@ export default function EngineOutput() {
     goblin: {
       type: "goblin",
       enemy: true,
+      projectile: false,
       fallSpeed: 10,
       climber: true,
       lvls: {
@@ -65,6 +86,7 @@ export default function EngineOutput() {
     skeleton: {
       type: "skeleton",
       enemy: true,
+      projectile: "arrow",
       fallSpeed: 10,
       climber: false,
       lvls: {
@@ -90,9 +112,10 @@ export default function EngineOutput() {
         },
       },
     },
-    arrow: {
-      type: "arrow",
+    bow: {
+      type: "bow",
       enemy: false,
+      projectile: "arrow",
       fallSpeed: 1,
       climber: false,
       lvls: {
@@ -100,7 +123,7 @@ export default function EngineOutput() {
           lvl: 1,
           hp: 10,
           dmg: 3,
-          range: 3,
+          range: 6,
           rate: 60,
           speed: 0,
           value: 5,
@@ -110,7 +133,7 @@ export default function EngineOutput() {
           lvl: 2,
           hp: 12,
           dmg: 4,
-          range: 3,
+          range: 6,
           rate: 50,
           speed: 0,
           value: 10,
@@ -120,7 +143,7 @@ export default function EngineOutput() {
           lvl: 3,
           hp: 14,
           dmg: 5,
-          range: 3,
+          range: 6,
           rate: 40,
           speed: 0,
           value: 15,
@@ -131,6 +154,7 @@ export default function EngineOutput() {
     wall: {
       type: "wall",
       enemy: false,
+      projectile: false,
       fallSpeed: 1,
       climber: false,
       lvls: {
@@ -149,6 +173,7 @@ export default function EngineOutput() {
     king: {
       type: "king",
       enemy: false,
+      projectile: false,
       fallSpeed: 10,
       climber: false,
       lvls: {
@@ -163,6 +188,18 @@ export default function EngineOutput() {
           neededExp: 100,
         },
       },
+    },
+  };
+
+  //object holding projectiles
+  const projectileList = {
+    arrow: {
+      friendlySymbol: ">-<>",
+      enemySymbol: "<>-<",
+      projectile: true,
+      speed: 30,
+      fallSpeed: 40,
+      distance: 5,
     },
   };
 
@@ -322,7 +359,9 @@ export default function EngineOutput() {
         turnTaken = true;
       }
       if (entityCanAttack(currentEntity, turnTaken)) {
-        entityAttack(currentEntity);
+        if (currentEntity.projectile !== false) {
+          rangedAttack(currentEntity, turnTaken);
+        } else entityAttack(currentEntity);
         turnTaken = true;
       }
       if (entityCanMove(currentEntity, turnTaken)) {
@@ -330,6 +369,14 @@ export default function EngineOutput() {
         turnTaken = true;
       }
       turnLogs(currentEntity, turnTaken);
+
+      function rangedAttack(currentEntity) {
+        let projectileID = currentTurn + currentEntity.projectile + currentEntity.position;
+        activeProjectiles.push(new Projectile(currentEntity, projectileID));
+        currentEntity.rateCharge = 0;
+        currentEntity.speedCharge = 0;
+        console.log(currentEntity.name + " shot an " + currentEntity.projectile);
+      }
 
       //function to determine if there is anything under the current entity
       function entityCanFall(position) {
@@ -359,7 +406,7 @@ export default function EngineOutput() {
             (parseInt(entity.position.charAt(1)) + 1);
           console.log(entity.name + " fell to " + newPosition);
           entity.position = newPosition;
-          updateGameboardEntities(activeEntities);
+          updateGameboardEntities(activeEntities, activeProjectiles);
         }
       }
 
@@ -395,7 +442,7 @@ export default function EngineOutput() {
             targetEntity.hp
         );
         healthChecker(targetEntity, currentEntity);
-        updateGameboardEntities(activeEntities);
+        updateGameboardEntities(activeEntities, activeProjectiles);
         currentEntity.rateCharge = 0;
         currentEntity.speedCharge = 0;
       }
@@ -470,7 +517,7 @@ export default function EngineOutput() {
           console.log(
             currentEntity.name + " moved to " + currentEntity.position
           );
-          updateGameboardEntities(activeEntities);
+          updateGameboardEntities(activeEntities, activeProjectiles);
         }
       }
 
@@ -496,124 +543,12 @@ export default function EngineOutput() {
             if (currentEntity.speed <= currentEntity.speedCharge) {
               currentEntity.position = positionAbove;
               currentEntity.speedCharge = 0;
-              updateGameboardEntities(activeEntities);
+              updateGameboardEntities(activeEntities, activeProjectiles);
               return true;
             } else {
               currentEntity.speed++;
               return true;
             }
-          }
-        }
-      }
-
-      //checks to see if entity dies
-      function healthChecker(entity, currentEntity) {
-        if (entity.hp <= 0) {
-          currentEntity.rateCharge = 0;
-          console.log(entity.name + " was killed by " + currentEntity.name);
-          if (entity.enemy) {
-            bank = bank + entity.value;
-            setBank(bank);
-            expTracker(entity, currentEntity);
-            console.log(
-              currentEntity.name +
-                " EXP: " +
-                currentEntity.currentExp +
-                "/" +
-                currentEntity.neededExp
-            );
-            console.log("Total money: $" + bank);
-          }
-          graveyard.push(
-            activeEntities.splice(activeEntities.indexOf(entity), 1)
-          );
-        }
-      }
-
-      //adds and checks exp on kill
-      function expTracker(entity, currentEntity) {
-        currentEntity.currentExp = currentEntity.currentExp + entity.exp;
-        if (
-          currentEntity.currentExp >= currentEntity.neededExp &&
-          entityList[currentEntity.type].lvls[
-            "lvl" + (currentEntity.lvl + 1)
-          ] !== undefined
-        ) {
-          levelUp(currentEntity);
-        }
-      }
-
-      //applies level up for friendly entity
-      function levelUp(currentEntity) {
-        let oldProperties = Object.entries(currentEntity);
-        let oldHP =
-          entityList[currentEntity.type].lvls["lvl" + currentEntity.lvl].hp;
-        currentEntity.lvl++;
-        let newlvl = currentEntity.lvl;
-        let newProperties = Object.entries(
-          entityList[currentEntity.type].lvls["lvl" + newlvl]
-        );
-        oldProperties.forEach((oldProperty) => {
-          newProperties.forEach((newProperty) => {
-            if (
-              oldProperty[0] === newProperty[0] &&
-              oldProperty[1] !== newProperty[1]
-            ) {
-              if (oldProperty[0] === "hp") {
-                let adjustedHP = newProperty[1] - oldHP;
-                currentEntity[oldProperty[0]] = currentEntity.hp + adjustedHP;
-              } else {
-                currentEntity[oldProperty[0]] = newProperty[1];
-              }
-            }
-          });
-        });
-        console.log(
-          currentEntity.name + " has leveled up to level " + currentEntity.lvl
-        );
-      }
-
-      //lazy function to go back or forward one letter in alphabet depending on if enemy
-      function letterParser(position, enemy) {
-        if (enemy) {
-          if (position === "B") {
-            return (position = "A");
-          } else if (position === "C") {
-            return (position = "B");
-          } else if (position === "D") {
-            return (position = "C");
-          } else if (position === "E") {
-            return (position = "D");
-          } else if (position === "F") {
-            return (position = "E");
-          } else if (position === "G") {
-            return (position = "F");
-          } else if (position === "H") {
-            return (position = "G");
-          } else if (position === "I") {
-            return (position = "H");
-          } else if (position === "J") {
-            return (position = "I");
-          }
-        } else if (!enemy) {
-          if (position === "A") {
-            return (position = "B");
-          } else if (position === "B") {
-            return (position = "C");
-          } else if (position === "C") {
-            return (position = "D");
-          } else if (position === "D") {
-            return (position = "E");
-          } else if (position === "E") {
-            return (position = "F");
-          } else if (position === "F") {
-            return (position = "G");
-          } else if (position === "G") {
-            return (position = "H");
-          } else if (position === "H") {
-            return (position = "I");
-          } else if (position === "I") {
-            return (position = "J");
           }
         }
       }
@@ -634,6 +569,157 @@ export default function EngineOutput() {
       }
     }
 
+    //lazy function to go back or forward one letter in alphabet depending on if enemy
+    function letterParser(position, enemy) {
+      if (enemy) {
+        if (position === "B") {
+          return (position = "A");
+        } else if (position === "C") {
+          return (position = "B");
+        } else if (position === "D") {
+          return (position = "C");
+        } else if (position === "E") {
+          return (position = "D");
+        } else if (position === "F") {
+          return (position = "E");
+        } else if (position === "G") {
+          return (position = "F");
+        } else if (position === "H") {
+          return (position = "G");
+        } else if (position === "I") {
+          return (position = "H");
+        } else if (position === "J") {
+          return (position = "I");
+        }
+      } else if (!enemy) {
+        if (position === "A") {
+          return (position = "B");
+        } else if (position === "B") {
+          return (position = "C");
+        } else if (position === "C") {
+          return (position = "D");
+        } else if (position === "D") {
+          return (position = "E");
+        } else if (position === "E") {
+          return (position = "F");
+        } else if (position === "F") {
+          return (position = "G");
+        } else if (position === "G") {
+          return (position = "H");
+        } else if (position === "H") {
+          return (position = "I");
+        } else if (position === "I") {
+          return (position = "J");
+        }
+      }
+    }
+
+    //checks to see if entity dies
+    function healthChecker(entity, currentEntity) {
+      if (entity.hp <= 0) {
+        currentEntity.rateCharge = 0;
+        console.log(entity.name + " was killed by " + currentEntity.name);
+        if (entity.enemy) {
+          bank = bank + entity.value;
+          setBank(bank);
+          expTracker(entity, currentEntity);
+          console.log(
+            currentEntity.name +
+              " EXP: " +
+              currentEntity.currentExp +
+              "/" +
+              currentEntity.neededExp
+          );
+          console.log("Total money: $" + bank);
+        }
+        graveyard.push(
+          activeEntities.splice(activeEntities.indexOf(entity), 1)
+        );
+      }
+    }
+
+    //adds and checks exp on kill
+    function expTracker(entity, currentEntity) {
+      currentEntity.currentExp = currentEntity.currentExp + entity.exp;
+      if (
+        currentEntity.currentExp >= currentEntity.neededExp &&
+        entityList[currentEntity.type].lvls["lvl" + (currentEntity.lvl + 1)] !==
+          undefined
+      ) {
+        levelUp(currentEntity);
+      }
+    }
+
+    //applies level up for friendly entity
+    function levelUp(currentEntity) {
+      let oldProperties = Object.entries(currentEntity);
+      let oldHP =
+        entityList[currentEntity.type].lvls["lvl" + currentEntity.lvl].hp;
+      currentEntity.lvl++;
+      let newlvl = currentEntity.lvl;
+      let newProperties = Object.entries(
+        entityList[currentEntity.type].lvls["lvl" + newlvl]
+      );
+      oldProperties.forEach((oldProperty) => {
+        newProperties.forEach((newProperty) => {
+          if (
+            oldProperty[0] === newProperty[0] &&
+            oldProperty[1] !== newProperty[1]
+          ) {
+            if (oldProperty[0] === "hp") {
+              let adjustedHP = newProperty[1] - oldHP;
+              currentEntity[oldProperty[0]] = currentEntity.hp + adjustedHP;
+            } else {
+              currentEntity[oldProperty[0]] = newProperty[1];
+            }
+          }
+        });
+      });
+      console.log(
+        currentEntity.name + " has leveled up to level " + currentEntity.lvl
+      );
+    }
+
+    function projectileTurn(projectile) {
+      if (projectile.distance === 0) {
+        activeProjectiles.splice(activeProjectiles.indexOf(projectile), 1);
+        updateGameboardEntities(activeEntities, activeProjectiles);
+      }
+      projectile.speedCharge++;
+      if (projectileCanMove(projectile)) {
+        projectileMovement(projectile);
+      }
+
+      function projectileCanMove(projectile) {
+        if (projectile.speedCharge >= projectile.speed) {
+          return true;
+        }
+      }
+
+      function projectileMovement(projectile) {
+        let newPosition =
+          letterParser(projectile.position.charAt(0), projectile.enemy) +
+          projectile.position.charAt(1);
+        let entityAtPosition = activeEntities.find(
+          (entity) => entity.position === newPosition
+        );
+        if (
+          entityAtPosition !== undefined &&
+          entityAtPosition.enemy !== projectile.enemy
+        ) {
+          entityAtPosition.hp = entityAtPosition.hp - projectile.dmg;
+          activeProjectiles.splice(activeProjectiles.indexOf(projectile), 1);
+          healthChecker(entityAtPosition, projectile.parent);
+          updateGameboardEntities(activeEntities, activeProjectiles);
+        } else {
+          projectile.speedCharge = 0;
+          projectile.position = newPosition;
+          updateGameboardEntities(activeEntities, activeProjectiles);
+          projectile.distance--;
+        }
+      }
+    }
+
     //sets amount of turns to play
     function amountOfTurns(i, finished) {
       let wave = "wave" + i,
@@ -642,7 +728,7 @@ export default function EngineOutput() {
       if (!gameFinished) {
         let timer = setInterval(() => {
           turnCycler(currentWave, wave, timer, i);
-        }, 1);
+        }, 5);
       } else console.log("Game Over");
 
       //runs turn functions under a timer
@@ -679,11 +765,14 @@ export default function EngineOutput() {
         entityID = new Entity(entityType, entitylvl, position, entityID);
         activeEntities.push(entityID);
         console.log(entityID.name + " spawned at " + entityID.position + ".");
-        updateGameboardEntities(activeEntities);
+        updateGameboardEntities(activeEntities, activeProjectiles);
       }
 
       //makes all entities take turn
       function nextTurn(currentTurn) {
+        activeProjectiles.forEach((projectile) => {
+          projectileTurn(projectile);
+        });
         activeEntities.forEach((entity) => {
           entityTurn(entity);
         });
@@ -726,7 +815,7 @@ export default function EngineOutput() {
 
     //spawns the king every round
     friendlySpawner("king", "A9", 1);
-    updateGameboardEntities(activeEntities);
+    updateGameboardEntities(activeEntities, activeProjectiles);
     amountOfTurns(1, false);
   }
 
@@ -735,7 +824,7 @@ export default function EngineOutput() {
     if (validFriendly(friendlyType, friendlyLvl)) {
       let friendlyCost =
         entityList[friendlyType].lvls["lvl" + friendlyLvl].value;
-      if (bankChecker(friendlyType, friendlyCost)) {
+      if (bankChecker(friendlyCost)) {
         if (friendlyPositionChecker(friendlyPosition, friendlyType)) {
           setBank(bank - friendlyCost);
           console.log(
@@ -819,7 +908,7 @@ export default function EngineOutput() {
     let parsedFriendlyEntityArray = [];
     friendlyEntityArray.forEach((entity) => {
       let name = entity[0];
-      let lvls = Object.entries(Object.entries(entity[1])[4][1]);
+      let lvls = Object.entries(Object.entries(entity[1])[5][1]);
       lvls.forEach((lvl) => {
         parsedFriendlyEntityArray.push(
           name +
@@ -848,7 +937,7 @@ export default function EngineOutput() {
   }
 
   //user inputs
-  const [friendlyType, setFriendlyType] = useState("arrow");
+  const [friendlyType, setFriendlyType] = useState("bow");
   function updateFriendlyType(e) {
     setFriendlyType(e.target.value);
   }
@@ -864,7 +953,7 @@ export default function EngineOutput() {
   //handles making a usable array for the grid renderer
   const [gameboardEntities, setGameboardEntities] = useState([]);
 
-  function updateGameboardEntities(activeEntities) {
+  function updateGameboardEntities(activeEntities, activeProjectiles) {
     let grid = [];
     const boardWidth = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
     for (let h = 1; h < 10; h++) {
@@ -898,6 +987,19 @@ export default function EngineOutput() {
             entityMade = true;
           }
         });
+        activeProjectiles.forEach((projectile) => {
+          if (projectile.position === element + h && !entityMade) {
+            if (
+              activeEntities.find(
+                (entity) => entity.position === projectile.position
+              ) === undefined
+            ) {
+              console.log(activeProjectiles);
+              subGrid.push([[projectile.ID], [projectile.name]]);
+              entityMade = true;
+            }
+          }
+        });
         if (!entityMade) {
           subGrid.push([[element + h], [element + h]]);
         }
@@ -907,7 +1009,7 @@ export default function EngineOutput() {
     setGameboardEntities(grid);
   }
 
-  //pushes the active entities from updateGameboardEntities to the DOM
+  //pushes the active entities from updateGameboardEntities to, activeProjectiles the DOM
   function GameboardRender() {
     return (
       <table>
@@ -915,6 +1017,7 @@ export default function EngineOutput() {
           {gameboardEntities.map((row) => {
             return (
               <tr
+                key={row}
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
