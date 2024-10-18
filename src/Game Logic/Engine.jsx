@@ -6,26 +6,26 @@ export default function EngineOutput() {
   const [currentTurn, setCurrentTurn] = useState(1);
 
   //function that creates new active entities
-  function Entity(type, level, position, name) {
+  function Entity(type, lvl, position, name) {
     this.name = name;
     this.type = type.type;
     this.position = position;
-    this.level = level.lvl;
-    this.hp = level.hp;
-    this.dmg = level.dmg;
-    this.range = level.range;
-    this.rate = level.rate;
-    let neededRate = level.rate;
+    this.lvl = lvl.lvl;
+    this.hp = lvl.hp;
+    this.dmg = lvl.dmg;
+    this.range = lvl.range;
+    this.rate = lvl.rate;
+    let neededRate = lvl.rate;
     this.rateCharge = neededRate;
-    this.speed = level.speed;
+    this.speed = lvl.speed;
     this.speedCharge = 0;
     this.enemy = type.enemy;
-    this.value = level.value;
+    this.value = lvl.value;
     if (!this.enemy) {
       this.currentExp = 0;
-      this.neededExp = level.neededExp;
+      this.neededExp = lvl.neededExp;
     } else {
-      this.exp = level.exp;
+      this.exp = lvl.exp;
     }
     this.fallSpeed = type.fallSpeed;
     this.fallCharge = type.fallSpeed;
@@ -39,7 +39,7 @@ export default function EngineOutput() {
       enemy: true,
       fallSpeed: 10,
       climber: true,
-      levels: {
+      lvls: {
         lvl1: {
           lvl: 1,
           hp: 9,
@@ -67,7 +67,7 @@ export default function EngineOutput() {
       enemy: true,
       fallSpeed: 10,
       climber: false,
-      levels: {
+      lvls: {
         lvl1: {
           lvl: 1,
           hp: 5,
@@ -95,7 +95,7 @@ export default function EngineOutput() {
       enemy: false,
       fallSpeed: 1,
       climber: false,
-      levels: {
+      lvls: {
         lvl1: {
           lvl: 1,
           hp: 10,
@@ -133,7 +133,7 @@ export default function EngineOutput() {
       enemy: false,
       fallSpeed: 1,
       climber: false,
-      levels: {
+      lvls: {
         lvl1: {
           lvl: 1,
           hp: 10,
@@ -151,7 +151,7 @@ export default function EngineOutput() {
       enemy: false,
       fallSpeed: 10,
       climber: false,
-      levels: {
+      lvls: {
         lvl1: {
           lvl: 1,
           hp: 20,
@@ -172,92 +172,92 @@ export default function EngineOutput() {
       wave: 1,
       360: {
         name: "goblin",
-        level: "lvl1",
+        lvl: "lvl1",
         position: "J9",
       },
       423: {
         name: "goblin",
-        level: "lvl2",
+        lvl: "lvl2",
         position: "J9",
       },
       840: {
         name: "skeleton",
-        level: "lvl1",
+        lvl: "lvl1",
         position: "J9",
       },
       1103: {
         name: "goblin",
-        level: "lvl2",
+        lvl: "lvl2",
         position: "J9",
       },
       1605: {
         name: "skeleton",
-        level: "lvl2",
+        lvl: "lvl2",
         position: "J9",
       },
       1932: {
         name: "goblin",
-        level: "lvl2",
+        lvl: "lvl2",
         position: "J9",
       },
       2134: {
         name: "goblin",
-        level: "lvl2",
+        lvl: "lvl2",
         position: "J9",
       },
       2234: {
         name: "goblin",
-        level: "lvl2",
+        lvl: "lvl2",
         position: "J9",
       },
       2342: {
         name: "goblin",
-        level: "lvl2",
+        lvl: "lvl2",
         position: "J9",
       },
       2600: {
         name: "goblin",
-        level: "lvl1",
+        lvl: "lvl1",
         position: "J9",
       },
       2800: {
         name: "goblin",
-        level: "lvl2",
+        lvl: "lvl2",
         position: "J9",
       },
       2950: {
         name: "skeleton",
-        level: "lvl1",
+        lvl: "lvl1",
         position: "J9",
       },
       3140: {
         name: "goblin",
-        level: "lvl2",
+        lvl: "lvl2",
         position: "J9",
       },
       3250: {
         name: "skeleton",
-        level: "lvl2",
+        lvl: "lvl2",
         position: "J9",
       },
       3380: {
         name: "goblin",
-        level: "lvl2",
+        lvl: "lvl2",
         position: "J9",
       },
       3480: {
         name: "goblin",
-        level: "lvl2",
+        lvl: "lvl2",
         position: "J9",
       },
       3550: {
         name: "goblin",
-        level: "lvl2",
+        lvl: "lvl2",
         position: "J9",
       },
       3785: {
         name: "goblin",
-        level: "lvl2",
+        lvl: "lvl2",
         position: "J9",
       },
     },
@@ -265,47 +265,47 @@ export default function EngineOutput() {
       wave: 2,
       360: {
         name: "goblin",
-        level: "lvl1",
+        lvl: "lvl1",
         position: "I9",
       },
       423: {
         name: "goblin",
-        level: "lvl2",
+        lvl: "lvl2",
         position: "I9",
       },
       840: {
         name: "skeleton",
-        level: "lvl1",
+        lvl: "lvl1",
         position: "I9",
       },
       1103: {
         name: "goblin",
-        level: "lvl2",
+        lvl: "lvl2",
         position: "I9",
       },
       1605: {
         name: "skeleton",
-        level: "lvl2",
+        lvl: "lvl2",
         position: "I9",
       },
       1932: {
         name: "goblin",
-        level: "lvl2",
+        lvl: "lvl2",
         position: "I9",
       },
       2134: {
         name: "goblin",
-        level: "lvl2",
+        lvl: "lvl2",
         position: "I9",
       },
       2234: {
         name: "goblin",
-        level: "lvl2",
+        lvl: "lvl2",
         position: "I9",
       },
       2342: {
         name: "goblin",
-        level: "lvl2",
+        lvl: "lvl2",
         position: "I9",
       },
     },
@@ -535,8 +535,8 @@ export default function EngineOutput() {
         currentEntity.currentExp = currentEntity.currentExp + entity.exp;
         if (
           currentEntity.currentExp >= currentEntity.neededExp &&
-          entityList[currentEntity.type].levels[
-            "lvl" + (currentEntity.level + 1)
+          entityList[currentEntity.type].lvls[
+            "lvl" + (currentEntity.lvl + 1)
           ] !== undefined
         ) {
           levelUp(currentEntity);
@@ -547,11 +547,11 @@ export default function EngineOutput() {
       function levelUp(currentEntity) {
         let oldProperties = Object.entries(currentEntity);
         let oldHP =
-          entityList[currentEntity.type].levels["lvl" + currentEntity.level].hp;
-        currentEntity.level++;
-        let newLevel = currentEntity.level;
+          entityList[currentEntity.type].lvls["lvl" + currentEntity.lvl].hp;
+        currentEntity.lvl++;
+        let newlvl = currentEntity.lvl;
         let newProperties = Object.entries(
-          entityList[currentEntity.type].levels["lvl" + newLevel]
+          entityList[currentEntity.type].lvls["lvl" + newlvl]
         );
         oldProperties.forEach((oldProperty) => {
           newProperties.forEach((newProperty) => {
@@ -569,7 +569,7 @@ export default function EngineOutput() {
           });
         });
         console.log(
-          currentEntity.name + " has leveled up to level " + currentEntity.level
+          currentEntity.name + " has leveled up to level " + currentEntity.lvl
         );
       }
 
@@ -637,13 +637,13 @@ export default function EngineOutput() {
     //spawns entities based on wave
     function spawner(currentWave, currentTurn, activeEntities) {
       let entityType = entityList[currentWave[currentTurn].name];
-      let entityLevel =
-        entityList[currentWave[currentTurn].name].levels[
-          currentWave[currentTurn].level
+      let entitylvl =
+        entityList[currentWave[currentTurn].name].lvls[
+          currentWave[currentTurn].lvl
         ];
       let position = currentWave[currentTurn].position;
       let entityID = currentWave[currentTurn].name + currentTurn;
-      entityID = new Entity(entityType, entityLevel, position, entityID);
+      entityID = new Entity(entityType, entitylvl, position, entityID);
       activeEntities.push(entityID);
       console.log(entityID.name + " spawned at " + entityID.position + ".");
       updateGameboardEntities(activeEntities);
@@ -731,13 +731,11 @@ export default function EngineOutput() {
   }
 
   //runs friendly through checks before spawning
-  function friendlySpawner(friendlyType, friendlyPosition, friendlyLevel) {
+  function friendlySpawner(friendlyType, friendlyPosition, friendlylvl) {
     if (entityList[friendlyType] !== undefined) {
-      if (
-        entityList[friendlyType].levels["lvl" + friendlyLevel] !== undefined
-      ) {
+      if (entityList[friendlyType].lvls["lvl" + friendlylvl] !== undefined) {
         let friendlyCost =
-          entityList[friendlyType].levels["lvl" + friendlyLevel].value;
+          entityList[friendlyType].lvls["lvl" + friendlylvl].value;
         if (bankChecker(friendlyCost)) {
           if (friendlyPositionChecker(friendlyPosition, friendlyType)) {
             setBank(bank - friendlyCost);
@@ -749,13 +747,13 @@ export default function EngineOutput() {
                 ". Total money: $" +
                 (bank - friendlyCost)
             );
-            friendlyEntityParser(friendlyType, friendlyPosition, friendlyLevel);
+            friendlyEntityParser(friendlyType, friendlyPosition, friendlylvl);
           }
         } else {
           console.log("Insufficient funds");
         }
       } else {
-        console.log("Entity level does not exist");
+        console.log("Entity lvl does not exist");
       }
     } else {
       console.log("Entity does not exist");
@@ -780,20 +778,22 @@ export default function EngineOutput() {
     let parsedFriendlyEntityArray = [];
     friendlyEntityArray.forEach((entity) => {
       let name = entity[0];
-      let levels = Object.entries(Object.entries(entity[1])[2][1]);
-      levels.forEach((level) => {
+      let lvls = Object.entries(Object.entries(entity[1])[4][1]);
+      lvls.forEach((lvl) => {
         parsedFriendlyEntityArray.push(
           name +
             " lvl" +
-            level[1].lvl +
+            lvl[1].lvl +
             " cost: $" +
-            level[1].value +
+            lvl[1].value +
+            " hp: " +
+            lvl[1].hp +
             " dmg: " +
-            level[1].dmg +
+            lvl[1].dmg +
             " range: " +
-            level[1].range +
+            lvl[1].range +
             " attack speed: " +
-            level[1].rate
+            lvl[1].rate
         );
       });
     });
@@ -831,13 +831,13 @@ export default function EngineOutput() {
 
   //translates user input into data Entity maker can use
   const [friendlyCount, setFriendlyCount] = useState(1);
-  function friendlyEntityParser(entityType, entityPosition, entityLevel) {
+  function friendlyEntityParser(entityType, entityPosition, entitylvl) {
     let ID = friendlyCount + 1;
     setFriendlyCount(ID);
     entityType = entityList[entityType];
-    entityLevel = entityType.levels["lvl" + entityLevel];
+    entitylvl = entityType.lvls["lvl" + entitylvl];
     let entityID = entityType.type + friendlyCount;
-    entityID = new Entity(entityType, entityLevel, entityPosition, entityID);
+    entityID = new Entity(entityType, entitylvl, entityPosition, entityID);
     activeEntities.push(entityID);
     console.log(entityID.name + " spawned at " + entityPosition);
   }
@@ -851,9 +851,9 @@ export default function EngineOutput() {
   function updateFriendlyPosition(e) {
     setFriendlyPosition(e.target.value);
   }
-  const [friendlyLevel, setFriendlyLevel] = useState(1);
-  function updateFriendlyLevel(e) {
-    setFriendlyLevel(e.target.value);
+  const [friendlylvl, setFriendlylvl] = useState(1);
+  function updateFriendlylvl(e) {
+    setFriendlylvl(e.target.value);
   }
 
   //handles making a usable array for the grid renderer
@@ -871,14 +871,7 @@ export default function EngineOutput() {
             if (entity.enemy === true) {
               subGrid.push([
                 [entity.name],
-                [
-                  entity.type +
-                    "Lvl" +
-                    entity.level +
-                    " (hp: " +
-                    entity.hp +
-                    ")",
-                ],
+                [entity.type + "Lvl" + entity.lvl + " (hp: " + entity.hp + ")"],
               ]);
             } else {
               subGrid.push([
@@ -886,7 +879,7 @@ export default function EngineOutput() {
                 [
                   entity.type +
                     "Lvl" +
-                    entity.level +
+                    entity.lvl +
                     " (hp: " +
                     entity.hp +
                     " exp: " +
@@ -950,16 +943,16 @@ export default function EngineOutput() {
           value={friendlyPosition}
           onChange={updateFriendlyPosition}
         ></input>
-        <p>Level:</p>
+        <p>lvl:</p>
         <input
           type="number"
-          value={friendlyLevel}
-          onChange={updateFriendlyLevel}
+          value={friendlylvl}
+          onChange={updateFriendlylvl}
         ></input>
       </div>
       <button
         onClick={() => {
-          friendlySpawner(friendlyType, friendlyPosition, friendlyLevel);
+          friendlySpawner(friendlyType, friendlyPosition, friendlylvl);
         }}
       >
         Add Friendly
