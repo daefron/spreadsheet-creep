@@ -939,7 +939,6 @@ export default function engineOutput() {
     engine(activeEntities, graveyard, bank, waves, true);
   }
 
-
   //handles making a usable array for the grid renderer
   const [gameboardEntities, setGameboardEntities] = useState([]);
 
@@ -1015,7 +1014,12 @@ export default function engineOutput() {
                 {row.map((position) => {
                   return (
                     <td key={position[0]}>
-                      <input type="text" defaultValue={position[1]}></input>
+                      <input
+                        type="text"
+                        defaultValue={position[1]}
+                        onFocus={pause}
+                        onBlur={resume}
+                      ></input>
                     </td>
                   );
                 })}
