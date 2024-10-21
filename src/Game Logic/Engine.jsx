@@ -687,30 +687,29 @@ export default function engineOutput() {
       }
     }
 
-    let currentTurn = savedTurn;
     //sets amount of turns to play
     function amountOfTurns(i, finished, currentTurn) {
       setSavedWave(i);
       let wave = "wave" + i;
       let gameFinished = finished;
       let currentWave = waves[wave];
-      currentTurn = savedTurn;
+      let innerTimer;
       if (!gameFinished) {
         setTimer(
-          setInterval(() => {
-            turnCycler(currentWave, wave, i);
+         innerTimer = setInterval(() => {
+            turnCycler(currentWave, wave, timer, i);
           }, 5)
         );
       } else console.log("Game Over");
 
       //runs turn functions under a timer
-      function turnCycler(currentWave, wave, i) {
+      function turnCycler(currentWave, wave, timer, i) {
         if (currentWave[currentTurn] !== undefined) {
           spawner(currentWave, currentTurn, activeEntities);
         }
         nextTurn(currentTurn);
         if (victoryChecker(wave, currentTurn) === "friendly victory") {
-          clearInterval(timer);
+          clearInterval(innerTimer);
           console.log("Friendly Victory - Total Money: $" + bank);
           currentTurn = 1;
           if (i + 1 > Object.keys(waves).length) {
@@ -720,7 +719,7 @@ export default function engineOutput() {
             amountOfTurns(i + 1, false);
           }
         } else if (victoryChecker(wave, currentTurn) === "enemy victory") {
-          clearInterval(timer);
+          clearInterval(innerTimer);
           console.log("Enemy Victory");
         }
         currentTurn++;
@@ -791,9 +790,9 @@ export default function engineOutput() {
     if (!paused) {
       friendlySpawner("king", "A9", 1);
       updateGameboardEntities(activeEntities, activeProjectiles);
-      amountOfTurns(1, false, currentTurn);
+      amountOfTurns(1, false, 1);
     } else {
-      amountOfTurns(savedWave, false, currentTurn);
+      amountOfTurns(savedWave, false, savedTurn);
     }
   }
 
