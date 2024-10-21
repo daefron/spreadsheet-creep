@@ -6,6 +6,7 @@ export default function engineOutput() {
   const [bank, setBank] = useState(10000);
   const [savedTurn, setSavedTurn] = useState(1);
   const [savedWave, setSavedWave] = useState();
+  const [timer, setTimer] = useState();
 
   //function that creates new active entities
   function Entity(type, lvl, position, name) {
@@ -696,14 +697,14 @@ export default function engineOutput() {
       let innerTimer;
       if (!gameFinished) {
         setTimer(
-         innerTimer = setInterval(() => {
-            turnCycler(currentWave, wave, timer, i);
-          }, 5)
+          (innerTimer = setInterval(() => {
+            turnCycler(currentWave, wave, i);
+          }, 5))
         );
       } else console.log("Game Over");
 
       //runs turn functions under a timer
-      function turnCycler(currentWave, wave, timer, i) {
+      function turnCycler(currentWave, wave, i) {
         if (currentWave[currentTurn] !== undefined) {
           spawner(currentWave, currentTurn, activeEntities);
         }
@@ -713,10 +714,10 @@ export default function engineOutput() {
           console.log("Friendly Victory - Total Money: $" + bank);
           currentTurn = 1;
           if (i + 1 > Object.keys(waves).length) {
-            amountOfTurns(i + 1, true);
+            amountOfTurns(i + 1, true, 1);
           } else {
             setSavedWave(i);
-            amountOfTurns(i + 1, false);
+            amountOfTurns(i + 1, false, 1);
           }
         } else if (victoryChecker(wave, currentTurn) === "enemy victory") {
           clearInterval(innerTimer);
@@ -786,25 +787,14 @@ export default function engineOutput() {
       }
     }
 
-    //spawns the king every round
     if (!paused) {
+      //spawns the king every round
       friendlySpawner("king", "A9", 1);
       updateGameboardEntities(activeEntities, activeProjectiles);
       amountOfTurns(1, false, 1);
     } else {
       amountOfTurns(savedWave, false, savedTurn);
     }
-  }
-
-  const [timer, setTimer] = useState();
-  //saves every part of game's current state and stops the loop
-  function pause() {
-    clearInterval(timer);
-  }
-
-  //pushes everything back into the game and starts the loop
-  function resume() {
-    engine(activeEntities, graveyard, bank, waves, true);
   }
 
   //runs friendly through checks before spawning
@@ -938,6 +928,17 @@ export default function engineOutput() {
   function updateFriendlyLvl(e) {
     setFriendlyLvl(e.target.value);
   }
+
+  //stops the game loop
+  function pause() {
+    clearInterval(timer);
+  }
+
+  //pushes everything back into the game and starts the loop
+  function resume() {
+    engine(activeEntities, graveyard, bank, waves, true);
+  }
+
 
   //handles making a usable array for the grid renderer
   const [gameboardEntities, setGameboardEntities] = useState([]);
