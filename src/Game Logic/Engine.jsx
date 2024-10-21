@@ -1010,11 +1010,12 @@ export default function engineOutput() {
   //pushes the active entities from updateGameboardEntities to, activeProjectiles the DOM
   function GameboardRender() {
     return (
-      <table>
+      <table id="gameboard">
         <tbody>
           {gameboardEntities.map((row) => {
             return (
               <tr
+                className="boardRow"
                 key={row}
                 style={{
                   display: "flex",
@@ -1025,6 +1026,7 @@ export default function engineOutput() {
                   return (
                     <td key={position[0]}>
                       <input
+                        className="boardCell"
                         type="text"
                         id={position[0]}
                         defaultValue={position[1]}
@@ -1049,13 +1051,13 @@ export default function engineOutput() {
 
   return (
     <>
-      <div>
+      <div id="menu">
         <p>Money: ${bank}</p>
         <Purchasables></Purchasables>
+        <button id="startButton" onClick={startButton}>
+          Start Round
+        </button>
       </div>
-      <button id="startButton" onClick={startButton}>
-        Start Round
-      </button>
       <GameboardRender></GameboardRender>
     </>
   );
