@@ -1,10 +1,11 @@
 import { useState } from "react";
-export default function EngineOutput() {
+export default function engineOutput() {
   const [activeEntities, setActiveEntities] = useState([]);
   const [activeProjectiles, setActProjectiles] = useState([]);
   const [graveyard, setGraveyard] = useState([]);
   const [bank, setBank] = useState(10000);
-  const [currentTurn, setCurrentTurn] = useState(1);
+  const [savedTurn, setSavedTurn] = useState(1);
+  const [savedWave, setSavedWave] = useState();
 
   //function that creates new active entities
   function Entity(type, lvl, position, name) {
@@ -169,7 +170,7 @@ export default function EngineOutput() {
           neededExp: 100,
         },
         lvl2: {
-          lvl: 1,
+          lvl: 2,
           hp: 100000000,
           dmg: 0,
           range: 0,
@@ -237,128 +238,59 @@ export default function EngineOutput() {
         lvl: "lvl2",
         position: "J9",
       },
-      1605: {
-        name: "skeleton",
-        lvl: "lvl2",
-        position: "J9",
-      },
-      1932: {
-        name: "goblin",
-        lvl: "lvl2",
-        position: "J9",
-      },
-      2134: {
-        name: "goblin",
-        lvl: "lvl2",
-        position: "J9",
-      },
-      2234: {
-        name: "goblin",
-        lvl: "lvl2",
-        position: "J9",
-      },
-      2342: {
-        name: "goblin",
-        lvl: "lvl2",
-        position: "J9",
-      },
-      2600: {
-        name: "goblin",
-        lvl: "lvl1",
-        position: "J9",
-      },
-      2800: {
-        name: "goblin",
-        lvl: "lvl2",
-        position: "J9",
-      },
-      2950: {
-        name: "skeleton",
-        lvl: "lvl1",
-        position: "J9",
-      },
-      3140: {
-        name: "goblin",
-        lvl: "lvl2",
-        position: "J9",
-      },
-      3250: {
-        name: "skeleton",
-        lvl: "lvl2",
-        position: "J9",
-      },
-      3380: {
-        name: "goblin",
-        lvl: "lvl2",
-        position: "J9",
-      },
-      3480: {
-        name: "goblin",
-        lvl: "lvl2",
-        position: "J9",
-      },
-      3550: {
-        name: "goblin",
-        lvl: "lvl2",
-        position: "J9",
-      },
-      3785: {
-        name: "goblin",
-        lvl: "lvl2",
-        position: "J9",
-      },
     },
     wave2: {
       wave: 2,
       360: {
         name: "goblin",
         lvl: "lvl1",
-        position: "I9",
+        position: "I1",
       },
       423: {
         name: "goblin",
         lvl: "lvl2",
-        position: "I9",
+        position: "I1",
       },
       840: {
         name: "skeleton",
         lvl: "lvl1",
-        position: "I9",
+        position: "I1",
       },
       1103: {
         name: "goblin",
         lvl: "lvl2",
-        position: "I9",
+        position: "I1",
       },
       1605: {
         name: "skeleton",
         lvl: "lvl2",
-        position: "I9",
+        position: "I1",
       },
       1932: {
         name: "goblin",
         lvl: "lvl2",
-        position: "I9",
+        position: "I1",
       },
       2134: {
         name: "goblin",
         lvl: "lvl2",
-        position: "I9",
+        position: "I1",
       },
       2234: {
         name: "goblin",
         lvl: "lvl2",
-        position: "I9",
+        position: "I1",
       },
       2342: {
         name: "goblin",
         lvl: "lvl2",
-        position: "I9",
+        position: "I1",
       },
     },
   };
+  let projectileCount = 1;
 
-  function Engine(activeEntities, graveyard, bank, currentTurn, waves) {
+  function engine(activeEntities, graveyard, bank, waves, paused) {
     //tells entities what to do on their turn
     function entityTurn(currentEntity) {
       currentEntity.rateCharge++;
@@ -383,7 +315,8 @@ export default function EngineOutput() {
       //function to spawn projectile
       function rangedAttack(currentEntity) {
         let projectileID =
-          currentEntity.projectile + currentTurn + currentEntity.name;
+          currentEntity.projectile + projectileCount + currentEntity.name;
+        projectileCount++;
         activeProjectiles.push(new Projectile(currentEntity, projectileID));
         currentEntity.rateCharge = 0;
         currentEntity.speedCharge = 0;
@@ -754,19 +687,24 @@ export default function EngineOutput() {
       }
     }
 
+    let currentTurn = savedTurn;
     //sets amount of turns to play
-    function amountOfTurns(i, finished) {
-      let wave = "wave" + i,
-        gameFinished = finished,
-        currentWave = waves[wave];
+    function amountOfTurns(i, finished, currentTurn) {
+      setSavedWave(i);
+      let wave = "wave" + i;
+      let gameFinished = finished;
+      let currentWave = waves[wave];
+      currentTurn = savedTurn;
       if (!gameFinished) {
-        let timer = setInterval(() => {
-          turnCycler(currentWave, wave, timer, i);
-        }, 5);
+        setTimer(
+          setInterval(() => {
+            turnCycler(currentWave, wave, i);
+          }, 5)
+        );
       } else console.log("Game Over");
 
       //runs turn functions under a timer
-      function turnCycler(currentWave, wave, timer, i) {
+      function turnCycler(currentWave, wave, i) {
         if (currentWave[currentTurn] !== undefined) {
           spawner(currentWave, currentTurn, activeEntities);
         }
@@ -778,6 +716,7 @@ export default function EngineOutput() {
           if (i + 1 > Object.keys(waves).length) {
             amountOfTurns(i + 1, true);
           } else {
+            setSavedWave(i);
             amountOfTurns(i + 1, false);
           }
         } else if (victoryChecker(wave, currentTurn) === "enemy victory") {
@@ -785,6 +724,18 @@ export default function EngineOutput() {
           console.log("Enemy Victory");
         }
         currentTurn++;
+        setSavedTurn(currentTurn);
+      }
+
+      //makes all entities take turn
+      function nextTurn(currentTurn) {
+        activeEntities.forEach((entity) => {
+          entityTurn(entity);
+        });
+        activeProjectiles.forEach((projectile) => {
+          projectileTurn(projectile);
+        });
+        console.log("Turn " + currentTurn + " over.");
       }
 
       //spawns entities based on wave
@@ -800,17 +751,6 @@ export default function EngineOutput() {
         activeEntities.push(entityID);
         console.log(entityID.name + " spawned at " + entityID.position + ".");
         updateGameboardEntities(activeEntities, activeProjectiles);
-      }
-
-      //makes all entities take turn
-      function nextTurn(currentTurn) {
-        activeEntities.forEach((entity) => {
-          entityTurn(entity);
-        });
-        activeProjectiles.forEach((projectile) => {
-          projectileTurn(projectile);
-        });
-        console.log("Turn " + currentTurn + " over.");
       }
 
       //checks if and which side has won round
@@ -848,9 +788,24 @@ export default function EngineOutput() {
     }
 
     //spawns the king every round
-    friendlySpawner("king", "A9", 1);
-    updateGameboardEntities(activeEntities, activeProjectiles);
-    amountOfTurns(1, false);
+    if (!paused) {
+      friendlySpawner("king", "A9", 1);
+      updateGameboardEntities(activeEntities, activeProjectiles);
+      amountOfTurns(1, false, currentTurn);
+    } else {
+      amountOfTurns(savedWave, false, currentTurn);
+    }
+  }
+
+  const [timer, setTimer] = useState();
+  //saves every part of game's current state and stops the loop
+  function pause() {
+    clearInterval(timer);
+  }
+
+  //pushes everything back into the game and starts the loop
+  function resume() {
+    engine(activeEntities, graveyard, bank, waves, true);
   }
 
   //runs friendly through checks before spawning
@@ -931,6 +886,7 @@ export default function EngineOutput() {
     entityID = new Entity(entityType, entitylvl, entityPosition, entityID);
     activeEntities.push(entityID);
     console.log(entityID.name + " spawned at " + entityPosition);
+    updateGameboardEntities(activeEntities, activeProjectiles);
   }
 
   //makes a list of purchasble entities
@@ -1100,10 +1056,24 @@ export default function EngineOutput() {
       </button>
       <button
         onClick={() => {
-          Engine(activeEntities, graveyard, bank, currentTurn, waves);
+          engine(activeEntities, graveyard, bank, waves, false);
         }}
       >
         Start Round
+      </button>
+      <button
+        onClick={() => {
+          pause();
+        }}
+      >
+        Pause
+      </button>
+      <button
+        onClick={() => {
+          resume();
+        }}
+      >
+        Resume
       </button>
       <GameboardRender></GameboardRender>
     </>
