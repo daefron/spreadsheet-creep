@@ -31,7 +31,7 @@ export default function engineOutput() {
       this.exp = lvl.exp;
     }
     this.fallSpeed = type.fallSpeed;
-    this.fallCharge = type.fallSpeed;
+    this.fallCharge = 0;
     this.climber = type.climber;
     this.projectile = type.projectile;
   }
@@ -245,47 +245,47 @@ export default function engineOutput() {
       360: {
         name: "goblin",
         lvl: "lvl1",
-        position: "I1",
+        position: "J1",
       },
       423: {
         name: "goblin",
         lvl: "lvl2",
-        position: "I1",
+        position: "J1",
       },
       840: {
         name: "skeleton",
         lvl: "lvl1",
-        position: "I1",
+        position: "J1",
       },
       1103: {
         name: "goblin",
         lvl: "lvl2",
-        position: "I1",
+        position: "J1",
       },
       1605: {
         name: "skeleton",
         lvl: "lvl2",
-        position: "I1",
+        position: "J1",
       },
       1932: {
         name: "goblin",
         lvl: "lvl2",
-        position: "I1",
+        position: "J1",
       },
       2134: {
         name: "goblin",
         lvl: "lvl2",
-        position: "I1",
+        position: "J1",
       },
       2234: {
         name: "goblin",
         lvl: "lvl2",
-        position: "I1",
+        position: "J1",
       },
       2342: {
         name: "goblin",
         lvl: "lvl2",
-        position: "I1",
+        position: "J1",
       },
     },
   };
@@ -354,6 +354,7 @@ export default function engineOutput() {
             (parseInt(entity.position.charAt(1)) + 1);
           console.log(entity.name + " fell to " + newPosition);
           entity.position = newPosition;
+          entity.speedCharge = entity.speed / 2;
           updateGameboardEntities(activeEntities, activeProjectiles);
         }
       }
@@ -1049,11 +1050,26 @@ export default function engineOutput() {
     engine(activeEntities, graveyard, bank, waves, false);
   }
 
+  //temp for the moment
+  let purchasableButtonClicked = false;
+  function purchasableButton() {
+    if (!purchasableButtonClicked) {
+      document.getElementById("purchasables").style = "";
+      purchasableButtonClicked = true;
+    } else {
+      document.getElementById("purchasables").style = "display:none";
+      purchasableButtonClicked = false;
+    }
+  }
+
   return (
     <>
       <div id="menu">
         <p>Money: ${bank}</p>
-        <Purchasables></Purchasables>
+        <button onClick={purchasableButton}>show purchasables</button>
+        <div id="purchasables" style={{ display: "none" }}>
+          <Purchasables></Purchasables>
+        </div>
         <button id="startButton" onClick={startButton}>
           Start Round
         </button>
