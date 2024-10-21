@@ -788,7 +788,6 @@ export default function engineOutput() {
     }
 
     if (!paused) {
-      //spawns the king every round
       friendlySpawner("king", "A9", 1);
       updateGameboardEntities(activeEntities, activeProjectiles);
       amountOfTurns(1, false, 1);
@@ -868,16 +867,26 @@ export default function engineOutput() {
   function friendlyInput(e) {
     let input = e.target.value;
     let position = e.target.id;
-    console.log(position);
-    let parsedType = "";
-    let parsedLvl = "";
-    let hitNumber = false;
-    for (let i = 0; i < input.length; i++) {
-      if (isNaN(input[i]) && !hitNumber) {
-        parsedType = parsedType.concat(input[i]);
-      } else parsedLvl = parsedLvl.concat(input[i]);
+    let spawn = false;
+    let entityInPosition = activeEntities.find(
+      (entity) => entity.position === position
+    );
+    if (entityInPosition === undefined) {
+      spawn = true;
+    } else if (!entityInPosition.enemy) {
+      spawn = true;
     }
-    friendlySpawner(parsedType, position, parsedLvl);
+    if (spawn) {
+      let parsedType = "";
+      let parsedLvl = "";
+      let hitNumber = false;
+      for (let i = 0; i < input.length; i++) {
+        if (isNaN(input[i]) && !hitNumber) {
+          parsedType = parsedType.concat(input[i]);
+        } else parsedLvl = parsedLvl.concat(input[i]);
+      }
+      friendlySpawner(parsedType, position, parsedLvl);
+    }
     resume();
   }
 
@@ -908,7 +917,6 @@ export default function engineOutput() {
       lvls.forEach((lvl) => {
         parsedFriendlyEntityArray.push(
           name +
-            " lvl" +
             lvl[1].lvl +
             " cost: $" +
             lvl[1].value +
@@ -930,20 +938,6 @@ export default function engineOutput() {
         })}
       </div>
     );
-  }
-
-  //user inputs
-  const [friendlyType, setFriendlyType] = useState("bow");
-  function updateFriendlyType(e) {
-    setFriendlyType(e.target.value);
-  }
-  const [friendlyPosition, setFriendlyPosition] = useState("B9");
-  function updateFriendlyPosition(e) {
-    setFriendlyPosition(e.target.value);
-  }
-  const [friendlyLvl, setFriendlyLvl] = useState(1);
-  function updateFriendlyLvl(e) {
-    setFriendlyLvl(e.target.value);
   }
 
   //stops the game loop
@@ -1005,7 +999,7 @@ export default function engineOutput() {
           }
         });
         if (!entityMade) {
-          subGrid.push([[element + h], [element + h]]);
+          subGrid.push([[element + h], [""]]);
         }
       });
       grid.push(subGrid);
