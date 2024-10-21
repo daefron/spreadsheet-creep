@@ -864,6 +864,23 @@ export default function engineOutput() {
     }
   }
 
+  //consolidates user input
+  function friendlyInput(e) {
+    let input = e.target.value;
+    let position = e.target.id;
+    console.log(position);
+    let parsedType = "";
+    let parsedLvl = "";
+    let hitNumber = false;
+    for (let i = 0; i < input.length; i++) {
+      if (isNaN(input[i]) && !hitNumber) {
+        parsedType = parsedType.concat(input[i]);
+      } else parsedLvl = parsedLvl.concat(input[i]);
+    }
+    friendlySpawner(parsedType, position, parsedLvl);
+    resume();
+  }
+
   //translates user input into data Entity maker can use
   const [friendlyCount, setFriendlyCount] = useState(1);
   function friendlyEntityParser(entityType, entityPosition, entitylvl) {
@@ -953,15 +970,14 @@ export default function engineOutput() {
           if (entity.position === element + h) {
             if (entity.enemy === true) {
               subGrid.push([
-                [entity.name],
-                [entity.type + "Lvl" + entity.lvl + " (hp: " + entity.hp + ")"],
+                [element + h],
+                [entity.type + entity.lvl + " (hp: " + entity.hp + ")"],
               ]);
             } else {
               subGrid.push([
-                [entity.name],
+                [element + h],
                 [
                   entity.type +
-                    "Lvl" +
                     entity.lvl +
                     " (hp: " +
                     entity.hp +
@@ -1016,9 +1032,10 @@ export default function engineOutput() {
                     <td key={position[0]}>
                       <input
                         type="text"
+                        id={position[0]}
                         defaultValue={position[1]}
                         onFocus={pause}
-                        onBlur={resume}
+                        onBlur={friendlyInput}
                       ></input>
                     </td>
                   );
