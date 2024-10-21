@@ -1048,18 +1048,18 @@ export default function engineOutput() {
     );
   }
 
+  function startButton(e) {
+    e.target.style = "display:none";
+    engine(activeEntities, graveyard, bank, waves, false);
+  }
+
   return (
     <>
       <div>
-        <p>Friendly spawner:</p>
         <p>Money: ${bank}</p>
         <Purchasables></Purchasables>
       </div>
-      <button
-        onClick={() => {
-          engine(activeEntities, graveyard, bank, waves, false);
-        }}
-      >
+      <button id="startButton" onClick={startButton}>
         Start Round
       </button>
       <GameboardRender></GameboardRender>
