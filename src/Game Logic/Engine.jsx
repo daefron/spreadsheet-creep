@@ -1054,47 +1054,13 @@ export default function engineOutput() {
         <p>Friendly spawner:</p>
         <p>Money: ${bank}</p>
         <Purchasables></Purchasables>
-        <p>Type:</p>
-        <input value={friendlyType} onChange={updateFriendlyType}></input>
-        <p>Position:</p>
-        <input
-          value={friendlyPosition}
-          onChange={updateFriendlyPosition}
-        ></input>
-        <p>lvl:</p>
-        <input
-          type="number"
-          value={friendlyLvl}
-          onChange={updateFriendlyLvl}
-        ></input>
       </div>
-      <button
-        onClick={() => {
-          friendlySpawner(friendlyType, friendlyPosition, friendlyLvl);
-        }}
-      >
-        Add Friendly
-      </button>
       <button
         onClick={() => {
           engine(activeEntities, graveyard, bank, waves, false);
         }}
       >
         Start Round
-      </button>
-      <button
-        onClick={() => {
-          pause();
-        }}
-      >
-        Pause
-      </button>
-      <button
-        onClick={() => {
-          resume();
-        }}
-      >
-        Resume
       </button>
       <GameboardRender></GameboardRender>
     </>
