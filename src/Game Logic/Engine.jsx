@@ -400,7 +400,11 @@ export default function engineOutput() {
         let rangeLetter = direction(currentEntity);
         for (let i = currentEntity.range; i > 0; i--) {
           rangeCells.push([rangeLetter, currentEntity.position[1]]);
-          rangeLetter = direction(currentEntity);
+          if (currentEntity.enemy) {
+            rangeLetter--;
+          } else {
+            rangeLetter++;
+          }
         }
         return rangeCells;
       }
