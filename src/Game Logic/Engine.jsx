@@ -235,6 +235,10 @@ export default function engineOutput() {
       type: "dirt",
       fallSpeed: 2,
     },
+    stone: {
+      type: "stone",
+      fallSpeed: 2,
+    },
   };
 
   //object holding wave properties
@@ -849,14 +853,26 @@ export default function engineOutput() {
     }
 
     //creates ground based on groundHeight and type
-    function groundMaker(type) {
+    function groundMaker() {
       for (let h = gameboardHeight; h > gameboardHeight - groundLevel; h--) {
         for (let w = 1; w <= gameboardWidth; w++) {
-          let chance = 10;
-          if (w > gameboardWidth / 2) {
-            chance = Math.random() * 10;
+          let spawnChance = 10;
+          if (w < 3) {
+            spawnChance = 10;
+          } else if (w > gameboardWidth / 2) {
+            spawnChance = Math.random() * 10;
+          } else {
+            spawnChance = Math.random() * 50;
           }
-          if (chance > terrainSmoothness) {
+          if (spawnChance > terrainSmoothness) {
+            let stoneChance;
+            let type = "dirt";
+            if (h > gameboardHeight - 1) {
+              stoneChance = 20;
+              if (Math.random() * 100 > stoneChance) {
+                type = "stone";
+              }
+            } 
             let position = [w, h];
             let groundID = type + position[0] + position[1];
             groundID = new Ground(type, position, groundID);
@@ -867,7 +883,7 @@ export default function engineOutput() {
     }
 
     if (!paused) {
-      groundMaker("dirt");
+      groundMaker();
       friendlySpawner("king", [1, gameboardHeight - groundLevel], 1);
       updateGameboardEntities();
       amountOfTurns(1, false, 1);
