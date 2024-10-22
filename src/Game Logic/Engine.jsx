@@ -445,6 +445,9 @@ export default function engineOutput() {
       //function to determine how entity moves if it can
       function entityMovement(currentEntity) {
         let newPosition = [direction(currentEntity), currentEntity.position[1]];
+        if(newPosition[0] === -1) {
+          boundaryHandler(currentEntity);
+        }
         let spotFree = true;
         if (
           activeEntities.find(
@@ -485,6 +488,12 @@ export default function engineOutput() {
           }
           updateGameboardEntities(activeEntities, activeProjectiles);
         }
+      }
+
+      //determines what happens to entity if hits boundary wall
+      function boundaryHandler(currentEntity) {
+        currentEntity.position = [gameboardWidth, currentEntity.position[1]];
+        levelUp(currentEntity);
       }
 
       //checks if entity wants to climb
@@ -822,7 +831,7 @@ export default function engineOutput() {
     let input = e.target.value;
     let id = e.target.id;
     let xHit = false;
-    let x ="";
+    let x = "";
     let y = "";
     for (let i = 0; i < id.length; i++) {
       let currentChar = id[i];
@@ -830,7 +839,7 @@ export default function engineOutput() {
         xHit = true;
       } else if (!xHit) {
         x = x + currentChar;
-      } else if(xHit) {
+      } else if (xHit) {
         y = y + currentChar;
       }
     }
