@@ -1,14 +1,16 @@
 import { useState } from "react";
 export default function engineOutput() {
   const [activeEntities, setActiveEntities] = useState([]);
-  const [activeProjectiles, setActProjectiles] = useState([]);
+  const [activeProjectiles, setActiveProjectiles] = useState([]);
+  const [activeGround, setActiveGround] = useState([]);
   const [graveyard, setGraveyard] = useState([]);
   const [bank, setBank] = useState(10000);
   const [savedTurn, setSavedTurn] = useState(1);
   const [savedWave, setSavedWave] = useState();
   const [timer, setTimer] = useState();
   const [gameboardWidth, setGameboardWidth] = useState(10);
-  const [gaemboardHeight, setGameboardHeight] = useState(10);
+  const [gameboardHeight, setGameboardHeight] = useState(12);
+  const [groundLevel, setGroundLevel] = useState(2);
 
   //function that creates new active entities
   function Entity(type, lvl, position, name) {
@@ -38,7 +40,7 @@ export default function engineOutput() {
     this.projectile = type.projectile;
   }
 
-  //function the creates new active projectiles
+  //function that creates new active projectiles
   function Projectile(parent, name) {
     this.type = parent.projectile;
     this.parent = parent;
@@ -54,6 +56,13 @@ export default function engineOutput() {
       this.symbol = type.enemySymbol;
     } else this.symbol = type.friendlySymbol;
     this.name = name;
+  }
+
+  //function that creates new active ground entities
+  function Ground(type, position, ID) {
+    this.type = groundList[type].type;
+    this.position = position;
+    this.name = ID;
   }
 
   //object that holds default values of entities
@@ -217,6 +226,12 @@ export default function engineOutput() {
     },
   };
 
+  const groundList = {
+    dirt: {
+      type: "dirt",
+    },
+  };
+
   //object holding wave properties
   const waves = {
     wave1: {
@@ -247,47 +262,47 @@ export default function engineOutput() {
       360: {
         name: "goblin",
         lvl: "lvl1",
-        position: [10, 10],
+        position: [10, 1],
       },
       423: {
         name: "goblin",
         lvl: "lvl2",
-        position: [10, 10],
+        position: [10, 1],
       },
       840: {
         name: "skeleton",
         lvl: "lvl1",
-        position: [10, 10],
+        position: [10, 1],
       },
       1103: {
         name: "goblin",
         lvl: "lvl2",
-        position: [10, 10],
+        position: [10, 1],
       },
       1605: {
         name: "skeleton",
         lvl: "lvl2",
-        position: [10, 10],
+        position: [10, 1],
       },
       1932: {
         name: "goblin",
         lvl: "lvl2",
-        position: [10, 10],
+        position: [10, 1],
       },
       2134: {
         name: "goblin",
         lvl: "lvl2",
-        position: [10, 10],
+        position: [10, 1],
       },
       2234: {
         name: "goblin",
         lvl: "lvl2",
-        position: [10, 10],
+        position: [10, 1],
       },
       2342: {
         name: "goblin",
         lvl: "lvl2",
-        position: [10, 10],
+        position: [10, 1],
       },
     },
   };
@@ -299,6 +314,11 @@ export default function engineOutput() {
       currentEntity.rateCharge++;
       currentEntity.speedCharge++;
       let turnTaken = false;
+      let newPosition = [direction(currentEntity), currentEntity.position[1]];
+      if (newPosition[0] === 0) {
+        boundaryHandler(currentEntity);
+        turnTaken = true;
+      }
       if (entityCanFall(currentEntity.position)) {
         entityFall(currentEntity);
         turnTaken = true;
@@ -330,15 +350,24 @@ export default function engineOutput() {
 
       //function to determine if there is anything under the current entity
       function entityCanFall(position) {
-        if (position[1] !== gaemboardHeight) {
+        let spaceBelow = true;
+        if (position[1] !== gameboardHeight) {
           let positionBelow = [position[0], position[1] + 1];
           if (
             activeEntities.find((entity) =>
               comparePosition(entity.position, positionBelow)
-            ) === undefined
+            ) !== undefined
           ) {
-            return true;
+            spaceBelow = false;
           }
+          if (
+            activeGround.find((ground) =>
+              comparePosition(ground.position, positionBelow)
+            ) !== undefined
+          ) {
+            spaceBelow = false;
+          }
+          return spaceBelow;
         } else return false;
       }
 
@@ -445,9 +474,6 @@ export default function engineOutput() {
       //function to determine how entity moves if it can
       function entityMovement(currentEntity) {
         let newPosition = [direction(currentEntity), currentEntity.position[1]];
-        if(newPosition[0] === -1) {
-          boundaryHandler(currentEntity);
-        }
         let spotFree = true;
         if (
           activeEntities.find(
@@ -493,7 +519,14 @@ export default function engineOutput() {
       //determines what happens to entity if hits boundary wall
       function boundaryHandler(currentEntity) {
         currentEntity.position = [gameboardWidth, currentEntity.position[1]];
-        levelUp(currentEntity);
+        if (
+          entityList[currentEntity.type].lvls[
+            "lvl" + (currentEntity.lvl + 1)
+          ] !== undefined
+        ) {
+          levelUp(currentEntity);
+        }
+        updateGameboardEntities(activeEntities, activeProjectiles);
       }
 
       //checks if entity wants to climb
@@ -750,8 +783,21 @@ export default function engineOutput() {
       }
     }
 
+    //creates ground based on groundHeight and type
+    function groundMaker(type) {
+      for (let h = gameboardHeight; h > gameboardHeight - groundLevel; h--) {
+        for (let w = 1; w <= gameboardWidth; w++) {
+          let position = [w, h];
+          let groundID = type + position[0] + position[1];
+          groundID = new Ground(type, position, groundID);
+          activeGround.push(groundID);
+        }
+      }
+    }
+
     if (!paused) {
-      friendlySpawner("king", [1, gaemboardHeight], 1);
+      groundMaker("dirt");
+      friendlySpawner("king", [1, gameboardHeight - groundLevel], 1);
       updateGameboardEntities(activeEntities, activeProjectiles);
       amountOfTurns(1, false, 1);
     } else {
@@ -956,14 +1002,20 @@ export default function engineOutput() {
 
   function updateGameboardEntities(activeEntities, activeProjectiles) {
     let grid = [];
-    let height = gaemboardHeight;
+    let height = gameboardHeight;
     let width = gameboardWidth;
     for (let h = 1; h <= height; h++) {
       let subGrid = [];
       for (let w = 1; w <= width; w++) {
         let entityMade = false;
+        activeGround.forEach((ground) => {
+          if (comparePosition(ground.position, [w, h])) {
+            subGrid.push([[w + "x" + h], [ground.type]]);
+            entityMade = true;
+          }
+        });
         activeEntities.forEach((entity) => {
-          if (comparePosition(entity.position, [w, h])) {
+          if (comparePosition(entity.position, [w, h]) && !entityMade) {
             if (entity.enemy === true) {
               subGrid.push([
                 [w + "x" + h],
