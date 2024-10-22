@@ -623,11 +623,37 @@ export default function engineOutput() {
         return actual;
       }
 
-      //determines what entity will spawn
+      //determines what entity will spawn based on weighted chance
       function spawnType() {
-        let entities = Object.entries(entityList)
+        let enemyEntities = Object.entries(entityList)
           .filter((entity) => entity[1].enemy)
           .map((entity) => entity[1]);
+        let parsedEntities = [];
+        enemyEntities.forEach((entity) => {
+          Object.entries(entity.lvls).forEach((level) => {
+            parsedEntities.push([entity.type, level[1].lvl, level[1].chance]);
+          });
+        });
+        let totalWeight = 0;
+        parsedEntities.forEach((entity) => {
+          totalWeight = totalWeight + entity[2];
+        });
+        let weightedChance = totalWeight * Math.random();
+        let chancePosition = 0;
+        parsedEntities.forEach((entity) => {
+          entity[2] = entity[2] + chancePosition;
+          chancePosition = entity[2];
+        });
+        let closestChance = Infinity;
+        let chosenEntity;
+        parsedEntities.forEach((entity) => {
+          let entityChance = entity[2] - weightedChance;
+          if (entityChance > 0 && entityChance < closestChance) {
+            closestChance = entityChance;
+            chosenEntity = entity;
+          }
+        });
+        return chosenEntity;
       }
       spawnType();
 
