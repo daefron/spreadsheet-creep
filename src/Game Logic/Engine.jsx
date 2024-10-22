@@ -87,6 +87,7 @@ export default function engineOutput() {
           speed: 60,
           value: 1,
           exp: 1,
+          chance: 15,
         },
         lvl2: {
           lvl: 2,
@@ -97,6 +98,7 @@ export default function engineOutput() {
           speed: 50,
           value: 3,
           exp: 2,
+          chance: 10,
         },
       },
     },
@@ -116,6 +118,7 @@ export default function engineOutput() {
           speed: 90,
           value: 1,
           exp: 1,
+          chance: 5,
         },
         lvl2: {
           lvl: 2,
@@ -126,6 +129,7 @@ export default function engineOutput() {
           speed: 60,
           value: 3,
           exp: 2,
+          chance: 3,
         },
       },
     },
@@ -261,6 +265,31 @@ export default function engineOutput() {
         position: [10, 1],
       },
       1103: {
+        name: "goblin",
+        lvl: "lvl2",
+        position: [10, 1],
+      },
+      1605: {
+        name: "skeleton",
+        lvl: "lvl2",
+        position: [10, 1],
+      },
+      1932: {
+        name: "goblin",
+        lvl: "lvl2",
+        position: [10, 1],
+      },
+      2134: {
+        name: "goblin",
+        lvl: "lvl2",
+        position: [10, 1],
+      },
+      2234: {
+        name: "goblin",
+        lvl: "lvl2",
+        position: [10, 1],
+      },
+      2342: {
         name: "goblin",
         lvl: "lvl2",
         position: [10, 1],
@@ -536,8 +565,8 @@ export default function engineOutput() {
       function boundaryHandler(currentEntity) {
         let king = activeEntities.find((entity) => (entity.type = "king"));
         king.hp = king.hp - currentEntity.dmg * 2;
-        healthChecker(king, currentEntity);
         currentEntity.hp = 0;
+        healthChecker(king, currentEntity);
         healthChecker(currentEntity, king);
         updateGameboardEntities();
       }
@@ -803,6 +832,22 @@ export default function engineOutput() {
         console.log("Turn " + currentTurn + " over.");
       }
 
+      //sets how long until next unit spawns
+      function spawnTime() {
+        let baseline = 300;
+        let actual = baseline + 300 * Math.random();
+        return actual;
+      }
+
+      //determines what entity will spawn
+      function spawnType() {
+        let entities = Object.entries(entityList)
+          .filter((entity) => entity[1].enemy)
+          .map((entity) => entity[1]);
+        console.log(entities);
+      }
+      spawnType();
+
       //spawns entities based on wave
       function spawner(currentWave, currentTurn, activeEntities) {
         let entityType = entityList[currentWave[currentTurn].name];
@@ -872,7 +917,7 @@ export default function engineOutput() {
               if (Math.random() * 100 > stoneChance) {
                 type = "stone";
               }
-            } 
+            }
             let position = [w, h];
             let groundID = type + position[0] + position[1];
             groundID = new Ground(type, position, groundID);
