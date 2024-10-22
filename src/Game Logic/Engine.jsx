@@ -10,7 +10,8 @@ export default function engineOutput() {
   const [timer, setTimer] = useState();
   const [gameboardWidth, setGameboardWidth] = useState(10);
   const [gameboardHeight, setGameboardHeight] = useState(12);
-  const [groundLevel, setGroundLevel] = useState(2);
+  const [groundLevel, setGroundLevel] = useState(3);
+  const [terrainSmoothness, setTerrainSmoothness] = useState(5);
 
   //function that creates new active entities
   function Entity(type, lvl, position, name) {
@@ -49,6 +50,7 @@ export default function engineOutput() {
     this.speed = type.speed;
     this.speedCharge = 0;
     this.fallSpeed = type.fallSpeed;
+    this.fallCharge = 0;
     this.enemy = parent.enemy;
     this.position = parent.position;
     this.distance = parent.range;
@@ -63,6 +65,8 @@ export default function engineOutput() {
     this.type = groundList[type].type;
     this.position = position;
     this.name = ID;
+    this.fallSpeed = type.fallSpeed;
+    this.fallCharge = 0;
   }
 
   //object that holds default values of entities
@@ -101,7 +105,7 @@ export default function engineOutput() {
       enemy: true,
       projectile: "arrow",
       fallSpeed: 10,
-      climber: false,
+      climber: true,
       lvls: {
         lvl1: {
           lvl: 1,
@@ -229,6 +233,7 @@ export default function engineOutput() {
   const groundList = {
     dirt: {
       type: "dirt",
+      fallSpeed: 2,
     },
   };
 
@@ -382,7 +387,7 @@ export default function engineOutput() {
           console.log(entity.name + " fell to " + newPosition);
           entity.position = newPosition;
           entity.speedCharge = entity.speed / 2;
-          updateGameboardEntities(activeEntities, activeProjectiles);
+          updateGameboardEntities();
         }
       }
 
@@ -418,7 +423,7 @@ export default function engineOutput() {
             targetEntity.hp
         );
         healthChecker(targetEntity, currentEntity);
-        updateGameboardEntities(activeEntities, activeProjectiles);
+        updateGameboardEntities();
         currentEntity.rateCharge = 0;
         currentEntity.speedCharge = 0;
       }
@@ -478,7 +483,11 @@ export default function engineOutput() {
         if (
           activeEntities.find(
             (entity) =>
-              comparePosition(entity.position, newPosition) !== undefined
+              comparePosition(entity.position, newPosition) !== undefined ||
+              activeGround.find(
+                (ground) =>
+                  comparePosition(ground.position, newPosition) !== undefined
+              )
           )
         ) {
           if (currentEntity.climber) {
@@ -491,6 +500,9 @@ export default function engineOutput() {
           spotFree &&
           !activeEntities.find((entity) =>
             comparePosition(entity.position, newPosition)
+          ) &&
+          !activeGround.find((ground) =>
+            comparePosition(ground.position, newPosition)
           )
         ) {
           currentEntity.speedCharge = 0;
@@ -512,18 +524,18 @@ export default function engineOutput() {
             );
             healthChecker(currentEntity, projectileInPosition.parent);
           }
-          updateGameboardEntities(activeEntities, activeProjectiles);
+          updateGameboardEntities();
         }
       }
 
       //determines what happens to entity if hits boundary wall
       function boundaryHandler(currentEntity) {
         let king = activeEntities.find((entity) => (entity.type = "king"));
-        king.hp = king.hp - (currentEntity.dmg * 2);
+        king.hp = king.hp - currentEntity.dmg * 2;
         healthChecker(king, currentEntity);
         currentEntity.hp = 0;
         healthChecker(currentEntity, king);
-        updateGameboardEntities(activeEntities, activeProjectiles);
+        updateGameboardEntities();
       }
 
       //checks if entity wants to climb
@@ -535,20 +547,32 @@ export default function engineOutput() {
         let entityInPositionNextTo = activeEntities.find((entity) =>
           comparePosition(entity.position, positionNextTo)
         );
+        let groundInPositionNextTo = activeGround.find((ground) =>
+          comparePosition(ground.position, positionNextTo)
+        );
+        let climbTarget;
         if (
           entityInPositionNextTo !== undefined &&
           entityInPositionNextTo.enemy === currentEntity.enemy
         ) {
+          climbTarget = entityInPositionNextTo;
+        } else if (groundInPositionNextTo !== undefined) {
+          climbTarget = groundInPositionNextTo;
+        }
+        if (climbTarget !== undefined) {
           let positionAbove = [positionNextTo[0], positionNextTo[1] - 1];
           if (
             activeEntities.find((entity) =>
               comparePosition(entity.position, positionAbove)
+            ) === undefined &&
+            activeGround.find((ground) =>
+              comparePosition(ground.position, positionAbove)
             ) === undefined
           ) {
             if (currentEntity.speed <= currentEntity.speedCharge) {
               currentEntity.position = positionAbove;
               currentEntity.speedCharge = 0;
-              updateGameboardEntities(activeEntities, activeProjectiles);
+              updateGameboardEntities();
               return true;
             } else {
               currentEntity.speed++;
@@ -644,7 +668,7 @@ export default function engineOutput() {
     function projectileTurn(projectile) {
       if (projectile.distance === 0) {
         activeProjectiles.splice(activeProjectiles.indexOf(projectile), 1);
-        updateGameboardEntities(activeEntities, activeProjectiles);
+        updateGameboardEntities();
       }
       projectile.speedCharge++;
       if (projectileCanMove(projectile)) {
@@ -671,12 +695,53 @@ export default function engineOutput() {
           entityAtPosition.hp = entityAtPosition.hp - projectile.dmg;
           activeProjectiles.splice(activeProjectiles.indexOf(projectile), 1);
           healthChecker(entityAtPosition, projectile.parent);
-          updateGameboardEntities(activeEntities, activeProjectiles);
+          updateGameboardEntities();
         } else {
           projectile.speedCharge = 0;
           projectile.position = newPosition;
-          updateGameboardEntities(activeEntities, activeProjectiles);
+          updateGameboardEntities();
           projectile.distance--;
+        }
+      }
+    }
+
+    function groundTurn(ground) {
+      if (groundCanFall(ground.position)) {
+        groundFall(ground);
+      }
+
+      function groundCanFall(position) {
+        let spaceBelow = true;
+        if (position[1] !== gameboardHeight) {
+          let positionBelow = [position[0], position[1] + 1];
+          if (
+            activeEntities.find((entity) =>
+              comparePosition(entity.position, positionBelow)
+            ) !== undefined
+          ) {
+            spaceBelow = false;
+          }
+          if (
+            activeGround.find((ground) =>
+              comparePosition(ground.position, positionBelow)
+            ) !== undefined
+          ) {
+            spaceBelow = false;
+          }
+          return spaceBelow;
+        } else return false;
+      }
+
+      function groundFall(ground) {
+        if (ground.fallCharge < ground.fallSpeed) {
+          console.log(ground.name + " is falling");
+          ground.fallCharge++;
+        } else {
+          ground.fallCharge = 0;
+          let newPosition = [ground.position[0], ground.position[1] + 1];
+          console.log(ground.name + " fell to " + newPosition);
+          ground.position = newPosition;
+          updateGameboardEntities();
         }
       }
     }
@@ -728,6 +793,9 @@ export default function engineOutput() {
         activeProjectiles.forEach((projectile) => {
           projectileTurn(projectile);
         });
+        activeGround.forEach((ground) => {
+          groundTurn(ground);
+        });
         console.log("Turn " + currentTurn + " over.");
       }
 
@@ -743,7 +811,7 @@ export default function engineOutput() {
         entityID = new Entity(entityType, entitylvl, position, entityID);
         activeEntities.push(entityID);
         console.log(entityID.name + " spawned at " + entityID.position + ".");
-        updateGameboardEntities(activeEntities, activeProjectiles);
+        updateGameboardEntities();
       }
 
       //checks if and which side has won round
@@ -784,10 +852,16 @@ export default function engineOutput() {
     function groundMaker(type) {
       for (let h = gameboardHeight; h > gameboardHeight - groundLevel; h--) {
         for (let w = 1; w <= gameboardWidth; w++) {
-          let position = [w, h];
-          let groundID = type + position[0] + position[1];
-          groundID = new Ground(type, position, groundID);
-          activeGround.push(groundID);
+          let chance = 10;
+          if (w > gameboardWidth / 2) {
+            chance = Math.random() * 10;
+          }
+          if (chance > terrainSmoothness) {
+            let position = [w, h];
+            let groundID = type + position[0] + position[1];
+            groundID = new Ground(type, position, groundID);
+            activeGround.push(groundID);
+          }
         }
       }
     }
@@ -795,7 +869,7 @@ export default function engineOutput() {
     if (!paused) {
       groundMaker("dirt");
       friendlySpawner("king", [1, gameboardHeight - groundLevel], 1);
-      updateGameboardEntities(activeEntities, activeProjectiles);
+      updateGameboardEntities();
       amountOfTurns(1, false, 1);
     } else {
       amountOfTurns(savedWave, false, savedTurn);
@@ -921,7 +995,7 @@ export default function engineOutput() {
     entityID = new Entity(entityType, entitylvl, entityPosition, entityID);
     activeEntities.push(entityID);
     console.log(entityID.name + " spawned at " + entityPosition);
-    updateGameboardEntities(activeEntities, activeProjectiles);
+    updateGameboardEntities();
   }
 
   //makes a list of purchasble entities
@@ -997,7 +1071,7 @@ export default function engineOutput() {
   //handles making a usable array for the grid renderer
   const [gameboardEntities, setGameboardEntities] = useState([]);
 
-  function updateGameboardEntities(activeEntities, activeProjectiles) {
+  function updateGameboardEntities() {
     let grid = [];
     let height = gameboardHeight;
     let width = gameboardWidth;
