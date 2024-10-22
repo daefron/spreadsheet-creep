@@ -7,6 +7,8 @@ export default function engineOutput() {
   const [savedTurn, setSavedTurn] = useState(1);
   const [savedWave, setSavedWave] = useState();
   const [timer, setTimer] = useState();
+  const [gameboardWidth, setGameboardWidth] = useState(10);
+  const [gaemboardHeight, setGameboardHeight] = useState(10);
 
   //function that creates new active entities
   function Entity(type, lvl, position, name) {
@@ -222,22 +224,22 @@ export default function engineOutput() {
       360: {
         name: "goblin",
         lvl: "lvl1",
-        position: [10, 20],
+        position: [10, 1],
       },
       423: {
         name: "goblin",
         lvl: "lvl2",
-        position: [10, 20],
+        position: [10, 1],
       },
       840: {
         name: "skeleton",
         lvl: "lvl1",
-        position: [10, 20],
+        position: [10, 1],
       },
       1103: {
         name: "goblin",
         lvl: "lvl2",
-        position: [10, 20],
+        position: [10, 1],
       },
     },
     wave2: {
@@ -328,7 +330,7 @@ export default function engineOutput() {
 
       //function to determine if there is anything under the current entity
       function entityCanFall(position) {
-        if (position[1] !== 20) {
+        if (position[1] !== gaemboardHeight) {
           let positionBelow = [position[0], position[1] + 1];
           if (
             activeEntities.find((entity) =>
@@ -736,7 +738,7 @@ export default function engineOutput() {
     }
 
     if (!paused) {
-      friendlySpawner("king", [1, 20], 1);
+      friendlySpawner("king", [1, gaemboardHeight], 1);
       updateGameboardEntities(activeEntities, activeProjectiles);
       amountOfTurns(1, false, 1);
     } else {
@@ -941,8 +943,8 @@ export default function engineOutput() {
 
   function updateGameboardEntities(activeEntities, activeProjectiles) {
     let grid = [];
-    let height = 20;
-    let width = 10;
+    let height = gaemboardHeight;
+    let width = gameboardWidth;
     for (let h = 1; h <= height; h++) {
       let subGrid = [];
       for (let w = 1; w <= width; w++) {
