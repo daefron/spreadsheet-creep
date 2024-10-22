@@ -302,12 +302,14 @@ export default function engineOutput() {
 
     //determines what happens to entity if hits boundary wall
     function boundaryHandler(currentEntity) {
-      let king = activeEntities.find((entity) => (entity.type = "king"));
-      king.hp = king.hp - currentEntity.dmg * 2;
-      currentEntity.hp = 0;
-      healthChecker(king, currentEntity);
-      healthChecker(currentEntity, king);
-      updateGameboardEntities();
+      if (currentEntity.speedCharge >= currentEntity.speed) {
+        let king = activeEntities.find((entity) => (entity.type = "king"));
+        king.hp = king.hp - currentEntity.dmg * 2;
+        currentEntity.hp = 0;
+        healthChecker(king, currentEntity);
+        healthChecker(currentEntity, king);
+        updateGameboardEntities();
+      }
     }
 
     //checks if entity wants to climb
@@ -351,7 +353,7 @@ export default function engineOutput() {
             return true;
           }
         }
-      } 
+      }
     }
 
     //checks if entity is allowed to attack adjacent ground
