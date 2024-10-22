@@ -222,22 +222,22 @@ export default function engineOutput() {
       360: {
         name: "goblin",
         lvl: "lvl1",
-        position: "J9",
+        position: [10, 20],
       },
       423: {
         name: "goblin",
         lvl: "lvl2",
-        position: "J9",
+        position: [10, 20],
       },
       840: {
         name: "skeleton",
         lvl: "lvl1",
-        position: "J9",
+        position: [10, 20],
       },
       1103: {
         name: "goblin",
         lvl: "lvl2",
-        position: "J9",
+        position: [10, 20],
       },
     },
     wave2: {
@@ -245,47 +245,47 @@ export default function engineOutput() {
       360: {
         name: "goblin",
         lvl: "lvl1",
-        position: "J1",
+        position: [10, 10],
       },
       423: {
         name: "goblin",
         lvl: "lvl2",
-        position: "J1",
+        position: [10, 10],
       },
       840: {
         name: "skeleton",
         lvl: "lvl1",
-        position: "J1",
+        position: [10, 10],
       },
       1103: {
         name: "goblin",
         lvl: "lvl2",
-        position: "J1",
+        position: [10, 10],
       },
       1605: {
         name: "skeleton",
         lvl: "lvl2",
-        position: "J1",
+        position: [10, 10],
       },
       1932: {
         name: "goblin",
         lvl: "lvl2",
-        position: "J1",
+        position: [10, 10],
       },
       2134: {
         name: "goblin",
         lvl: "lvl2",
-        position: "J1",
+        position: [10, 10],
       },
       2234: {
         name: "goblin",
         lvl: "lvl2",
-        position: "J1",
+        position: [10, 10],
       },
       2342: {
         name: "goblin",
         lvl: "lvl2",
-        position: "J1",
+        position: [10, 10],
       },
     },
   };
@@ -328,13 +328,11 @@ export default function engineOutput() {
 
       //function to determine if there is anything under the current entity
       function entityCanFall(position) {
-        let letter = position.charAt(0);
-        let number = parseInt(position.charAt(1));
-        if (number != 9) {
-          let positionBelow = letter + (number + 1);
+        if (position[1] !== 20) {
+          let positionBelow = [position[0], position[1] + 1];
           if (
-            activeEntities.find(
-              (entity) => entity.position === positionBelow
+            activeEntities.find((entity) =>
+              comparePosition(entity.position, positionBelow)
             ) === undefined
           ) {
             return true;
@@ -349,9 +347,7 @@ export default function engineOutput() {
           entity.fallCharge++;
         } else {
           entity.fallCharge = 0;
-          let newPosition =
-            entity.position.charAt(0) +
-            (parseInt(entity.position.charAt(1)) + 1);
+          let newPosition = [entity.position[0], entity.position[1] + 1];
           console.log(entity.name + " fell to " + newPosition);
           entity.position = newPosition;
           entity.speedCharge = entity.speed / 2;
@@ -399,13 +395,10 @@ export default function engineOutput() {
       //function to return array of cells entity can target
       function rangeGetter(currentEntity) {
         let rangeCells = [];
-        let rangeLetter = letterParser(
-          currentEntity.position.charAt(0),
-          currentEntity.enemy
-        );
+        let rangeLetter = direction(currentEntity);
         for (let i = currentEntity.range; i > 0; i--) {
-          rangeCells.push(rangeLetter + currentEntity.position.charAt(1));
-          rangeLetter = letterParser(rangeLetter, currentEntity.enemy);
+          rangeCells.push([rangeLetter, currentEntity.position[1]]);
+          rangeLetter = direction(currentEntity);
         }
         return rangeCells;
       }
@@ -416,15 +409,14 @@ export default function engineOutput() {
         let target;
         rangeCells.forEach((cell) => {
           if (targetFound === false) {
-            let targetEntity = activeEntities.find(
-              (entity) => entity.position === cell
+            let targetEntity = activeEntities.find((entity) =>
+              comparePosition(entity.position, cell)
             );
             if (targetEntity !== undefined) {
-              if (
-                targetEntity.position === cell &&
-                targetEntity.enemy !== currentEntity.enemy
-              ) {
+              if (targetEntity.enemy !== currentEntity.enemy) {
                 targetFound = true;
+                if (targetFound) {
+                }
                 return (target = targetEntity);
               }
             }
@@ -446,13 +438,13 @@ export default function engineOutput() {
 
       //function to determine how entity moves if it can
       function entityMovement(currentEntity) {
-        let newPosition =
-          letterParser(currentEntity.position.charAt(0), currentEntity.enemy) +
-          currentEntity.position.charAt(1);
+        let newPosition = [direction(currentEntity), currentEntity.position[1]];
         let spotFree = true;
         if (
-          activeEntities.find((entity) => entity.position === newPosition) !==
-          undefined
+          activeEntities.find(
+            (entity) =>
+              comparePosition(entity.position, newPosition) !== undefined
+          )
         ) {
           if (currentEntity.climber) {
             if (climbChecker(currentEntity)) {
@@ -462,15 +454,17 @@ export default function engineOutput() {
         }
         if (
           spotFree &&
-          !activeEntities.find((entity) => entity.position === newPosition)
+          !activeEntities.find((entity) =>
+            comparePosition(entity.position, newPosition)
+          )
         ) {
           currentEntity.speedCharge = 0;
           currentEntity.position = newPosition;
           console.log(
             currentEntity.name + " moved to " + currentEntity.position
           );
-          let projectileInPosition = activeProjectiles.find(
-            (projectile) => projectile.position === currentEntity.position
+          let projectileInPosition = activeProjectiles.find((projectile) =>
+            comparePosition(projectile.position, currentEntity.position)
           );
           if (
             projectileInPosition !== undefined &&
@@ -489,21 +483,21 @@ export default function engineOutput() {
 
       //checks if entity wants to climb
       function climbChecker(currentEntity) {
-        let letter = currentEntity.position.charAt(0);
-        let number = parseInt(currentEntity.position.charAt(1));
-        let positionNextTo = letterParser(letter, currentEntity.enemy) + number;
-        let entityInPositionNextTo = activeEntities.find(
-          (entity) => entity.position === positionNextTo
+        let positionNextTo = [
+          direction(currentEntity),
+          currentEntity.position[1],
+        ];
+        let entityInPositionNextTo = activeEntities.find((entity) =>
+          comparePosition(entity.position, positionNextTo)
         );
         if (
           entityInPositionNextTo !== undefined &&
           entityInPositionNextTo.enemy === currentEntity.enemy
         ) {
-          let positionAbove =
-            positionNextTo.charAt(0) + (positionNextTo.charAt(1) - 1);
+          let positionAbove = [positionNextTo[0], positionNextTo[1] - 1];
           if (
-            activeEntities.find(
-              (entity) => entity.position === positionAbove
+            activeEntities.find((entity) =>
+              comparePosition(entity.position, positionAbove)
             ) === undefined
           ) {
             if (currentEntity.speed <= currentEntity.speedCharge) {
@@ -531,51 +525,6 @@ export default function engineOutput() {
           console.log(currentEntity.name + " charging movement.");
         } else if (!turnTaken) {
           console.log(currentEntity.name + " did nothing.");
-        }
-      }
-    }
-
-    //lazy function to go back or forward one letter in alphabet depending on if enemy
-    function letterParser(position, enemy) {
-      if (enemy) {
-        if (position === "B") {
-          return (position = "A");
-        } else if (position === "C") {
-          return (position = "B");
-        } else if (position === "D") {
-          return (position = "C");
-        } else if (position === "E") {
-          return (position = "D");
-        } else if (position === "F") {
-          return (position = "E");
-        } else if (position === "G") {
-          return (position = "F");
-        } else if (position === "H") {
-          return (position = "G");
-        } else if (position === "I") {
-          return (position = "H");
-        } else if (position === "J") {
-          return (position = "I");
-        }
-      } else if (!enemy) {
-        if (position === "A") {
-          return (position = "B");
-        } else if (position === "B") {
-          return (position = "C");
-        } else if (position === "C") {
-          return (position = "D");
-        } else if (position === "D") {
-          return (position = "E");
-        } else if (position === "E") {
-          return (position = "F");
-        } else if (position === "F") {
-          return (position = "G");
-        } else if (position === "G") {
-          return (position = "H");
-        } else if (position === "H") {
-          return (position = "I");
-        } else if (position === "I") {
-          return (position = "J");
         }
       }
     }
@@ -666,11 +615,9 @@ export default function engineOutput() {
 
       //checks to see if projectile will move or attack enemy
       function projectileMovement(projectile) {
-        let newPosition =
-          letterParser(projectile.position.charAt(0), projectile.enemy) +
-          projectile.position.charAt(1);
-        let entityAtPosition = activeEntities.find(
-          (entity) => entity.position === newPosition
+        let newPosition = [direction(projectile), projectile.position[1]];
+        let entityAtPosition = activeEntities.find((entity) =>
+          comparePosition(entity.position, newPosition)
         );
         if (
           entityAtPosition !== undefined &&
@@ -789,7 +736,7 @@ export default function engineOutput() {
     }
 
     if (!paused) {
-      friendlySpawner("king", "A9", 1);
+      friendlySpawner("king", [1, 20], 1);
       updateGameboardEntities(activeEntities, activeProjectiles);
       amountOfTurns(1, false, 1);
     } else {
@@ -844,13 +791,13 @@ export default function engineOutput() {
   //determines if position for friendly spawn is allowed
   function friendlyPositionChecker(friendlyPosition, friendlyType) {
     let positionAllowed = true;
-    if (friendlyPosition === "A9" && friendlyType !== "king") {
+    if (comparePosition(friendlyPosition, [1, 1]) && friendlyType !== "king") {
       console.log("Cannot place in A9, position reserved for king");
       positionAllowed = false;
     } else {
       if (
-        activeEntities.find(
-          (entity) => entity.position === friendlyPosition
+        activeEntities.find((entity) =>
+          comparePosition(entity.position, friendlyPosition)
         ) !== undefined
       ) {
         console.log("Position taken");
@@ -867,10 +814,24 @@ export default function engineOutput() {
   //consolidates user input
   function friendlyInput(e) {
     let input = e.target.value;
-    let position = e.target.id;
+    let id = e.target.id;
+    let xHit = false;
+    let x ="";
+    let y = "";
+    for (let i = 0; i < id.length; i++) {
+      let currentChar = id[i];
+      if (currentChar === "x") {
+        xHit = true;
+      } else if (!xHit) {
+        x = x + currentChar;
+      } else if(xHit) {
+        y = y + currentChar;
+      }
+    }
+    let position = [parseInt(x), parseInt(y)];
     let spawn = false;
-    let entityInPosition = activeEntities.find(
-      (entity) => entity.position === position
+    let entityInPosition = activeEntities.find((entity) =>
+      comparePosition(entity.position, position)
     );
     if (entityInPosition === undefined) {
       spawn = true;
@@ -951,26 +912,51 @@ export default function engineOutput() {
     engine(activeEntities, graveyard, bank, waves, true);
   }
 
+  //checks if two arrays share both same values
+  function comparePosition(position1, position2) {
+    if (position1[0] === position2[0] && position1[1] === position2[1]) {
+      return true;
+    } else return false;
+  }
+
+  //adds or subtracts on the x axis depending on enemy type
+  function direction(currentEntity) {
+    if (currentEntity.enemy) {
+      return currentEntity.position[0] - 1;
+    } else {
+      return currentEntity.position[0] + 1;
+    }
+  }
+
+  //turns position into spreadsheet style coordinate
+  function toCoord(position) {
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    let width = letters[position[0] - 1];
+    let height = position[1];
+    return width + height;
+  }
+
   //handles making a usable array for the grid renderer
   const [gameboardEntities, setGameboardEntities] = useState([]);
 
   function updateGameboardEntities(activeEntities, activeProjectiles) {
     let grid = [];
-    const boardWidth = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
-    for (let h = 1; h < 10; h++) {
+    let height = 20;
+    let width = 10;
+    for (let h = 1; h <= height; h++) {
       let subGrid = [];
-      boardWidth.forEach((element) => {
+      for (let w = 1; w <= width; w++) {
         let entityMade = false;
         activeEntities.forEach((entity) => {
-          if (entity.position === element + h) {
+          if (comparePosition(entity.position, [w, h])) {
             if (entity.enemy === true) {
               subGrid.push([
-                [element + h],
+                [w + "x" + h],
                 [entity.type + entity.lvl + " (hp: " + entity.hp + ")"],
               ]);
             } else {
               subGrid.push([
-                [element + h],
+                [w + "x" + h],
                 [
                   entity.type +
                     entity.lvl +
@@ -988,27 +974,27 @@ export default function engineOutput() {
           }
         });
         activeProjectiles.forEach((projectile) => {
-          if (projectile.position === element + h && !entityMade) {
+          if (comparePosition(projectile.position, [w, h]) && !entityMade) {
             if (
-              activeEntities.find(
-                (entity) => entity.position === projectile.position
+              activeEntities.find((entity) =>
+                comparePosition(entity.position, projectile.position)
               ) === undefined
             ) {
-              subGrid.push([[projectile.name], [projectile.symbol]]);
+              subGrid.push([w + "x" + h, [projectile.symbol]]);
               entityMade = true;
             }
           }
         });
         if (!entityMade) {
-          subGrid.push([[element + h], [""]]);
+          subGrid.push([w + "x" + h, [""]]);
         }
-      });
+      }
       grid.push(subGrid);
     }
     setGameboardEntities(grid);
   }
 
-  //pushes the active entities from updateGameboardEntities to, activeProjectiles the DOM
+  // pushes the active entities from updateGameboardEntities to, activeProjectiles the DOM
   function GameboardRender() {
     return (
       <table id="gameboard">
