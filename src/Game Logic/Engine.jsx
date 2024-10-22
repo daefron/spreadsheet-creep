@@ -1,4 +1,8 @@
 import { useState } from "react";
+import EntityList from "./EntityList.jsx";
+import ProjectileList from "./ProjectileList.jsx";
+import GroundList from "./GroundList.jsx";
+import WaveList from "./WaveList.jsx";
 export default function engineOutput() {
   const [activeEntities, setActiveEntities] = useState([]);
   const [activeProjectiles, setActiveProjectiles] = useState([]);
@@ -12,6 +16,10 @@ export default function engineOutput() {
   const [gameboardHeight, setGameboardHeight] = useState(12);
   const [groundLevel, setGroundLevel] = useState(3);
   const [terrainSmoothness, setTerrainSmoothness] = useState(5);
+  const entityList = EntityList;
+  const projectileList = ProjectileList;
+  const groundList = GroundList;
+  const waves = WaveList;
 
   //function that creates new active entities
   function Entity(type, lvl, position, name) {
@@ -41,6 +49,7 @@ export default function engineOutput() {
     this.projectile = type.projectile;
   }
 
+  let projectileCount = 1;
   //function that creates new active projectiles
   function Projectile(parent, name) {
     this.type = parent.projectile;
@@ -68,283 +77,6 @@ export default function engineOutput() {
     this.fallSpeed = type.fallSpeed;
     this.fallCharge = 0;
   }
-
-  //object that holds default values of entities
-  const entityList = {
-    goblin: {
-      type: "goblin",
-      enemy: true,
-      projectile: false,
-      fallSpeed: 10,
-      climber: true,
-      lvls: {
-        lvl1: {
-          lvl: 1,
-          hp: 9,
-          dmg: 3,
-          range: 1,
-          rate: 60,
-          speed: 60,
-          value: 1,
-          exp: 1,
-          chance: 15,
-        },
-        lvl2: {
-          lvl: 2,
-          hp: 12,
-          dmg: 4,
-          range: 1,
-          rate: 50,
-          speed: 50,
-          value: 3,
-          exp: 2,
-          chance: 10,
-        },
-      },
-    },
-    skeleton: {
-      type: "skeleton",
-      enemy: true,
-      projectile: "arrow",
-      fallSpeed: 10,
-      climber: true,
-      lvls: {
-        lvl1: {
-          lvl: 1,
-          hp: 5,
-          dmg: 2,
-          range: 3,
-          rate: 60,
-          speed: 90,
-          value: 1,
-          exp: 1,
-          chance: 5,
-        },
-        lvl2: {
-          lvl: 2,
-          hp: 8,
-          dmg: 3,
-          range: 3,
-          rate: 50,
-          speed: 60,
-          value: 3,
-          exp: 2,
-          chance: 3,
-        },
-      },
-    },
-    bow: {
-      type: "bow",
-      enemy: false,
-      projectile: "arrow",
-      fallSpeed: 1,
-      climber: false,
-      lvls: {
-        lvl1: {
-          lvl: 1,
-          hp: 10,
-          dmg: 3,
-          range: 6,
-          rate: 60,
-          speed: 0,
-          value: 5,
-          neededExp: 3,
-        },
-        lvl2: {
-          lvl: 2,
-          hp: 12,
-          dmg: 4,
-          range: 6,
-          rate: 50,
-          speed: 0,
-          value: 10,
-          neededExp: 6,
-        },
-        lvl3: {
-          lvl: 3,
-          hp: 14,
-          dmg: 5,
-          range: 6,
-          rate: 40,
-          speed: 0,
-          value: 15,
-          neededExp: 30,
-        },
-      },
-    },
-    wall: {
-      type: "wall",
-      enemy: false,
-      projectile: false,
-      fallSpeed: 1,
-      climber: false,
-      lvls: {
-        lvl1: {
-          lvl: 1,
-          hp: 10,
-          dmg: 0,
-          range: 0,
-          rate: 0,
-          speed: 0,
-          value: 2,
-          neededExp: 100,
-        },
-        lvl2: {
-          lvl: 2,
-          hp: 100000000,
-          dmg: 0,
-          range: 0,
-          rate: 0,
-          speed: 0,
-          value: 2,
-          neededExp: 100,
-        },
-      },
-    },
-    king: {
-      type: "king",
-      enemy: false,
-      projectile: false,
-      fallSpeed: 10,
-      climber: false,
-      lvls: {
-        lvl1: {
-          lvl: 1,
-          hp: 20,
-          dmg: 5,
-          range: 1,
-          rate: 1 * 30,
-          speed: 0 * 30,
-          value: 0,
-          neededExp: 100,
-        },
-      },
-    },
-  };
-
-  //object holding projectiles
-  const projectileList = {
-    arrow: {
-      friendlySymbol: ">-<>",
-      enemySymbol: "<>-<",
-      projectile: true,
-      speed: 30,
-      fallSpeed: 40,
-      distance: 5,
-    },
-  };
-
-  const groundList = {
-    dirt: {
-      type: "dirt",
-      fallSpeed: 2,
-    },
-    stone: {
-      type: "stone",
-      fallSpeed: 2,
-    },
-  };
-
-  //object holding wave properties
-  const waves = {
-    wave1: {
-      wave: 1,
-      360: {
-        name: "goblin",
-        lvl: "lvl1",
-        position: [10, 1],
-      },
-      423: {
-        name: "goblin",
-        lvl: "lvl2",
-        position: [10, 1],
-      },
-      840: {
-        name: "skeleton",
-        lvl: "lvl1",
-        position: [10, 1],
-      },
-      1103: {
-        name: "goblin",
-        lvl: "lvl2",
-        position: [10, 1],
-      },
-      1605: {
-        name: "skeleton",
-        lvl: "lvl2",
-        position: [10, 1],
-      },
-      1932: {
-        name: "goblin",
-        lvl: "lvl2",
-        position: [10, 1],
-      },
-      2134: {
-        name: "goblin",
-        lvl: "lvl2",
-        position: [10, 1],
-      },
-      2234: {
-        name: "goblin",
-        lvl: "lvl2",
-        position: [10, 1],
-      },
-      2342: {
-        name: "goblin",
-        lvl: "lvl2",
-        position: [10, 1],
-      },
-    },
-    wave2: {
-      wave: 2,
-      360: {
-        name: "goblin",
-        lvl: "lvl1",
-        position: [10, 1],
-      },
-      423: {
-        name: "goblin",
-        lvl: "lvl2",
-        position: [10, 1],
-      },
-      840: {
-        name: "skeleton",
-        lvl: "lvl1",
-        position: [10, 1],
-      },
-      1103: {
-        name: "goblin",
-        lvl: "lvl2",
-        position: [10, 1],
-      },
-      1605: {
-        name: "skeleton",
-        lvl: "lvl2",
-        position: [10, 1],
-      },
-      1932: {
-        name: "goblin",
-        lvl: "lvl2",
-        position: [10, 1],
-      },
-      2134: {
-        name: "goblin",
-        lvl: "lvl2",
-        position: [10, 1],
-      },
-      2234: {
-        name: "goblin",
-        lvl: "lvl2",
-        position: [10, 1],
-      },
-      2342: {
-        name: "goblin",
-        lvl: "lvl2",
-        position: [10, 1],
-      },
-    },
-  };
-  let projectileCount = 1;
 
   function engine(activeEntities, graveyard, bank, waves, paused) {
     //tells entities what to do on their turn
@@ -844,7 +576,6 @@ export default function engineOutput() {
         let entities = Object.entries(entityList)
           .filter((entity) => entity[1].enemy)
           .map((entity) => entity[1]);
-        console.log(entities);
       }
       spawnType();
 
