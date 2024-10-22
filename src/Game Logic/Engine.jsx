@@ -2,7 +2,6 @@ import { useState } from "react";
 import EntityList from "./EntityList.jsx";
 import ProjectileList from "./ProjectileList.jsx";
 import GroundList from "./GroundList.jsx";
-import WaveList from "./WaveList.jsx";
 export default function engineOutput() {
   const [activeEntities, setActiveEntities] = useState([]);
   const [activeProjectiles, setActiveProjectiles] = useState([]);
@@ -10,7 +9,8 @@ export default function engineOutput() {
   const [graveyard, setGraveyard] = useState([]);
   const [bank, setBank] = useState(10000);
   const [savedTurn, setSavedTurn] = useState(1);
-  const [savedWave, setSavedWave] = useState();
+  const [savedEnemySpawns, setSavedEnemySpawns] = useState(0);
+  const [savedLastSpawnTime, setSavedLastSpawnTime] = useState(0);
   const [timer, setTimer] = useState();
   const [gameboardWidth, setGameboardWidth] = useState(10);
   const [gameboardHeight, setGameboardHeight] = useState(12);
@@ -19,7 +19,6 @@ export default function engineOutput() {
   const entityList = EntityList;
   const projectileList = ProjectileList;
   const groundList = GroundList;
-  const waves = WaveList;
 
   //function that creates new active entities
   function Entity(type, lvl, position, name) {
@@ -79,7 +78,7 @@ export default function engineOutput() {
     this.fallCharge = 0;
   }
 
-  function engine(activeEntities, graveyard, bank, waves, paused) {
+  function engine(activeEntities, graveyard, bank, paused) {
     //tells entities what to do on their turn
     function entityTurn(currentEntity) {
       currentEntity.rateCharge++;
@@ -522,11 +521,13 @@ export default function engineOutput() {
       }
     }
 
+    //initiates ground turn
     function groundTurn(ground) {
       if (groundCanFall(ground.position)) {
         groundFall(ground);
       }
 
+      //checks if ground can fall
       function groundCanFall(position) {
         let spaceBelow = true;
         if (position[1] !== gameboardHeight) {
@@ -549,6 +550,7 @@ export default function engineOutput() {
         } else return false;
       }
 
+      //makes ground fall
       function groundFall(ground) {
         if (ground.fallCharge < ground.fallSpeed) {
           console.log(ground.name + " is falling");
@@ -564,44 +566,31 @@ export default function engineOutput() {
     }
 
     //sets amount of turns to play
-    function amountOfTurns(i, finished, currentTurn) {
-      setSavedWave(i);
-      let wave = "wave" + i;
+    function amountOfTurns(finished, currentTurn) {
       let gameFinished = finished;
-      let currentWave = waves[wave];
       let innerTimer;
+      let totalSpawns = 30;
+      let enemySpawns = savedEnemySpawns;
+      let lastSpawnTime = savedLastSpawnTime;
       if (!gameFinished) {
         setTimer(
           (innerTimer = setInterval(() => {
-            turnCycler(currentWave, wave, i);
+            turnCycler();
           }, 5))
         );
       } else console.log("Game Over");
 
-      //runs turn functions under a timer
-      function turnCycler(currentWave, wave, i) {
-        if (currentWave[currentTurn] !== undefined) {
-          spawner(currentWave, currentTurn, activeEntities);
-        }
+      //runs through turn actions
+      function turnCycler() {
+        spawnChecker();
         nextTurn(currentTurn);
-        if (victoryChecker(wave, currentTurn) === "friendly victory") {
+        if (!victoryChecker()) {
           clearInterval(innerTimer);
-          console.log("Friendly Victory - Total Money: $" + bank);
-          currentTurn = 1;
-          if (i + 1 > Object.keys(waves).length) {
-            amountOfTurns(i + 1, true, 1);
-          } else {
-            setSavedWave(i);
-            amountOfTurns(i + 1, false, 1);
-          }
-        } else if (victoryChecker(wave, currentTurn) === "enemy victory") {
-          clearInterval(innerTimer);
-          console.log("Enemy Victory");
         }
         currentTurn++;
         setSavedTurn(currentTurn);
       }
-
+      
       //makes all entities take turn
       function nextTurn(currentTurn) {
         activeEntities.forEach((entity) => {
@@ -614,6 +603,31 @@ export default function engineOutput() {
           groundTurn(ground);
         });
         console.log("Turn " + currentTurn + " over.");
+      }
+
+      //checks to see if the king died
+      function victoryChecker() {
+        let kingAlive =
+          activeEntities.find((entity) => entity.type === "king") !== undefined;
+        if (!kingAlive) {
+          activeEntitiesClearer(false);
+          return false;
+        } else return true;
+      }
+
+      //checks if game is allowed to spawn on current turn
+      function spawnChecker() {
+        if (enemySpawns <= totalSpawns) {
+          lastSpawnTime++;
+          setSavedLastSpawnTime(lastSpawnTime);
+          if (lastSpawnTime > spawnTime()) {
+            enemySpawner(spawnType());
+            enemySpawns++;
+            setSavedEnemySpawns(enemySpawns);
+            lastSpawnTime = 0;
+            setSavedLastSpawnTime(0);
+          }
+        }
       }
 
       //sets how long until next unit spawns
@@ -655,45 +669,17 @@ export default function engineOutput() {
         });
         return chosenEntity;
       }
-      spawnType();
 
-      //spawns entities based on wave
-      function spawner(currentWave, currentTurn, activeEntities) {
-        let entityType = entityList[currentWave[currentTurn].name];
-        let entitylvl =
-          entityList[currentWave[currentTurn].name].lvls[
-            currentWave[currentTurn].lvl
-          ];
-        let position = currentWave[currentTurn].position;
-        let entityID = currentWave[currentTurn].name + currentTurn;
-        entityID = new Entity(entityType, entitylvl, position, entityID);
+      //spawns chosen enemy
+      function enemySpawner(entity) {
+        let entityType = entityList[entity[0]];
+        let entityLvl = entityType.lvls["lvl" + entity[1]];
+        let position = [gameboardWidth, groundLevel];
+        let entityID = entity[0] + currentTurn;
+        entityID = new Entity(entityType, entityLvl, position, entityID);
         activeEntities.push(entityID);
         console.log(entityID.name + " spawned at " + entityID.position + ".");
         updateGameboardEntities();
-      }
-
-      //checks if and which side has won round
-      function victoryChecker(round, currentTurn) {
-        let spawnTurns = [];
-        Object.keys(waves[round]).forEach((element) => {
-          spawnTurns.push(element);
-        });
-        let activeEnemies = activeEntities.filter(
-          (entity) => entity.enemy
-        ).length;
-        let kingAlive =
-          activeEntities.find((entity) => entity.type === "king") !== undefined;
-        if (!kingAlive) {
-          activeEntitiesClearer(false);
-          return "enemy victory";
-        } else if (
-          currentTurn > spawnTurns[spawnTurns.length - 2] &&
-          activeEnemies === 0
-        ) {
-          activeEntitiesClearer(true);
-          setBank(bank);
-          return "friendly victory";
-        }
       }
 
       //clears the activeEntities on victory
@@ -740,9 +726,9 @@ export default function engineOutput() {
       groundMaker();
       friendlySpawner("king", [1, gameboardHeight - groundLevel], 1);
       updateGameboardEntities();
-      amountOfTurns(1, false, 1);
+      amountOfTurns(false, 1);
     } else {
-      amountOfTurns(savedWave, false, savedTurn);
+      amountOfTurns(false, savedTurn);
     }
   }
 
@@ -794,7 +780,7 @@ export default function engineOutput() {
   function friendlyPositionChecker(friendlyPosition, friendlyType) {
     let positionAllowed = true;
     if (comparePosition(friendlyPosition, [1, 1]) && friendlyType !== "king") {
-      console.log("Cannot place in A9, position reserved for king");
+      console.log("Cannot place, position reserved for king");
       positionAllowed = false;
     } else {
       if (
@@ -911,7 +897,7 @@ export default function engineOutput() {
 
   //pushes everything back into the game and starts the loop
   function resume() {
-    engine(activeEntities, graveyard, bank, waves, true);
+    engine(activeEntities, graveyard, bank, true);
   }
 
   //checks if two arrays share both same values
@@ -1044,7 +1030,7 @@ export default function engineOutput() {
 
   function startButton(e) {
     e.target.style = "display:none";
-    engine(activeEntities, graveyard, bank, waves, false);
+    engine(activeEntities, graveyard, bank, false);
   }
 
   //temp for the moment
