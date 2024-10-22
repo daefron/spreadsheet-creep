@@ -518,14 +518,11 @@ export default function engineOutput() {
 
       //determines what happens to entity if hits boundary wall
       function boundaryHandler(currentEntity) {
-        currentEntity.position = [gameboardWidth, currentEntity.position[1]];
-        if (
-          entityList[currentEntity.type].lvls[
-            "lvl" + (currentEntity.lvl + 1)
-          ] !== undefined
-        ) {
-          levelUp(currentEntity);
-        }
+        let king = activeEntities.find((entity) => (entity.type = "king"));
+        king.hp = king.hp - (currentEntity.dmg * 2);
+        healthChecker(king, currentEntity);
+        currentEntity.hp = 0;
+        healthChecker(currentEntity, king);
         updateGameboardEntities(activeEntities, activeProjectiles);
       }
 
