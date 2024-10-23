@@ -958,18 +958,28 @@ export default function engineOutput() {
       let subGrid = [];
       for (let w = 0; w <= width; w++) {
         if (w === 0) {
-          let style = {
-            textAlign: "center",
-            width: "50px",
-            color: "#404040",
-          };
           if (h === 0) {
+            let style = {
+              width: "50px",
+              position: "sticky",
+              boxShadow: "inset -1px 0px 0px #404040, inset 0px -1px 0px #404040",
+            };
             subGrid.push([[w + "x" + h], [], style]);
-          } else subGrid.push([[w + "x" + h], [h + " "], style]);
+          } else {
+            let style = {
+              textAlign: "center",
+              width: "50px",
+              boxShadow: "inset -1px 0px 0px #404040",
+              color: "#404040",
+            };
+            subGrid.push([[w + "x" + h], [h + " "], style]);
+          }
         } else if (h === 0) {
           let style = {
             textAlign: "center",
             color: "#404040",
+            position: "sticky",
+            boxShadow: "inset 0px -1px 0px #404040",
           };
           subGrid.push([[w + "x" + h], [toLetter(w - 1) + " "], style]);
         } else {
