@@ -5,6 +5,9 @@ export default {
     projectile: false,
     fallSpeed: 10,
     climber: true,
+    style: {
+      boxShadow: "",
+    },
     lvls: {
       lvl1: {
         lvl: 1,
@@ -36,6 +39,9 @@ export default {
     projectile: "arrow",
     fallSpeed: 10,
     climber: true,
+    style: {
+      boxShadow: "",
+    },
     lvls: {
       lvl1: {
         lvl: 1,
@@ -67,6 +73,9 @@ export default {
     projectile: "arrow",
     fallSpeed: 1,
     climber: false,
+    style: {
+      boxShadow: "",
+    },
     lvls: {
       lvl1: {
         lvl: 1,
@@ -106,6 +115,9 @@ export default {
     projectile: false,
     fallSpeed: 1,
     climber: false,
+    style: {
+      boxShadow: "",
+    },
     lvls: {
       lvl1: {
         lvl: 1,
@@ -135,6 +147,9 @@ export default {
     projectile: false,
     fallSpeed: 10,
     climber: false,
+    style: {
+      boxShadow: "",
+    },
     lvls: {
       lvl1: {
         lvl: 1,

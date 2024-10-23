@@ -46,6 +46,7 @@ export default function engineOutput() {
     this.fallCharge = 0;
     this.climber = type.climber;
     this.projectile = type.projectile;
+    this.style = type.style;
   }
 
   let projectileCount = 1;
@@ -82,7 +83,11 @@ export default function engineOutput() {
   function engine(activeEntities, graveyard, bank, paused) {
     //tells entities what to do on their turn
     function entityTurn(currentEntity) {
-      currentEntity.rateCharge++;
+      updateGameboardEntities();
+      if (currentEntity.rateCharge <= currentEntity.rate) {
+        currentEntity.rateCharge++;
+        updateGameboardEntities();
+      }
       currentEntity.speedCharge++;
       let turnTaken = false;
       let newPosition = [direction(currentEntity), currentEntity.position[1]];
@@ -934,6 +939,14 @@ export default function engineOutput() {
     }
   }
 
+  function attackBar(currentEntity) {
+    let maxWidth = 157;
+    let percentage = currentEntity.rateCharge / currentEntity.rate;
+    let currentWidth = maxWidth * percentage;
+    currentEntity.style.boxShadow =
+      "inset " + currentWidth + "px 0px 0px 0px #0000001e";
+  }
+
   //makes a list of purchasble entities
   function Purchasables() {
     let entityArray = Object.entries(entityList);
@@ -943,7 +956,7 @@ export default function engineOutput() {
     let parsedFriendlyEntityArray = [];
     friendlyEntityArray.forEach((entity) => {
       let name = entity[0];
-      let lvls = Object.entries(Object.entries(entity[1])[5][1]);
+      let lvls = Object.entries(Object.entries(entity[1])[6][1]);
       lvls.forEach((lvl) => {
         parsedFriendlyEntityArray.push(
           name +
@@ -1037,11 +1050,15 @@ export default function engineOutput() {
         });
         activeEntities.forEach((entity) => {
           if (comparePosition(entity.position, [w, h]) && !entityMade) {
+            attackBar(entity);
+            let style = {
+              boxShadow: entity.style.boxShadow,
+            };
             if (entity.enemy === true) {
               subGrid.push([
                 [w + "x" + h],
                 [entity.type + entity.lvl + " (hp: " + entity.hp + ")"],
-                defaultStyle,
+                style,
               ]);
             } else {
               subGrid.push([
@@ -1057,7 +1074,7 @@ export default function engineOutput() {
                     entity.neededExp +
                     ")",
                 ],
-                defaultStyle,
+                style,
               ]);
             }
             entityMade = true;
