@@ -76,6 +76,7 @@ export default function engineOutput() {
     this.hp = groundList[type].hp;
     this.fallSpeed = groundList[type].fallSpeed;
     this.fallCharge = 0;
+    this.style = groundList[type].style;
   }
 
   function engine(activeEntities, graveyard, bank, paused) {
@@ -565,6 +566,36 @@ export default function engineOutput() {
       }
     }
 
+    //creates ground based on groundHeight and type
+    function groundMaker() {
+      for (let h = gameboardHeight; h > gameboardHeight - groundLevel; h--) {
+        for (let w = 1; w <= gameboardWidth; w++) {
+          let spawnChance = 10;
+          if (w < 3) {
+            spawnChance = 10;
+          } else if (w > gameboardWidth / 2) {
+            spawnChance = Math.random() * 10;
+          } else {
+            spawnChance = Math.random() * 50;
+          }
+          if (spawnChance > terrainRoughness) {
+            let stoneChance;
+            let type = "dirt";
+            if (h > gameboardHeight - 1) {
+              stoneChance = 20;
+              if (Math.random() * 100 > stoneChance) {
+                type = "stone";
+              }
+            }
+            let position = [w, h];
+            let groundID = type + position[0] + position[1];
+            groundID = new Ground(type, position, groundID);
+            activeGround.push(groundID);
+          }
+        }
+      }
+    }
+
     //sets amount of turns to play
     function amountOfTurns(finished, currentTurn) {
       let gameFinished = finished;
@@ -717,36 +748,6 @@ export default function engineOutput() {
       }
     }
 
-    //creates ground based on groundHeight and type
-    function groundMaker() {
-      for (let h = gameboardHeight; h > gameboardHeight - groundLevel; h--) {
-        for (let w = 1; w <= gameboardWidth; w++) {
-          let spawnChance = 10;
-          if (w < 3) {
-            spawnChance = 10;
-          } else if (w > gameboardWidth / 2) {
-            spawnChance = Math.random() * 10;
-          } else {
-            spawnChance = Math.random() * 50;
-          }
-          if (spawnChance > terrainRoughness) {
-            let stoneChance;
-            let type = "dirt";
-            if (h > gameboardHeight - 1) {
-              stoneChance = 20;
-              if (Math.random() * 100 > stoneChance) {
-                type = "stone";
-              }
-            }
-            let position = [w, h];
-            let groundID = type + position[0] + position[1];
-            groundID = new Ground(type, position, groundID);
-            activeGround.push(groundID);
-          }
-        }
-      }
-    }
-
     if (!paused) {
       groundMaker();
       friendlySpawner("king", [1, gameboardHeight - groundLevel], 1);
@@ -879,6 +880,58 @@ export default function engineOutput() {
     updateGameboardEntities();
   }
 
+  //gives the ground entities a thicker border if groundline
+  function topGround(ground) {
+    let groundAbove = activeGround.find((targetGround) =>
+      comparePosition(
+        [ground.position[0], ground.position[1] - 1],
+        targetGround.position
+      )
+    );
+    if (groundAbove === undefined) {
+      ground.style.borderTopColor = "black";
+      ground.style.borderTopWidth = "2px";
+      ground.style.height = 20;
+    } else {
+      ground.style.borderTopColor = "grey";
+      ground.style.borderTopWidth = "1px";
+      ground.style.height = 21;
+    }
+    let groundLeft = activeGround.find((targetGround) =>
+      comparePosition(
+        [ground.position[0] - 1, ground.position[1]],
+        targetGround.position
+      )
+    );
+    if (groundLeft === undefined && ground.position[0] - 1 !== 0) {
+      ground.style.borderLeftColor = "black";
+      ground.style.borderLeftWidth = "2px";
+      ground.style.width = 149;
+    } else {
+      ground.style.borderLeftColor = "grey";
+      ground.style.borderLeftWidth = "1px";
+      ground.style.width = 150;
+    }
+    let groundRight = activeGround.find((targetGround) =>
+      comparePosition(
+        [ground.position[0] + 1, ground.position[1]],
+        targetGround.position
+      )
+    );
+    if (
+      groundRight === undefined &&
+      ground.position[0] + 1 < gameboardWidth + 1
+    ) {
+      ground.style.borderRightColor = "black";
+      ground.style.borderRightWidth = "2px";
+      ground.style.width = 149;
+    } else {
+      ground.style.borderRightColor = "grey";
+      ground.style.borderRightWidth = "1px";
+      ground.style.width = 150;
+    }
+  }
+
   //makes a list of purchasble entities
   function Purchasables() {
     let entityArray = Object.entries(entityList);
@@ -956,15 +1009,32 @@ export default function engineOutput() {
     let grid = [];
     let height = gameboardHeight;
     let width = gameboardWidth;
+    const defaultStyle = {
+      borderTopColor: "grey",
+      borderLeftColor: "grey",
+      borderRightColor: "grey",
+    };
     for (let h = 1; h <= height; h++) {
       let subGrid = [];
       for (let w = 1; w <= width; w++) {
         let entityMade = false;
         activeGround.forEach((ground) => {
+          topGround(ground);
+          let style = {
+            borderTopColor: ground.style.borderTopColor,
+            borderLeftColor: ground.style.borderLeftColor,
+            borderRightColor: ground.style.borderRightColor,
+            borderTopWidth: ground.style.borderTopWidth,
+            borderLeftWidth: ground.style.borderLeftWidth,
+            borderRightWidth: ground.style.borderRightWidth,
+            width: ground.style.width + "px",
+            height: ground.style.height + "px",
+          };
           if (comparePosition(ground.position, [w, h])) {
             subGrid.push([
               [w + "x" + h],
               [ground.type + "(hp: " + ground.hp + ")"],
+              style,
             ]);
             entityMade = true;
           }
@@ -975,6 +1045,7 @@ export default function engineOutput() {
               subGrid.push([
                 [w + "x" + h],
                 [entity.type + entity.lvl + " (hp: " + entity.hp + ")"],
+                defaultStyle,
               ]);
             } else {
               subGrid.push([
@@ -990,6 +1061,7 @@ export default function engineOutput() {
                     entity.neededExp +
                     ")",
                 ],
+                defaultStyle,
               ]);
             }
             entityMade = true;
@@ -1002,13 +1074,13 @@ export default function engineOutput() {
                 comparePosition(entity.position, projectile.position)
               ) === undefined
             ) {
-              subGrid.push([w + "x" + h, [projectile.symbol]]);
+              subGrid.push([w + "x" + h, [projectile.symbol], defaultStyle]);
               entityMade = true;
             }
           }
         });
         if (!entityMade) {
-          subGrid.push([w + "x" + h, [""]]);
+          subGrid.push([w + "x" + h, [""], defaultStyle]);
         }
       }
       grid.push(subGrid);
@@ -1037,6 +1109,7 @@ export default function engineOutput() {
                       <input
                         className="boardCell"
                         type="text"
+                        style={position[2]}
                         id={position[0]}
                         defaultValue={position[1]}
                         onFocus={pause}
