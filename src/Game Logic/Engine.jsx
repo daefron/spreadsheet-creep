@@ -13,7 +13,7 @@ export default function engineOutput() {
   const [savedLastSpawnTime, setSavedLastSpawnTime] = useState(0);
   const [timer, setTimer] = useState();
   const [gameboardWidth, setGameboardWidth] = useState(10);
-  const [gameboardHeight, setGameboardHeight] = useState(12);
+  const [gameboardHeight, setGameboardHeight] = useState(20);
   const [groundLevel, setGroundLevel] = useState(8);
   const [terrainRoughness, setTerrainRoughness] = useState(5);
   const entityList = EntityList;
@@ -83,10 +83,8 @@ export default function engineOutput() {
   function engine(activeEntities, graveyard, bank, paused) {
     //tells entities what to do on their turn
     function entityTurn(currentEntity) {
-      updateGameboardEntities();
       if (currentEntity.rateCharge <= currentEntity.rate) {
         currentEntity.rateCharge++;
-        updateGameboardEntities();
       }
       currentEntity.speedCharge++;
       let turnTaken = false;
@@ -112,7 +110,6 @@ export default function engineOutput() {
         entityAttackGround(currentEntity);
         turnTaken = true;
       }
-      turnLogs(currentEntity, turnTaken);
     }
 
     //function to spawn projectile
@@ -123,7 +120,6 @@ export default function engineOutput() {
       activeProjectiles.push(new Projectile(currentEntity, projectileID));
       currentEntity.rateCharge = 0;
       currentEntity.speedCharge = 0;
-      console.log(currentEntity.name + " shot an " + currentEntity.projectile);
     }
 
     //function to determine if there is anything under the current entity
@@ -152,15 +148,12 @@ export default function engineOutput() {
     //moves entities down if falling
     function entityFall(entity) {
       if (entity.fallCharge < entity.fallSpeed) {
-        console.log(entity.name + " is falling");
         entity.fallCharge++;
       } else {
         entity.fallCharge = 0;
         let newPosition = [entity.position[0], entity.position[1] + 1];
-        console.log(entity.name + " fell to " + newPosition);
         entity.position = newPosition;
         entity.speedCharge = entity.speed / 2;
-        updateGameboardEntities();
       }
     }
 
@@ -184,19 +177,7 @@ export default function engineOutput() {
       let rangeCells = rangeGetter(currentEntity);
       let targetEntity = attackTargetter(currentEntity, rangeCells);
       targetEntity.hp = targetEntity.hp - currentEntity.dmg;
-      console.log(
-        currentEntity.name +
-          " attacked " +
-          targetEntity.name +
-          " for " +
-          currentEntity.dmg +
-          " damage. " +
-          targetEntity.name +
-          " HP is " +
-          targetEntity.hp
-      );
       healthChecker(targetEntity, currentEntity);
-      updateGameboardEntities();
       currentEntity.rateCharge = 0;
       currentEntity.speedCharge = 0;
     }
@@ -280,9 +261,7 @@ export default function engineOutput() {
       ) {
         currentEntity.speedCharge = 0;
         currentEntity.position = newPosition;
-        console.log(currentEntity.name + " moved to " + currentEntity.position);
         projectileChecker(currentEntity);
-        updateGameboardEntities();
         return true;
       }
     }
@@ -313,7 +292,6 @@ export default function engineOutput() {
         currentEntity.hp = 0;
         healthChecker(king, currentEntity);
         healthChecker(currentEntity, king);
-        updateGameboardEntities();
       }
     }
 
@@ -351,7 +329,6 @@ export default function engineOutput() {
           if (currentEntity.speed <= currentEntity.speedCharge) {
             currentEntity.position = positionAbove;
             currentEntity.speedCharge = 0;
-            updateGameboardEntities();
             return true;
           } else {
             currentEntity.speed++;
@@ -392,24 +369,8 @@ export default function engineOutput() {
       );
       targetGround.hp = targetGround.hp - currentEntity.dmg;
       healthChecker(targetGround, currentEntity);
-      updateGameboardEntities();
       currentEntity.rateCharge = 0;
       currentEntity.speedCharge = 0;
-    }
-
-    //function purely to log things to the console
-    function turnLogs(currentEntity, turnTaken) {
-      if (currentEntity.rateCharge < currentEntity.rate && !turnTaken) {
-        console.log(currentEntity.name + " charging attack.");
-      } else if (
-        currentEntity.speedCharge < currentEntity.speed &&
-        currentEntity.speed !== 0 &&
-        !turnTaken
-      ) {
-        console.log(currentEntity.name + " charging movement.");
-      } else if (!turnTaken) {
-        console.log(currentEntity.name + " did nothing.");
-      }
     }
 
     //checks to see if entity dies
@@ -417,19 +378,10 @@ export default function engineOutput() {
       if (entity.enemy !== undefined) {
         if (entity.hp <= 0) {
           currentEntity.rateCharge = 0;
-          console.log(entity.name + " was killed by " + currentEntity.name);
           if (entity.enemy) {
             bank = bank + entity.value;
             setBank(bank);
             expTracker(entity, currentEntity);
-            console.log(
-              currentEntity.name +
-                " EXP: " +
-                currentEntity.currentExp +
-                "/" +
-                currentEntity.neededExp
-            );
-            console.log("Total money: $" + bank);
           }
           graveyard.push(
             activeEntities.splice(activeEntities.indexOf(entity), 1)
@@ -438,7 +390,6 @@ export default function engineOutput() {
       } else {
         if (entity.hp <= 0) {
           currentEntity.rateCharge = 0;
-          console.log(entity.name + " was killed by " + currentEntity.name);
           graveyard.push(activeGround.splice(activeGround.indexOf(entity), 1));
         }
       }
@@ -481,16 +432,12 @@ export default function engineOutput() {
           }
         });
       });
-      console.log(
-        currentEntity.name + " has leveled up to level " + currentEntity.lvl
-      );
     }
 
     //tells the projectile what to do on its turn
     function projectileTurn(projectile) {
       if (projectile.distance === 0) {
         activeProjectiles.splice(activeProjectiles.indexOf(projectile), 1);
-        updateGameboardEntities();
       }
       projectile.speedCharge++;
       if (projectileCanMove(projectile)) {
@@ -517,11 +464,9 @@ export default function engineOutput() {
           entityAtPosition.hp = entityAtPosition.hp - projectile.dmg;
           activeProjectiles.splice(activeProjectiles.indexOf(projectile), 1);
           healthChecker(entityAtPosition, projectile.parent);
-          updateGameboardEntities();
         } else {
           projectile.speedCharge = 0;
           projectile.position = newPosition;
-          updateGameboardEntities();
           projectile.distance--;
         }
       }
@@ -559,14 +504,11 @@ export default function engineOutput() {
       //makes ground fall
       function groundFall(ground) {
         if (ground.fallCharge < ground.fallSpeed) {
-          console.log(ground.name + " is falling");
           ground.fallCharge++;
         } else {
           ground.fallCharge = 0;
           let newPosition = [ground.position[0], ground.position[1] + 1];
-          console.log(ground.name + " fell to " + newPosition);
           ground.position = newPosition;
-          updateGameboardEntities();
         }
       }
     }
@@ -586,9 +528,9 @@ export default function engineOutput() {
           if (spawnChance > terrainRoughness) {
             let stoneChance;
             let type = "dirt";
-            if (h > gameboardHeight - 1) {
-              stoneChance = 20;
-              if (Math.random() * 100 > stoneChance) {
+            if (h > gameboardHeight - groundLevel / 3) {
+              stoneChance = 40;
+              if (Math.random() * 100 < stoneChance) {
                 type = "stone";
               }
             }
@@ -612,9 +554,9 @@ export default function engineOutput() {
         setTimer(
           (innerTimer = setInterval(() => {
             turnCycler();
-          }, 5))
+          }, 20))
         );
-      } else console.log("Game Over");
+      }
 
       //runs through turn actions
       function turnCycler() {
@@ -625,6 +567,7 @@ export default function engineOutput() {
         }
         currentTurn++;
         setSavedTurn(currentTurn);
+        updateGameboardEntities();
       }
 
       //makes all entities take turn
@@ -638,7 +581,6 @@ export default function engineOutput() {
         activeGround.forEach((ground) => {
           groundTurn(ground);
         });
-        console.log("Turn " + currentTurn + " over.");
       }
 
       //checks to see if the king died
@@ -668,8 +610,8 @@ export default function engineOutput() {
 
       //sets how long until next unit spawns
       function spawnTime() {
-        let baseline = 300;
-        let actual = baseline + 300 * Math.random();
+        let baseline = 80;
+        let actual = baseline + 80 * Math.random();
         return actual;
       }
 
@@ -714,8 +656,6 @@ export default function engineOutput() {
         let entityID = entity[0] + currentTurn;
         entityID = new Entity(entityType, entityLvl, position, entityID);
         activeEntities.push(entityID);
-        console.log(entityID.name + " spawned at " + entityID.position + ".");
-        updateGameboardEntities();
       }
 
       //finds the position above the highest entity in the final column
@@ -729,7 +669,7 @@ export default function engineOutput() {
         let spawnPosition;
         let highestPosition = gameboardHeight;
         endGrounds.forEach((ground) => {
-          if (ground.position[1] < highestPosition) {
+          if (ground.position[1] <= highestPosition) {
             highestPosition = ground.position[1];
             spawnPosition = [ground.position[0], ground.position[1] - 1];
           }
@@ -771,14 +711,6 @@ export default function engineOutput() {
       if (bankChecker(friendlyCost)) {
         if (friendlyPositionChecker(friendlyPosition, friendlyType)) {
           setBank(bank - friendlyCost);
-          console.log(
-            "Purchased " +
-              friendlyType +
-              " for $" +
-              friendlyCost +
-              ". Total money: $" +
-              (bank - friendlyCost)
-          );
           friendlyEntityParser(friendlyType, friendlyPosition, friendlyLvl);
         }
       }
@@ -790,11 +722,7 @@ export default function engineOutput() {
     if (entityList[friendlyType] !== undefined) {
       if (entityList[friendlyType].lvls["lvl" + friendlyLvl] !== undefined) {
         return true;
-      } else {
-        console.log("Entity lvl does not exist");
       }
-    } else {
-      console.log("Entity does not exist");
     }
   }
 
@@ -802,8 +730,6 @@ export default function engineOutput() {
   function bankChecker(friendlyCost) {
     if (friendlyCost <= bank) {
       return true;
-    } else {
-      console.log("Insufficient funds");
     }
   }
 
@@ -811,7 +737,6 @@ export default function engineOutput() {
   function friendlyPositionChecker(friendlyPosition, friendlyType) {
     let positionAllowed = true;
     if (comparePosition(friendlyPosition, [1, 1]) && friendlyType !== "king") {
-      console.log("Cannot place, position reserved for king");
       positionAllowed = false;
     } else {
       if (
@@ -819,14 +744,11 @@ export default function engineOutput() {
           comparePosition(entity.position, friendlyPosition)
         ) !== undefined
       ) {
-        console.log("Position taken");
         return (positionAllowed = false);
       }
     }
     if (positionAllowed && !entityList[friendlyType].enemy) {
       return true;
-    } else {
-      console.log("Cannot spawn enemy units");
     }
   }
 
@@ -881,7 +803,6 @@ export default function engineOutput() {
     let entityID = entityType.type + friendlyCount;
     entityID = new Entity(entityType, entitylvl, entityPosition, entityID);
     activeEntities.push(entityID);
-    console.log(entityID.name + " spawned at " + entityPosition);
     updateGameboardEntities();
   }
 
