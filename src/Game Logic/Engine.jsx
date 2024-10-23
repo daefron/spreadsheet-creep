@@ -15,7 +15,7 @@ export default function engineOutput() {
   const [gameboardWidth, setGameboardWidth] = useState(11);
   const [gameboardHeight, setGameboardHeight] = useState(20);
   const [groundLevel, setGroundLevel] = useState(7);
-  const [terrainRoughness, setTerrainRoughness] = useState(5);
+  const [groundRoughness, setgroundRoughness] = useState(5);
   const [renderSpeed, setRenderSpeed] = useState(1);
   const [gameSpeed, setGameSpeed] = useState(1 * renderSpeed);
   const entityList = EntityList;
@@ -527,7 +527,7 @@ export default function engineOutput() {
           } else {
             spawnChance = Math.random() * 50;
           }
-          if (spawnChance > terrainRoughness) {
+          if (spawnChance > groundRoughness) {
             let stoneChance;
             let type = "dirt";
             if (h > gameboardHeight - groundLevel / 3) {
@@ -612,7 +612,7 @@ export default function engineOutput() {
 
       //sets how long until next unit spawns
       function spawnTime() {
-        let baseline = 80;
+        let baseline = 80 / gameSpeed;
         let actual = baseline + 80 * Math.random();
         return actual;
       }
@@ -839,7 +839,8 @@ export default function engineOutput() {
       ground.position[0] - 1 !== 0 &&
       made
     ) {
-      ground.style.boxShadow = ground.style.boxShadow + ", -1px 0px 0px grey, inset 1px 0px 0px grey";
+      ground.style.boxShadow =
+        ground.style.boxShadow + ", -1px 0px 0px grey, inset 1px 0px 0px grey";
     }
     let groundRight = activeGround.find((targetGround) =>
       comparePosition(
@@ -860,7 +861,8 @@ export default function engineOutput() {
       ground.position[0] + 1 < gameboardWidth + 1 &&
       made
     ) {
-      ground.style.boxShadow = ground.style.boxShadow + ", 1px 0px 0px grey, inset -1px 0px 0px grey";
+      ground.style.boxShadow =
+        ground.style.boxShadow + ", 1px 0px 0px grey, inset -1px 0px 0px grey";
       ground.style.position = "sticky";
     }
   }
@@ -962,7 +964,8 @@ export default function engineOutput() {
             let style = {
               width: "50px",
               position: "sticky",
-              boxShadow: "inset -1px 0px 0px #404040, inset 0px -1px 0px #404040",
+              boxShadow:
+                "inset -1px 0px 0px #404040, inset 0px -1px 0px #404040",
             };
             subGrid.push([[w + "x" + h], [], style]);
           } else {
@@ -1110,10 +1113,55 @@ export default function engineOutput() {
     }
   }
 
+  function updateGameboardWidth(e) {
+    setGameboardWidth(e.target.value);
+  }
+  function updateGameboardHeight(e) {
+    setGameboardHeight(e.target.value);
+  }
+  function updateGroundHeight(e) {
+    setGroundLevel(e.target.value);
+  }
+  function updateGroundRoughness(e) {
+    setgroundRoughness(e.target.value);
+  }
+  function updateGameSpeed(e) {
+    setGameSpeed(e.target.value);
+  }
+  function updateRenderSpeed(e) {
+    setRenderSpeed(e.target.value);
+  }
+
   return (
     <>
       <div id="menu">
         <p>Money: ${bank}</p>
+        <div style={{ display: "flex", alignItems: "center"}}>
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <p>Gameboard width:</p>
+            <input type="number" value={gameboardWidth} onChange={updateGameboardWidth}></input>
+          </div>
+          <p>Gameboard height:</p>
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <input type="number" value={gameboardHeight} onChange={updateGameboardHeight}></input>
+          </div>
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <p>Ground height:</p>
+            <input type="number" value={groundLevel} onChange={updateGroundHeight}></input>
+          </div>
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <p>Ground roughness:</p>
+            <input type="number" value={groundRoughness} onChange={updateGroundRoughness}></input>
+          </div>
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <p>Game speed:</p>
+            <input type="number" value={gameSpeed} onChange={updateGameSpeed}></input>
+          </div>
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <p>Render speed:</p>
+            <input type="number" value={renderSpeed} onChange={updateRenderSpeed}></input>
+          </div>
+        </div>
         <button onClick={purchasableButton}>show purchasables</button>
         <div id="purchasables" style={{ display: "none" }}>
           <Purchasables></Purchasables>
