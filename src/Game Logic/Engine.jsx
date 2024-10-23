@@ -822,7 +822,7 @@ export default function engineOutput() {
       )
     );
     if (groundAbove === undefined) {
-      ground.style.boxShadow = "0px -1px 0px black";
+      ground.style.boxShadow = "0px -1px 0px grey, inset 0px 1px 0px grey";
       made = true;
     }
     let groundLeft = activeGround.find((targetGround) =>
@@ -832,14 +832,14 @@ export default function engineOutput() {
       )
     );
     if (groundLeft === undefined && ground.position[0] - 1 !== 0 && !made) {
-      ground.style.boxShadow = "-1px 0px 0px black";
+      ground.style.boxShadow = "-1px 0px 0px grey, inset 1px 0px 0px grey";
       made = true;
     } else if (
       groundLeft === undefined &&
       ground.position[0] - 1 !== 0 &&
       made
     ) {
-      ground.style.boxShadow = ground.style.boxShadow + ", -1px 0px 0px black";
+      ground.style.boxShadow = ground.style.boxShadow + ", -1px 0px 0px grey, inset 1px 0px 0px grey";
     }
     let groundRight = activeGround.find((targetGround) =>
       comparePosition(
@@ -852,7 +852,7 @@ export default function engineOutput() {
       ground.position[0] + 1 < gameboardWidth + 1 &&
       !made
     ) {
-      ground.style.boxShadow = "1px 0px 0px black";
+      ground.style.boxShadow = "1px 0px 0px grey, inset -1px 0px 0px grey";
       ground.style.position = "sticky";
       made = true;
     } else if (
@@ -860,7 +860,7 @@ export default function engineOutput() {
       ground.position[0] + 1 < gameboardWidth + 1 &&
       made
     ) {
-      ground.style.boxShadow = ground.style.boxShadow + ", 1px 0px 0px black";
+      ground.style.boxShadow = ground.style.boxShadow + ", 1px 0px 0px grey, inset -1px 0px 0px grey";
       ground.style.position = "sticky";
     }
   }
