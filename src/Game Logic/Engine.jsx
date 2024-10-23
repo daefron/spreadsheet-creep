@@ -880,8 +880,10 @@ export default function engineOutput() {
     updateGameboardEntities();
   }
 
-  //gives the ground entities a thicker border if groundline
+  //gives the ground entities a thicker outline if groundline
   function topGround(ground) {
+    ground.style.boxShadow = "";
+    let made = false;
     let groundAbove = activeGround.find((targetGround) =>
       comparePosition(
         [ground.position[0], ground.position[1] - 1],
@@ -889,13 +891,8 @@ export default function engineOutput() {
       )
     );
     if (groundAbove === undefined) {
-      ground.style.borderTopColor = "black";
-      ground.style.borderTopWidth = "2px";
-      ground.style.height = 20;
-    } else {
-      ground.style.borderTopColor = "grey";
-      ground.style.borderTopWidth = "1px";
-      ground.style.height = 21;
+      ground.style.boxShadow = "0px -1px 0px black";
+      made = true;
     }
     let groundLeft = activeGround.find((targetGround) =>
       comparePosition(
@@ -903,14 +900,15 @@ export default function engineOutput() {
         targetGround.position
       )
     );
-    if (groundLeft === undefined && ground.position[0] - 1 !== 0) {
-      ground.style.borderLeftColor = "black";
-      ground.style.borderLeftWidth = "2px";
-      ground.style.width = 149;
-    } else {
-      ground.style.borderLeftColor = "grey";
-      ground.style.borderLeftWidth = "1px";
-      ground.style.width = 150;
+    if (groundLeft === undefined && ground.position[0] - 1 !== 0 && !made) {
+      ground.style.boxShadow = "-1px 0px 0px black";
+      made = true;
+    } else if (
+      groundLeft === undefined &&
+      ground.position[0] - 1 !== 0 &&
+      made
+    ) {
+      ground.style.boxShadow = ground.style.boxShadow + ", -1px 0px 0px black";
     }
     let groundRight = activeGround.find((targetGround) =>
       comparePosition(
@@ -920,15 +918,19 @@ export default function engineOutput() {
     );
     if (
       groundRight === undefined &&
-      ground.position[0] + 1 < gameboardWidth + 1
+      ground.position[0] + 1 < gameboardWidth + 1 &&
+      !made
     ) {
-      ground.style.borderRightColor = "black";
-      ground.style.borderRightWidth = "2px";
-      ground.style.width = 149;
-    } else {
-      ground.style.borderRightColor = "grey";
-      ground.style.borderRightWidth = "1px";
-      ground.style.width = 150;
+      ground.style.boxShadow = "1px 0px 0px black";
+      ground.style.position = "sticky";
+      made = true;
+    } else if (
+      groundRight === undefined &&
+      ground.position[0] + 1 < gameboardWidth + 1 &&
+      made
+    ) {
+      ground.style.boxShadow = ground.style.boxShadow + ", 1px 0px 0px black";
+      ground.style.position = "sticky";
     }
   }
 
@@ -1010,9 +1012,9 @@ export default function engineOutput() {
     let height = gameboardHeight;
     let width = gameboardWidth;
     const defaultStyle = {
-      borderTopColor: "grey",
-      borderLeftColor: "grey",
-      borderRightColor: "grey",
+      outlineTopColor: "grey",
+      outlineLeftColor: "grey",
+      outlineRightColor: "grey",
     };
     for (let h = 1; h <= height; h++) {
       let subGrid = [];
@@ -1021,14 +1023,8 @@ export default function engineOutput() {
         activeGround.forEach((ground) => {
           topGround(ground);
           let style = {
-            borderTopColor: ground.style.borderTopColor,
-            borderLeftColor: ground.style.borderLeftColor,
-            borderRightColor: ground.style.borderRightColor,
-            borderTopWidth: ground.style.borderTopWidth,
-            borderLeftWidth: ground.style.borderLeftWidth,
-            borderRightWidth: ground.style.borderRightWidth,
-            width: ground.style.width + "px",
-            height: ground.style.height + "px",
+            boxShadow: ground.style.boxShadow,
+            position: ground.style.position,
           };
           if (comparePosition(ground.position, [w, h])) {
             subGrid.push([
