@@ -13,8 +13,8 @@ export default function engineOutput() {
   const [savedLastSpawnTime, setSavedLastSpawnTime] = useState(0);
   const [timer, setTimer] = useState();
   const [gameboardWidth, setGameboardWidth] = useState(12);
-  const [gameboardHeight, setGameboardHeight] = useState(30);
-  const [groundLevel, setGroundLevel] = useState(8);
+  const [gameboardHeight, setGameboardHeight] = useState(20);
+  const [groundLevel, setGroundLevel] = useState(3);
   const [terrainRoughness, setTerrainRoughness] = useState(5);
   const [renderSpeed, setRenderSpeed] = useState(1);
   const [gameSpeed, setGameSpeed] = useState(1 * renderSpeed);
@@ -682,6 +682,9 @@ export default function engineOutput() {
             spawnPosition = [entity.position[0], entity.position[1] - 1];
           }
         });
+        if (spawnPosition === undefined) {
+          spawnPosition = [gameboardWidth, gameboardHeight];
+        }
         return spawnPosition;
       }
 
