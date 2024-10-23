@@ -12,10 +12,12 @@ export default function engineOutput() {
   const [savedEnemySpawns, setSavedEnemySpawns] = useState(0);
   const [savedLastSpawnTime, setSavedLastSpawnTime] = useState(0);
   const [timer, setTimer] = useState();
-  const [gameboardWidth, setGameboardWidth] = useState(10);
-  const [gameboardHeight, setGameboardHeight] = useState(20);
+  const [gameboardWidth, setGameboardWidth] = useState(12);
+  const [gameboardHeight, setGameboardHeight] = useState(30);
   const [groundLevel, setGroundLevel] = useState(8);
   const [terrainRoughness, setTerrainRoughness] = useState(5);
+  const [renderSpeed, setRenderSpeed] = useState(1);
+  const [gameSpeed, setGameSpeed] = useState(1 * renderSpeed);
   const entityList = EntityList;
   const projectileList = ProjectileList;
   const groundList = GroundList;
@@ -30,9 +32,9 @@ export default function engineOutput() {
     this.dmg = lvl.dmg;
     this.range = lvl.range;
     this.rate = lvl.rate;
-    let neededRate = lvl.rate;
+    let neededRate = lvl.rate / gameSpeed;
     this.rateCharge = neededRate;
-    this.speed = lvl.speed;
+    this.speed = lvl.speed / gameSpeed;
     this.speedCharge = 0;
     this.enemy = type.enemy;
     this.value = lvl.value;
@@ -42,7 +44,7 @@ export default function engineOutput() {
     } else {
       this.exp = lvl.exp;
     }
-    this.fallSpeed = type.fallSpeed;
+    this.fallSpeed = type.fallSpeed / gameSpeed;
     this.fallCharge = 0;
     this.climber = type.climber;
     this.projectile = type.projectile;
@@ -56,9 +58,9 @@ export default function engineOutput() {
     this.parent = parent;
     let type = projectileList[this.type];
     this.dmg = parent.dmg;
-    this.speed = type.speed;
+    this.speed = type.speed / gameSpeed;
     this.speedCharge = 0;
-    this.fallSpeed = type.fallSpeed;
+    this.fallSpeed = type.fallSpeed / gameSpeed;
     this.fallCharge = 0;
     this.enemy = parent.enemy;
     this.position = parent.position;
@@ -75,7 +77,7 @@ export default function engineOutput() {
     this.position = position;
     this.name = ID;
     this.hp = groundList[type].hp;
-    this.fallSpeed = groundList[type].fallSpeed;
+    this.fallSpeed = groundList[type].fallSpeed / gameSpeed;
     this.fallCharge = 0;
     this.style = groundList[type].style;
   }
@@ -554,7 +556,7 @@ export default function engineOutput() {
         setTimer(
           (innerTimer = setInterval(() => {
             turnCycler();
-          }, 20))
+          }, renderSpeed * 20))
         );
       }
 
