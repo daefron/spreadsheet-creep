@@ -12,9 +12,9 @@ export default function engineOutput() {
   const [savedEnemySpawns, setSavedEnemySpawns] = useState(0);
   const [savedLastSpawnTime, setSavedLastSpawnTime] = useState(0);
   const [timer, setTimer] = useState();
-  const [gameboardWidth, setGameboardWidth] = useState(12);
+  const [gameboardWidth, setGameboardWidth] = useState(11);
   const [gameboardHeight, setGameboardHeight] = useState(20);
-  const [groundLevel, setGroundLevel] = useState(3);
+  const [groundLevel, setGroundLevel] = useState(7);
   const [terrainRoughness, setTerrainRoughness] = useState(5);
   const [renderSpeed, setRenderSpeed] = useState(1);
   const [gameSpeed, setGameSpeed] = useState(1 * renderSpeed);
@@ -812,7 +812,7 @@ export default function engineOutput() {
   }
 
   //gives the ground entities a thicker outline if groundline
-  function topGround(ground) {
+  function groundLine(ground) {
     ground.style.boxShadow = "";
     let made = false;
     let groundAbove = activeGround.find((targetGround) =>
@@ -936,11 +936,10 @@ export default function engineOutput() {
   }
 
   //turns position into spreadsheet style coordinate
-  function toCoord(position) {
+  function toLetter(position) {
     const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    let width = letters[position[0] - 1];
-    let height = position[1];
-    return width + height;
+    let width = letters[position];
+    return width;
   }
 
   //handles making a usable array for the grid renderer
@@ -955,71 +954,90 @@ export default function engineOutput() {
       outlineLeftColor: "grey",
       outlineRightColor: "grey",
     };
-    for (let h = 1; h <= height; h++) {
+    for (let h = 0; h <= height; h++) {
       let subGrid = [];
-      for (let w = 1; w <= width; w++) {
-        let entityMade = false;
-        activeGround.forEach((ground) => {
-          topGround(ground);
+      for (let w = 0; w <= width; w++) {
+        if (w === 0) {
           let style = {
-            boxShadow: ground.style.boxShadow,
-            position: ground.style.position,
+            textAlign: "center",
+            width: "50px",
+            color: "#404040",
           };
-          if (comparePosition(ground.position, [w, h])) {
-            subGrid.push([
-              [w + "x" + h],
-              [ground.type + "(hp: " + ground.hp + ")"],
-              style,
-            ]);
-            entityMade = true;
-          }
-        });
-        activeEntities.forEach((entity) => {
-          if (comparePosition(entity.position, [w, h]) && !entityMade) {
-            attackBar(entity);
+          if (h === 0) {
+            subGrid.push([[w + "x" + h], [], style]);
+          } else subGrid.push([[w + "x" + h], [h + " "], style]);
+        } else if (h === 0) {
+          let style = {
+            textAlign: "center",
+            color: "#404040",
+          };
+          subGrid.push([[w + "x" + h], [toLetter(w - 1) + " "], style]);
+        } else {
+          let entityMade = false;
+          activeGround.forEach((ground) => {
+            groundLine(ground);
             let style = {
-              boxShadow: entity.style.boxShadow,
+              boxShadow: ground.style.boxShadow,
+              position: ground.style.position,
             };
-            if (entity.enemy === true) {
+            if (comparePosition(ground.position, [w, h])) {
               subGrid.push([
                 [w + "x" + h],
-                [entity.type + entity.lvl + " (hp: " + entity.hp + ")"],
+                [ground.type + "(hp: " + ground.hp + ")"],
                 style,
               ]);
-            } else {
-              subGrid.push([
-                [w + "x" + h],
-                [
-                  entity.type +
-                    entity.lvl +
-                    " (hp: " +
-                    entity.hp +
-                    " exp: " +
-                    entity.currentExp +
-                    "/" +
-                    entity.neededExp +
-                    ")",
-                ],
-                style,
-              ]);
-            }
-            entityMade = true;
-          }
-        });
-        activeProjectiles.forEach((projectile) => {
-          if (comparePosition(projectile.position, [w, h]) && !entityMade) {
-            if (
-              activeEntities.find((entity) =>
-                comparePosition(entity.position, projectile.position)
-              ) === undefined
-            ) {
-              subGrid.push([w + "x" + h, [projectile.symbol], defaultStyle]);
               entityMade = true;
             }
+          });
+          activeEntities.forEach((entity) => {
+            if (comparePosition(entity.position, [w, h]) && !entityMade) {
+              attackBar(entity);
+              let style = {
+                boxShadow: entity.style.boxShadow,
+              };
+              if (entity.enemy === true) {
+                style.color = "darkRed";
+                subGrid.push([
+                  [w + "x" + h],
+                  [entity.type + entity.lvl + " (hp: " + entity.hp + ")"],
+                  style,
+                ]);
+              } else {
+                style.color = "darkGreen";
+                subGrid.push([
+                  [w + "x" + h],
+                  [
+                    entity.type +
+                      entity.lvl +
+                      " (hp: " +
+                      entity.hp +
+                      " exp: " +
+                      entity.currentExp +
+                      "/" +
+                      entity.neededExp +
+                      ")",
+                  ],
+                  style,
+                ]);
+              }
+              entityMade = true;
+            }
+          });
+          activeProjectiles.forEach((projectile) => {
+            if (comparePosition(projectile.position, [w, h]) && !entityMade) {
+              if (
+                activeEntities.find((entity) =>
+                  comparePosition(entity.position, projectile.position)
+                ) === undefined
+              ) {
+                subGrid.push([w + "x" + h, [projectile.symbol], defaultStyle]);
+                entityMade = true;
+              }
+            }
+          });
+          if (!entityMade) {
+            subGrid.push([w + "x" + h, [""], defaultStyle]);
           }
-        });
-        if (!entityMade) {
-          subGrid.push([w + "x" + h, [""], defaultStyle]);
         }
       }
       grid.push(subGrid);
@@ -1027,7 +1045,7 @@ export default function engineOutput() {
     setGameboardEntities(grid);
   }
 
-  // pushes the active entities from updateGameboardEntities to, activeProjectiles the DOM
+  // pushes the entities from updateGameboardEntities to the DOM
   function GameboardRender() {
     return (
       <table id="gameboard">

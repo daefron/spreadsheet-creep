@@ -3,18 +3,12 @@ export default {
     type: "dirt",
     hp: 20,
     fallSpeed: 0,
-    style: {
-      boxShadow: "",
-      position: "static",
-    },
+    style: {},
   },
   stone: {
     type: "stone",
     hp: 80,
     fallSpeed: 0,
-    style: {
-      boxShadow: "",
-      position: "static",
-    },
+    style: {},
   },
 };
