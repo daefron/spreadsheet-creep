@@ -14,8 +14,8 @@ export default function engineOutput() {
   const [timer, setTimer] = useState();
   const [gameboardWidth, setGameboardWidth] = useState(10);
   const [gameboardHeight, setGameboardHeight] = useState(12);
-  const [groundLevel, setGroundLevel] = useState(3);
-  const [terrainSmoothness, setTerrainSmoothness] = useState(5);
+  const [groundLevel, setGroundLevel] = useState(8);
+  const [terrainRoughness, setTerrainRoughness] = useState(5);
   const entityList = EntityList;
   const projectileList = ProjectileList;
   const groundList = GroundList;
@@ -590,7 +590,7 @@ export default function engineOutput() {
         currentTurn++;
         setSavedTurn(currentTurn);
       }
-      
+
       //makes all entities take turn
       function nextTurn(currentTurn) {
         activeEntities.forEach((entity) => {
@@ -674,12 +674,37 @@ export default function engineOutput() {
       function enemySpawner(entity) {
         let entityType = entityList[entity[0]];
         let entityLvl = entityType.lvls["lvl" + entity[1]];
-        let position = [gameboardWidth, groundLevel];
+        let position = spawnPositionFinder();
         let entityID = entity[0] + currentTurn;
         entityID = new Entity(entityType, entityLvl, position, entityID);
         activeEntities.push(entityID);
         console.log(entityID.name + " spawned at " + entityID.position + ".");
         updateGameboardEntities();
+      }
+
+      //finds the position above the highest entity in the final column
+      function spawnPositionFinder() {
+        let endGrounds = activeGround.filter(
+          (ground) => ground.position[0] === gameboardWidth
+        );
+        let endEntities = activeEntities.filter(
+          (entity) => entity.position[0] === gameboardWidth
+        );
+        let spawnPosition;
+        let highestPosition = gameboardHeight;
+        endGrounds.forEach((ground) => {
+          if (ground.position[1] < highestPosition) {
+            highestPosition = ground.position[1];
+            spawnPosition = [ground.position[0], ground.position[1] - 1];
+          }
+        });
+        endEntities.forEach((entity) => {
+          if (entity.position[1] < highestPosition) {
+            highestPosition = entity.position[1];
+            spawnPosition = [entity.position[0], entity.position[1] - 1];
+          }
+        });
+        return spawnPosition;
       }
 
       //clears the activeEntities on victory
@@ -704,7 +729,7 @@ export default function engineOutput() {
           } else {
             spawnChance = Math.random() * 50;
           }
-          if (spawnChance > terrainSmoothness) {
+          if (spawnChance > terrainRoughness) {
             let stoneChance;
             let type = "dirt";
             if (h > gameboardHeight - 1) {
@@ -754,7 +779,7 @@ export default function engineOutput() {
     }
   }
 
-  //determins if entity name and level are valid
+  //determines if entity name and level are valid
   function validFriendly(friendlyType, friendlyLvl) {
     if (entityList[friendlyType] !== undefined) {
       if (entityList[friendlyType].lvls["lvl" + friendlyLvl] !== undefined) {
