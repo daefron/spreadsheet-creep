@@ -765,10 +765,8 @@ export default function engineOutput() {
       let friendlyCost =
         entityList[friendlyType].lvls["lvl" + friendlyLvl].value;
       if (bankChecker(friendlyCost)) {
-        if (friendlyPositionChecker(friendlyPosition, friendlyType)) {
-          setBank(bank - friendlyCost);
-          friendlyEntityParser(friendlyType, friendlyPosition, friendlyLvl);
-        }
+        setBank(bank - friendlyCost);
+        friendlyEntityParser(friendlyType, friendlyPosition, friendlyLvl);
       }
     }
   }
@@ -789,53 +787,21 @@ export default function engineOutput() {
     }
   }
 
-  //determines if position for friendly spawn is allowed
-  function friendlyPositionChecker(friendlyPosition, friendlyType) {
-    let positionAllowed = true;
-    if (comparePosition(friendlyPosition, [1, 1]) && friendlyType !== "king") {
-      positionAllowed = false;
-    } else {
-      if (
-        activeEntities.find((entity) =>
-          comparePosition(entity.position, friendlyPosition)
-        ) !== undefined
-      ) {
-        return (positionAllowed = false);
-      }
-    }
-    if (positionAllowed && !entityList[friendlyType].enemy) {
-      return true;
-    }
-  }
-
   //consolidates user input
   function friendlyInput(e) {
     let input = e.target.value;
-    let id = e.target.id;
-    let xHit = false;
-    let x = "";
-    let y = "";
-    for (let i = 0; i < id.length; i++) {
-      let currentChar = id[i];
-      if (currentChar === "x") {
-        xHit = true;
-      } else if (!xHit) {
-        x = x + currentChar;
-      } else if (xHit) {
-        y = y + currentChar;
-      }
-    }
-    let position = [parseInt(x), parseInt(y)];
-    let spawn = false;
+    let position = e.target.id.split("x");
+    position[0] = parseInt(position[0]);
+    position[1] = parseInt(position[1]);
     let entityInPosition = activeEntities.find((entity) =>
       comparePosition(entity.position, position)
     );
     if (entityInPosition === undefined) {
-      spawn = true;
-    } else if (!entityInPosition.enemy) {
-      spawn = true;
+      entityInPosition = activeGround.find((ground) =>
+        comparePosition(ground.position, position)
+      );
     }
-    if (spawn) {
+    if (entityInPosition === undefined) {
       let parsedType = "";
       let parsedLvl = "";
       let hitNumber = false;
