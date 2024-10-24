@@ -122,7 +122,7 @@ export default function engineOutput() {
           currentEntity.hp = 0;
           healthChecker(king, currentEntity);
           healthChecker(currentEntity, king);
-          return (turnTaken = true);
+          return true;
         }
       }
     }
@@ -264,6 +264,7 @@ export default function engineOutput() {
         if (walkHolder(currentEntity, newPosition)) {
           return true;
         }
+        return false;
 
         //holds climbing functions
         function climbHolder(currentEntity, newPosition) {
@@ -279,52 +280,46 @@ export default function engineOutput() {
 
           //checks if entity wants to climb
           function climbChecker(currentEntity, positionNextTo, newPosition) {
+            let entityInPositionNextTo = activeEntities.find((entity) =>
+              comparePosition(entity.position, positionNextTo)
+            );
+            let groundInPositionNextTo = activeGround.find((ground) =>
+              comparePosition(ground.position, positionNextTo)
+            );
             if (
-              activeEntities.find(
-                (entity) =>
-                  comparePosition(entity.position, newPosition) !== undefined
-              ) ||
-              activeGround.find(
-                (ground) =>
-                  comparePosition(ground.position, newPosition) !== undefined
-              )
+              entityInPositionNextTo !== undefined &&
+              entityInPositionNextTo.enemy === currentEntity.enemy
             ) {
-              let entityInPositionNextTo = activeEntities.find((entity) =>
-                comparePosition(entity.position, positionNextTo)
-              );
-              if (
-                entityInPositionNextTo !== undefined &&
-                entityInPositionNextTo.enemy === currentEntity.enemy
-              ) {
-                return true;
-              }
-              let groundInPositionNextTo = activeGround.find((ground) =>
-                comparePosition(ground.position, positionNextTo)
-              );
-              if (groundInPositionNextTo !== undefined) {
-                return true;
-              }
+              return climbSpotFree(positionNextTo);
+            }
+            if (groundInPositionNextTo !== undefined) {
+              return climbSpotFree(positionNextTo);
             }
             return false;
+
+            function climbSpotFree(positionNextTo) {
+              let positionAbove = [positionNextTo[0], positionNextTo[1] - 1];
+              if (
+                activeEntities.find((entity) =>
+                  comparePosition(entity.position, positionAbove)
+                ) !== undefined
+              ) {
+                return false;
+              }
+              if (
+                activeGround.find((ground) =>
+                  comparePosition(ground.position, positionAbove)
+                ) !== undefined
+              ) {
+                return false;
+              }
+              return true;
+            }
           }
 
           //makes entity climb
           function climbMovement(currentEntity, positionNextTo) {
             let positionAbove = [positionNextTo[0], positionNextTo[1] - 1];
-            if (
-              activeEntities.find((entity) =>
-                comparePosition(entity.position, positionAbove)
-              ) !== undefined
-            ) {
-              return false;
-            }
-            if (
-              activeGround.find((ground) =>
-                comparePosition(ground.position, positionAbove)
-              ) !== undefined
-            ) {
-              return false;
-            }
             if (currentEntity.speed <= currentEntity.speedCharge) {
               currentEntity.position = positionAbove;
               currentEntity.speedCharge = 0;
