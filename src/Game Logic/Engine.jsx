@@ -708,29 +708,26 @@ export default function engineOutput() {
 
       //finds the position above the highest entity in the final column
       function spawnPositionFinder() {
-        let endGrounds = activeGround.filter(
-          (ground) => ground.position[0] === gameboardWidth
-        );
+        let spawnPosition = [gameboardWidth, gameboardHeight];
         let endEntities = activeEntities.filter(
           (entity) => entity.position[0] === gameboardWidth
         );
-        let spawnPosition;
-        let highestPosition = gameboardHeight;
+        endEntities.forEach((entity) => {
+          if (entity.position[1] <= spawnPosition[1]) {
+            spawnPosition =  [entity.position[0], entity.position[1] - 1];
+          }
+        });
+        if (!comparePosition(spawnPosition, [gameboardWidth, gameboardHeight])) {
+          return spawnPosition;
+        }
+        let endGrounds = activeGround.filter(
+          (ground) => ground.position[0] === gameboardWidth
+        );
         endGrounds.forEach((ground) => {
-          if (ground.position[1] <= highestPosition) {
-            highestPosition = ground.position[1];
+          if (ground.position[1] <= spawnPosition[1]) {
             spawnPosition = [ground.position[0], ground.position[1] - 1];
           }
         });
-        endEntities.forEach((entity) => {
-          if (entity.position[1] < highestPosition) {
-            highestPosition = entity.position[1];
-            spawnPosition = [entity.position[0], entity.position[1] - 1];
-          }
-        });
-        if (spawnPosition === undefined) {
-          spawnPosition = [gameboardWidth, gameboardHeight];
-        }
         return spawnPosition;
       }
 
@@ -896,7 +893,7 @@ export default function engineOutput() {
     );
     if (
       groundRight === undefined &&
-      ground.position[0] + 1 < gameboardWidth + 1 &&
+      ground.position[0] < gameboardWidth &&
       !made
     ) {
       ground.style.boxShadow = "1px 0px 0px grey, inset -1px 0px 0px grey";
@@ -904,7 +901,7 @@ export default function engineOutput() {
       made = true;
     } else if (
       groundRight === undefined &&
-      ground.position[0] + 1 < gameboardWidth + 1 &&
+      ground.position[0] < gameboardWidth &&
       made
     ) {
       ground.style.boxShadow =
@@ -1160,22 +1157,22 @@ export default function engineOutput() {
   }
 
   function updateGameboardWidth(e) {
-    setGameboardWidth(e.target.value);
+    setGameboardWidth(parseInt(e.target.value));
   }
   function updateGameboardHeight(e) {
-    setGameboardHeight(e.target.value);
+    setGameboardHeight(parseInt(e.target.value));
   }
   function updateGroundHeight(e) {
-    setGroundLevel(e.target.value);
+    setGroundLevel(parseInt(e.target.value));
   }
   function updateGroundRoughness(e) {
-    setgroundRoughness(e.target.value);
+    setgroundRoughness(parseInt(e.target.value));
   }
   function updateGameSpeed(e) {
-    setGameSpeed(e.target.value);
+    setGameSpeed(parseInt(e.target.value));
   }
   function updateRenderSpeed(e) {
-    setRenderSpeed(e.target.value);
+    setRenderSpeed(pasreInt(e.target.value));
   }
 
   return (
