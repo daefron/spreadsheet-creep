@@ -986,36 +986,59 @@ export default function engineOutput() {
     let friendlyEntityArray = entityArray.filter((entity) => !entity.enemy);
     //removes king from array
     friendlyEntityArray.pop();
-    let parsedFriendlyEntityArray = [];
+    let parsedFriendlyEntityArray = [
+      ["Name", "Level", "Cost", "HP", "Damage", "Range", "Rate"],
+    ];
     friendlyEntityArray.forEach((entity) => {
-      let name = entity.type;
       let lvls = Object.values(entity.lvls);
       lvls.forEach((lvl) => {
-        parsedFriendlyEntityArray.push(
-          name +
-            lvl.lvl +
-            " cost: $" +
-            lvl.value +
-            " hp: " +
-            lvl.hp +
-            " dmg: " +
-            lvl.dmg +
-            " range: " +
-            lvl.range +
-            " attack speed: " +
-            lvl.rate
-        );
+        let name = "";
+        if (lvl.lvl === 1) {
+          name = entity.type;
+        }
+        let thisLevel = [
+          name,
+          lvl.lvl,
+          lvl.value,
+          lvl.hp,
+          lvl.dmg,
+          lvl.range,
+          lvl.rate,
+        ];
+        parsedFriendlyEntityArray.push(thisLevel);
       });
     });
+    console.log(parsedFriendlyEntityArray);
+
     return (
-      <>
-        <button onClick={purchasableButton}>show purchasables</button>
-        <div id="purchasables" style={{ display: "none" }}>
-          {parsedFriendlyEntityArray.map((entity) => {
-            return <p key={entity}>{entity}</p>;
+      <table id="purchasables">
+        <tbody>
+          {parsedFriendlyEntityArray.map((row) => {
+            return (
+              <tr
+                className="boardRow"
+                key={row}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                }}
+              >
+                {row.map((position) => {
+                  return (
+                    <td key={position[0]}>
+                      <input
+                        className="boardCell"
+                        type="text"
+                        defaultValue={position}
+                      ></input>
+                    </td>
+                  );
+                })}
+              </tr>
+            );
           })}
-        </div>
-      </>
+        </tbody>
+      </table>
     );
   }
 
@@ -1332,12 +1355,12 @@ export default function engineOutput() {
       <div id="menu">
         <p>Money: ${bank}</p>
         <Settings></Settings>
-        <Purchasables></Purchasables>
         <button id="startButton" onClick={startButton}>
           Start Round
         </button>
       </div>
       <GameboardRender></GameboardRender>
+      <Purchasables></Purchasables>
     </>
   );
 }
