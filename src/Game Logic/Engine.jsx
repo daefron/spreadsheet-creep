@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import EntityList from "./EntityList.jsx";
 import ProjectileList from "./ProjectileList.jsx";
 import GroundList from "./GroundList.jsx";
@@ -663,9 +663,12 @@ export default function engineOutput() {
             return false;
           } else return true;
         } else if (gameMode === "battle") {
-          if (savedEnemySpawnsCount === totalSpawns && savedFriendlySpawnsCount === totalSpawns) {
+          if (
+            savedEnemySpawnsCount === totalSpawns &&
+            savedFriendlySpawnsCount === totalSpawns
+          ) {
             return false;
-          } else return true
+          } else return true;
         }
       }
 
@@ -1215,6 +1218,10 @@ export default function engineOutput() {
   function updateGameMode(e) {
     setGameMode(e.target.value);
   }
+
+  useEffect(() => {
+    updateGameboardEntities();
+  }, []);
 
   return (
     <>
