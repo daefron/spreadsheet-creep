@@ -987,7 +987,7 @@ export default function engineOutput() {
     //removes king from array
     friendlyEntityArray.pop();
     let parsedFriendlyEntityArray = [
-      ["Name", "Level", "Cost", "HP", "Damage", "Range", "Rate"],
+      [["Name"], ["Level"], ["Cost"], ["HP"], ["Damage"], ["Range"], ["Rate"]],
     ];
     friendlyEntityArray.forEach((entity) => {
       let lvls = Object.values(entity.lvls);
@@ -997,19 +997,24 @@ export default function engineOutput() {
           name = entity.type;
         }
         let thisLevel = [
-          name,
-          lvl.lvl,
-          lvl.value,
-          lvl.hp,
-          lvl.dmg,
-          lvl.range,
-          lvl.rate,
+          [name],
+          [lvl.lvl],
+          [lvl.value],
+          [lvl.hp],
+          [lvl.dmg],
+          [lvl.range],
+          [lvl.rate],
         ];
         parsedFriendlyEntityArray.push(thisLevel);
       });
     });
-    console.log(parsedFriendlyEntityArray);
-
+    let cellCount = 0;
+    parsedFriendlyEntityArray.forEach((row) => {
+      row.forEach((cell) => {
+        cell.push(cellCount + "purchasable");
+        cellCount++;
+      });
+    });
     return (
       <table id="purchasables">
         <tbody>
@@ -1025,11 +1030,11 @@ export default function engineOutput() {
               >
                 {row.map((position) => {
                   return (
-                    <td key={position[0]}>
+                    <td key={position[1]}>
                       <input
                         className="boardCell"
                         type="text"
-                        defaultValue={position}
+                        defaultValue={position[0]}
                       ></input>
                     </td>
                   );
