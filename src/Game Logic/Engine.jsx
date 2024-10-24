@@ -85,294 +85,315 @@ export default function engineOutput() {
   function engine(activeEntities, graveyard, bank, paused) {
     //tells entities what to do on their turn
     function entityTurn(currentEntity) {
-      if (currentEntity.rateCharge <= currentEntity.rate) {
-        currentEntity.rateCharge++;
-      }
-      currentEntity.speedCharge++;
       let turnTaken = false;
-      let newPosition = [direction(currentEntity), currentEntity.position[1]];
-      if (newPosition[0] === 0) {
-        boundaryHandler(currentEntity);
-        turnTaken = true;
-      }
-      if (entityCanFall(currentEntity.position)) {
-        entityFall(currentEntity);
-        turnTaken = true;
-      }
-      if (entityCanAttack(currentEntity, turnTaken)) {
-        if (currentEntity.projectile !== false) {
-          rangedAttack(currentEntity, turnTaken);
-        } else entityAttack(currentEntity);
-        turnTaken = true;
-      }
-      if (entityCanMove(currentEntity, turnTaken)) {
-        turnTaken = entityMovement(currentEntity);
-      }
-      if (entityCanAttackGround(currentEntity, turnTaken)) {
-        entityAttackGround(currentEntity);
-        turnTaken = true;
-      }
-    }
-
-    //function to spawn projectile
-    function rangedAttack(currentEntity) {
-      let projectileID =
-        currentEntity.projectile + projectileCount + currentEntity.name;
-      projectileCount++;
-      activeProjectiles.push(new Projectile(currentEntity, projectileID));
-      currentEntity.rateCharge = 0;
-      currentEntity.speedCharge = 0;
-    }
-
-    //function to determine if there is anything under the current entity
-    function entityCanFall(position) {
-      let spaceBelow = true;
-      if (position[1] !== gameboardHeight) {
-        let positionBelow = [position[0], position[1] + 1];
-        if (
-          activeEntities.find((entity) =>
-            comparePosition(entity.position, positionBelow)
-          ) !== undefined
-        ) {
-          spaceBelow = false;
-        }
-        if (
-          activeGround.find((ground) =>
-            comparePosition(ground.position, positionBelow)
-          ) !== undefined
-        ) {
-          spaceBelow = false;
-        }
-        return spaceBelow;
-      } else return false;
-    }
-
-    //moves entities down if falling
-    function entityFall(entity) {
-      if (entity.fallCharge < entity.fallSpeed) {
-        entity.fallCharge++;
-      } else {
-        entity.fallCharge = 0;
-        let newPosition = [entity.position[0], entity.position[1] + 1];
-        entity.position = newPosition;
-        entity.speedCharge = entity.speed / 2;
-      }
-    }
-
-    //function to determine if entity can attack this turn
-    function entityCanAttack(currentEntity, turnTaken) {
-      if (
-        currentEntity.rateCharge >= currentEntity.rate &&
-        currentEntity.rate !== 0 &&
-        !turnTaken
-      ) {
-        let rangeCells = rangeGetter(currentEntity);
-        let targetEntity = attackTargetter(currentEntity, rangeCells);
-        if (targetEntity !== undefined) {
-          return true;
-        }
-      }
-    }
-
-    //function to execute attack if can
-    function entityAttack(currentEntity) {
-      let rangeCells = rangeGetter(currentEntity);
-      let targetEntity = attackTargetter(currentEntity, rangeCells);
-      targetEntity.hp = targetEntity.hp - currentEntity.dmg;
-      healthChecker(targetEntity, currentEntity);
-      currentEntity.rateCharge = 0;
-      currentEntity.speedCharge = 0;
-    }
-
-    //function to return array of cells entity can target
-    function rangeGetter(currentEntity) {
-      let rangeCells = [];
-      let rangeLetter = direction(currentEntity);
-      for (let i = currentEntity.range; i > 0; i--) {
-        rangeCells.push([rangeLetter, currentEntity.position[1]]);
-        if (currentEntity.enemy) {
-          rangeLetter--;
-        } else {
-          rangeLetter++;
-        }
-      }
-      return rangeCells;
-    }
-
-    //function to return entity to attack
-    function attackTargetter(currentEntity, rangeCells) {
-      let targetFound = false;
-      let target;
-      rangeCells.forEach((cell) => {
-        if (targetFound === false) {
-          let targetEntity = activeEntities.find((entity) =>
-            comparePosition(entity.position, cell)
-          );
-          if (targetEntity !== undefined) {
-            if (targetEntity.enemy !== currentEntity.enemy) {
-              targetFound = true;
-              if (targetFound) {
-              }
-              return (target = targetEntity);
+      entityCharge(currentEntity);
+      boundaryHandler(currentEntity);
+      if (!turnTaken) {
+        entityFallHolder(currentEntity, turnTaken);
+        if (!turnTaken) {
+          entityAttackHolder(currentEntity, turnTaken);
+          if (!turnTaken) {
+            entityMovementHolder(currentEntity, turnTaken);
+            if (!turnTaken) {
+              entityAttackGroundHandler(currentEntity, turnTaken);
             }
           }
         }
-      });
-      return target;
-    }
-
-    //function to determine if entity can move this turn
-    function entityCanMove(currentEntity, turnTaken) {
-      if (
-        currentEntity.speedCharge >= currentEntity.speed &&
-        currentEntity.speed !== 0 &&
-        !turnTaken
-      ) {
-        return true;
       }
-    }
 
-    //function to determine how entity moves if it can
-    function entityMovement(currentEntity) {
-      let newPosition = [direction(currentEntity), currentEntity.position[1]];
-      let spotFree = true;
-      if (
-        activeEntities.find(
-          (entity) =>
-            comparePosition(entity.position, newPosition) !== undefined
-        ) ||
-        activeGround.find(
-          (ground) =>
-            comparePosition(ground.position, newPosition) !== undefined
-        )
-      ) {
-        if (currentEntity.climber) {
-          if (climbChecker(currentEntity)) {
-            spotFree = false;
-          }
+      //charges current entities movement and range
+      function entityCharge(currentEntity) {
+        if (currentEntity.rateCharge <= currentEntity.rate) {
+          currentEntity.rateCharge++;
         }
+        currentEntity.speedCharge++;
       }
-      if (
-        spotFree &&
-        !activeEntities.find((entity) =>
-          comparePosition(entity.position, newPosition)
-        ) &&
-        !activeGround.find((ground) =>
-          comparePosition(ground.position, newPosition)
-        )
-      ) {
-        currentEntity.speedCharge = 0;
-        currentEntity.position = newPosition;
-        projectileChecker(currentEntity);
-        return true;
-      }
-    }
 
-    //checks if entity walked into projectile and applies damage if so
-    function projectileChecker(currentEntity) {
-      let projectileInPosition = activeProjectiles.find((projectile) =>
-        comparePosition(projectile.position, currentEntity.position)
-      );
-      if (
-        projectileInPosition !== undefined &&
-        projectileInPosition.enemy !== currentEntity.enemy
-      ) {
-        currentEntity.hp = currentEntity.hp - projectileInPosition.dmg;
-        activeProjectiles.splice(
-          activeProjectiles.indexOf(projectileInPosition),
-          1
-        );
-        healthChecker(currentEntity, projectileInPosition.parent);
-      }
-    }
-
-    //determines what happens to entity if hits boundary wall
-    function boundaryHandler(currentEntity) {
-      if (currentEntity.speedCharge >= currentEntity.speed) {
-        let king = activeEntities.find((entity) => (entity.type = "king"));
-        king.hp = king.hp - currentEntity.dmg * 2;
-        currentEntity.hp = 0;
-        healthChecker(king, currentEntity);
-        healthChecker(currentEntity, king);
-      }
-    }
-
-    //checks if entity wants to climb
-    function climbChecker(currentEntity) {
-      let positionNextTo = [
-        direction(currentEntity),
-        currentEntity.position[1],
-      ];
-      let entityInPositionNextTo = activeEntities.find((entity) =>
-        comparePosition(entity.position, positionNextTo)
-      );
-      let groundInPositionNextTo = activeGround.find((ground) =>
-        comparePosition(ground.position, positionNextTo)
-      );
-      let climbTarget;
-      if (
-        entityInPositionNextTo !== undefined &&
-        entityInPositionNextTo.enemy === currentEntity.enemy
-      ) {
-        climbTarget = entityInPositionNextTo;
-      } else if (groundInPositionNextTo !== undefined) {
-        climbTarget = groundInPositionNextTo;
-      }
-      if (climbTarget !== undefined) {
-        let positionAbove = [positionNextTo[0], positionNextTo[1] - 1];
+      //determines what happens to entity if hits boundary wall
+      function boundaryHandler(currentEntity) {
+        let newPosition = [direction(currentEntity), currentEntity.position[1]];
         if (
-          activeEntities.find((entity) =>
-            comparePosition(entity.position, positionAbove)
-          ) === undefined &&
-          activeGround.find((ground) =>
-            comparePosition(ground.position, positionAbove)
-          ) === undefined
+          newPosition[0] === 0 &&
+          currentEntity.speedCharge >= currentEntity.speed
         ) {
-          if (currentEntity.speed <= currentEntity.speedCharge) {
-            currentEntity.position = positionAbove;
-            currentEntity.speedCharge = 0;
-            return true;
-          } else {
-            currentEntity.speed++;
-            return true;
-          }
+          let king = activeEntities.find((entity) => entity.type === "king");
+          king.hp = -currentEntity.dmg * 2;
+          currentEntity.hp = 0;
+          healthChecker(king, currentEntity);
+          healthChecker(currentEntity, king);
+          return (turnTaken = true);
         }
       }
     }
 
-    //checks if entity is allowed to attack adjacent ground
-    function entityCanAttackGround(currentEntity, turnTaken) {
-      if (
-        currentEntity.rateCharge >= currentEntity.rate &&
-        currentEntity.speedCharge >= currentEntity.speed &&
-        currentEntity.rate !== 0 &&
-        !turnTaken
-      ) {
+    function entityFallHolder(currentEntity, turnTaken) {
+      if (entityCanFall(currentEntity.position)) {
+        entityFall(currentEntity);
+        return (turnTaken = true);
+      }
+
+      //function to determine if there is anything under the current entity
+      function entityCanFall(position) {
+        if (position[1] !== gameboardHeight) {
+          let positionBelow = [position[0], position[1] + 1];
+          if (
+            activeGround.find((ground) =>
+              comparePosition(ground.position, positionBelow)
+            ) !== undefined
+          ) {
+            return false;
+          }
+          if (
+            activeEntities.find((entity) =>
+              comparePosition(entity.position, positionBelow)
+            ) !== undefined
+          ) {
+            return false;
+          }
+        }
+        return true;
+      }
+
+      //moves entities down if falling
+      function entityFall(entity) {
+        if (entity.fallCharge < entity.fallSpeed) {
+          entity.fallCharge++;
+        } else {
+          entity.fallCharge = 0;
+          entity.position = [entity.position[0], entity.position[1] + 1];
+          entity.speedCharge = entity.speed / 2;
+        }
+      }
+    }
+
+    function entityAttackHolder(currentEntity, turnTaken) {
+      let rangeCells = rangeGetter(currentEntity);
+      let targetEntity = attackTargetter(currentEntity, rangeCells);
+      if (entityCanAttack(currentEntity, turnTaken, targetEntity)) {
+        if (currentEntity.projectile !== false) {
+          rangedAttack(currentEntity, turnTaken);
+        } else entityAttack(currentEntity, targetEntity);
+        return (turnTaken = true);
+      }
+
+      //function to return array of cells entity can target
+      function rangeGetter(currentEntity) {
+        let rangeCells = [];
+        let rangeLetter = direction(currentEntity);
+        for (let i = currentEntity.range; i > 0; i--) {
+          rangeCells.push([rangeLetter, currentEntity.position[1]]);
+          if (currentEntity.enemy) {
+            rangeLetter--;
+          } else {
+            rangeLetter++;
+          }
+        }
+        return rangeCells;
+      }
+
+      //function to return entity to attack
+      function attackTargetter(currentEntity, rangeCells) {
+        let target;
+        rangeCells.forEach((cell) => {
+          let targetEntity = activeEntities.find((entity) =>
+            comparePosition(entity.position, cell)
+          );
+          if (
+            targetEntity !== undefined &&
+            targetEntity.enemy !== currentEntity.enemy
+          ) {
+            return (target = targetEntity);
+          }
+        });
+        return target;
+      }
+
+      //function to determine if entity can attack this turn
+      function entityCanAttack(currentEntity, turnTaken, targetEntity) {
+        if (
+          currentEntity.rateCharge >= currentEntity.rate &&
+          currentEntity.rate !== 0 &&
+          !turnTaken
+        ) {
+          if (targetEntity !== undefined) {
+            return true;
+          }
+        }
+      }
+
+      //function to spawn projectile
+      function rangedAttack(currentEntity) {
+        let projectileID =
+          currentEntity.projectile + projectileCount + currentEntity.name;
+        projectileCount++;
+        activeProjectiles.push(new Projectile(currentEntity, projectileID));
+        currentEntity.rateCharge = 0;
+        currentEntity.speedCharge = 0;
+      }
+
+      //function to execute attack if can
+      function entityAttack(currentEntity, targetEntity) {
+        targetEntity.hp = targetEntity.hp - currentEntity.dmg;
+        healthChecker(targetEntity, currentEntity);
+        currentEntity.rateCharge = 0;
+        currentEntity.speedCharge = 0;
+      }
+    }
+
+    function entityMovementHolder(currentEntity, turnTaken) {
+      if (entityCanMove(currentEntity, turnTaken)) {
+        return (turnTaken = entityMovement(currentEntity));
+      }
+
+      //function to determine if entity can move this turn
+      function entityCanMove(currentEntity, turnTaken) {
+        if (
+          currentEntity.speedCharge >= currentEntity.speed &&
+          currentEntity.speed !== 0 &&
+          !turnTaken
+        ) {
+          return true;
+        }
+      }
+
+      //function to determine how entity moves if it can
+      function entityMovement(currentEntity) {
+        let newPosition = [direction(currentEntity), currentEntity.position[1]];
+        let spotFree = true;
+        if (
+          activeEntities.find(
+            (entity) =>
+              comparePosition(entity.position, newPosition) !== undefined
+          ) ||
+          activeGround.find(
+            (ground) =>
+              comparePosition(ground.position, newPosition) !== undefined
+          )
+        ) {
+          if (currentEntity.climber) {
+            if (climbChecker(currentEntity)) {
+              spotFree = false;
+            }
+          }
+        }
+        if (
+          spotFree &&
+          !activeEntities.find((entity) =>
+            comparePosition(entity.position, newPosition)
+          ) &&
+          !activeGround.find((ground) =>
+            comparePosition(ground.position, newPosition)
+          )
+        ) {
+          currentEntity.speedCharge = 0;
+          currentEntity.position = newPosition;
+          projectileChecker(currentEntity);
+          return true;
+        }
+      }
+
+      //checks if entity wants to climb
+      function climbChecker(currentEntity) {
+        let positionNextTo = [
+          direction(currentEntity),
+          currentEntity.position[1],
+        ];
+        let entityInPositionNextTo = activeEntities.find((entity) =>
+          comparePosition(entity.position, positionNextTo)
+        );
+        let groundInPositionNextTo = activeGround.find((ground) =>
+          comparePosition(ground.position, positionNextTo)
+        );
+        let climbTarget;
+        if (
+          entityInPositionNextTo !== undefined &&
+          entityInPositionNextTo.enemy === currentEntity.enemy
+        ) {
+          climbTarget = entityInPositionNextTo;
+        } else if (groundInPositionNextTo !== undefined) {
+          climbTarget = groundInPositionNextTo;
+        }
+        if (climbTarget !== undefined) {
+          let positionAbove = [positionNextTo[0], positionNextTo[1] - 1];
+          if (
+            activeEntities.find((entity) =>
+              comparePosition(entity.position, positionAbove)
+            ) === undefined &&
+            activeGround.find((ground) =>
+              comparePosition(ground.position, positionAbove)
+            ) === undefined
+          ) {
+            if (currentEntity.speed <= currentEntity.speedCharge) {
+              currentEntity.position = positionAbove;
+              currentEntity.speedCharge = 0;
+              return true;
+            } else {
+              currentEntity.speed++;
+              return true;
+            }
+          }
+        }
+      }
+
+      //checks if entity walked into projectile and applies damage if so
+      function projectileChecker(currentEntity) {
+        let projectileInPosition = activeProjectiles.find((projectile) =>
+          comparePosition(projectile.position, currentEntity.position)
+        );
+        if (
+          projectileInPosition !== undefined &&
+          projectileInPosition.enemy !== currentEntity.enemy
+        ) {
+          currentEntity.hp = currentEntity.hp - projectileInPosition.dmg;
+          activeProjectiles.splice(
+            activeProjectiles.indexOf(projectileInPosition),
+            1
+          );
+          healthChecker(currentEntity, projectileInPosition.parent);
+        }
+      }
+    }
+
+    function entityAttackGroundHandler(currentEntity, turnTaken) {
+      if (entityCanAttackGround(currentEntity, turnTaken)) {
+        entityAttackGround(currentEntity);
+        return (turnTaken = true);
+      }
+
+      //checks if entity is allowed to attack adjacent ground
+      function entityCanAttackGround(currentEntity, turnTaken) {
+        if (
+          currentEntity.rateCharge >= currentEntity.rate &&
+          currentEntity.speedCharge >= currentEntity.speed &&
+          currentEntity.rate !== 0 &&
+          !turnTaken
+        ) {
+          let targetGround = activeGround.find((ground) =>
+            comparePosition(ground.position, [
+              direction(currentEntity),
+              currentEntity.position[1],
+            ])
+          );
+          if (targetGround !== undefined) {
+            return true;
+          }
+        }
+        return false;
+      }
+
+      //makes entity attack adjacent ground
+      function entityAttackGround(currentEntity) {
         let targetGround = activeGround.find((ground) =>
           comparePosition(ground.position, [
             direction(currentEntity),
             currentEntity.position[1],
           ])
         );
-        if (targetGround !== undefined) {
-          return true;
-        }
+        targetGround.hp = targetGround.hp - currentEntity.dmg;
+        healthChecker(targetGround, currentEntity);
+        currentEntity.rateCharge = 0;
+        currentEntity.speedCharge = 0;
       }
-      return false;
-    }
-
-    //makes entity attack adjacent ground
-    function entityAttackGround(currentEntity) {
-      let targetGround = activeGround.find((ground) =>
-        comparePosition(ground.position, [
-          direction(currentEntity),
-          currentEntity.position[1],
-        ])
-      );
-      targetGround.hp = targetGround.hp - currentEntity.dmg;
-      healthChecker(targetGround, currentEntity);
-      currentEntity.rateCharge = 0;
-      currentEntity.speedCharge = 0;
     }
 
     //checks to see if entity dies
@@ -1136,30 +1157,54 @@ export default function engineOutput() {
     <>
       <div id="menu">
         <p>Money: ${bank}</p>
-        <div style={{ display: "flex", alignItems: "center"}}>
+        <div style={{ display: "flex", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center" }}>
             <p>Gameboard width:</p>
-            <input type="number" value={gameboardWidth} onChange={updateGameboardWidth}></input>
+            <input
+              type="number"
+              value={gameboardWidth}
+              onChange={updateGameboardWidth}
+            ></input>
           </div>
           <p>Gameboard height:</p>
           <div style={{ display: "flex", alignItems: "center" }}>
-            <input type="number" value={gameboardHeight} onChange={updateGameboardHeight}></input>
+            <input
+              type="number"
+              value={gameboardHeight}
+              onChange={updateGameboardHeight}
+            ></input>
           </div>
           <div style={{ display: "flex", alignItems: "center" }}>
             <p>Ground height:</p>
-            <input type="number" value={groundLevel} onChange={updateGroundHeight}></input>
+            <input
+              type="number"
+              value={groundLevel}
+              onChange={updateGroundHeight}
+            ></input>
           </div>
           <div style={{ display: "flex", alignItems: "center" }}>
             <p>Ground roughness:</p>
-            <input type="number" value={groundRoughness} onChange={updateGroundRoughness}></input>
+            <input
+              type="number"
+              value={groundRoughness}
+              onChange={updateGroundRoughness}
+            ></input>
           </div>
           <div style={{ display: "flex", alignItems: "center" }}>
             <p>Game speed:</p>
-            <input type="number" value={gameSpeed} onChange={updateGameSpeed}></input>
+            <input
+              type="number"
+              value={gameSpeed}
+              onChange={updateGameSpeed}
+            ></input>
           </div>
           <div style={{ display: "flex", alignItems: "center" }}>
             <p>Render speed:</p>
-            <input type="number" value={renderSpeed} onChange={updateRenderSpeed}></input>
+            <input
+              type="number"
+              value={renderSpeed}
+              onChange={updateRenderSpeed}
+            ></input>
           </div>
         </div>
         <button onClick={purchasableButton}>show purchasables</button>
