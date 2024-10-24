@@ -18,6 +18,7 @@ export default function engineOutput() {
   const [groundRoughness, setgroundRoughness] = useState(5);
   const [renderSpeed, setRenderSpeed] = useState(1);
   const [gameSpeed, setGameSpeed] = useState(1 * renderSpeed);
+  const [gameboardEntities, setGameboardEntities] = useState([]);
   const entityList = EntityList;
   const projectileList = ProjectileList;
   const groundList = GroundList;
@@ -534,7 +535,7 @@ export default function engineOutput() {
           let entityBelow =
             activeEntities.find((entity) =>
               comparePosition(entity.position, positionBelow)
-            ) !== undefined;
+            );
           if (entityBelow) {
             groundAttack(ground, entityBelow);
           }
@@ -759,6 +760,29 @@ export default function engineOutput() {
     }
   }
 
+  //checks if two arrays share both same values
+  function comparePosition(position1, position2) {
+    if (position1[0] === position2[0] && position1[1] === position2[1]) {
+      return true;
+    } else return false;
+  }
+
+  //adds or subtracts on the x axis depending on enemy type
+  function direction(currentEntity) {
+    if (currentEntity.enemy) {
+      return currentEntity.position[0] - 1;
+    } else {
+      return currentEntity.position[0] + 1;
+    }
+  }
+
+  //turns position into spreadsheet style coordinate
+  function toLetter(position) {
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    let width = letters[position];
+    return width;
+  }
+
   //runs friendly through checks before spawning
   function friendlySpawner(friendlyType, friendlyPosition, friendlyLvl) {
     if (validFriendly(friendlyType, friendlyLvl)) {
@@ -766,7 +790,7 @@ export default function engineOutput() {
         entityList[friendlyType].lvls["lvl" + friendlyLvl].value;
       if (bankChecker(friendlyCost)) {
         setBank(bank - friendlyCost);
-        friendlyEntityParser(friendlyType, friendlyPosition, friendlyLvl);
+        friendlyEntityMaker(friendlyType, friendlyPosition, friendlyLvl);
       }
     }
   }
@@ -787,7 +811,20 @@ export default function engineOutput() {
     }
   }
 
-  //consolidates user input
+  //translates user input into data Entity maker can use
+  const [friendlyCount, setFriendlyCount] = useState(1);
+  function friendlyEntityMaker(entityType, entityPosition, entitylvl) {
+    let ID = friendlyCount + 1;
+    setFriendlyCount(ID);
+    entityType = entityList[entityType];
+    entitylvl = entityType.lvls["lvl" + entitylvl];
+    let entityID = entityType.type + friendlyCount;
+    entityID = new Entity(entityType, entitylvl, entityPosition, entityID);
+    activeEntities.push(entityID);
+    updateGameboardEntities();
+  }
+
+  //parses user input into usable data
   function friendlyInput(e) {
     let input = e.target.value;
     let position = e.target.id.split("x");
@@ -813,19 +850,6 @@ export default function engineOutput() {
       friendlySpawner(parsedType, position, parsedLvl);
     }
     resume();
-  }
-
-  //translates user input into data Entity maker can use
-  const [friendlyCount, setFriendlyCount] = useState(1);
-  function friendlyEntityParser(entityType, entityPosition, entitylvl) {
-    let ID = friendlyCount + 1;
-    setFriendlyCount(ID);
-    entityType = entityList[entityType];
-    entitylvl = entityType.lvls["lvl" + entitylvl];
-    let entityID = entityType.type + friendlyCount;
-    entityID = new Entity(entityType, entitylvl, entityPosition, entityID);
-    activeEntities.push(entityID);
-    updateGameboardEntities();
   }
 
   //gives the ground entities a thicker outline if groundline
@@ -884,6 +908,7 @@ export default function engineOutput() {
     }
   }
 
+  //gives entities an attack bar
   function attackBar(currentEntity) {
     let maxWidth = 157;
     let percentage = currentEntity.rateCharge / currentEntity.rate;
@@ -937,33 +962,8 @@ export default function engineOutput() {
   function resume() {
     engine(activeEntities, graveyard, bank, true);
   }
-
-  //checks if two arrays share both same values
-  function comparePosition(position1, position2) {
-    if (position1[0] === position2[0] && position1[1] === position2[1]) {
-      return true;
-    } else return false;
-  }
-
-  //adds or subtracts on the x axis depending on enemy type
-  function direction(currentEntity) {
-    if (currentEntity.enemy) {
-      return currentEntity.position[0] - 1;
-    } else {
-      return currentEntity.position[0] + 1;
-    }
-  }
-
-  //turns position into spreadsheet style coordinate
-  function toLetter(position) {
-    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    let width = letters[position];
-    return width;
-  }
-
+  
   //handles making a usable array for the grid renderer
-  const [gameboardEntities, setGameboardEntities] = useState([]);
-
   function updateGameboardEntities() {
     let grid = [];
     for (let h = 0; h <= gameboardHeight; h++) {
@@ -1124,22 +1124,22 @@ export default function engineOutput() {
   }
 
   function updateGameboardWidth(e) {
-    setGameboardWidth(parseInt(e.target.value));
+    setGameboardWidth(parseFloat(e.target.value));
   }
   function updateGameboardHeight(e) {
-    setGameboardHeight(parseInt(e.target.value));
+    setGameboardHeight(parseFloat(e.target.value));
   }
   function updateGroundHeight(e) {
-    setGroundLevel(parseInt(e.target.value));
+    setGroundLevel(parseFloat(e.target.value));
   }
   function updateGroundRoughness(e) {
-    setgroundRoughness(parseInt(e.target.value));
+    setgroundRoughness(parseFloat(e.target.value));
   }
   function updateGameSpeed(e) {
-    setGameSpeed(parseInt(e.target.value));
+    setGameSpeed(parseFloat(e.target.value));
   }
   function updateRenderSpeed(e) {
-    setRenderSpeed(pasreInt(e.target.value));
+    setRenderSpeed(parseFloat(e.target.value));
   }
 
   return (
