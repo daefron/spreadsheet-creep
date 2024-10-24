@@ -982,37 +982,40 @@ export default function engineOutput() {
 
   //makes a list of purchasble entities
   function Purchasables() {
-    let entityArray = Object.entries(entityList);
-    let friendlyEntityArray = entityArray.filter((entity) => !entity[1].enemy);
+    let entityArray = Object.values(entityList);
+    let friendlyEntityArray = entityArray.filter((entity) => !entity.enemy);
     //removes king from array
     friendlyEntityArray.pop();
     let parsedFriendlyEntityArray = [];
     friendlyEntityArray.forEach((entity) => {
-      let name = entity[0];
-      let lvls = Object.entries(Object.entries(entity[1])[6][1]);
+      let name = entity.type;
+      let lvls = Object.values(entity.lvls);
       lvls.forEach((lvl) => {
         parsedFriendlyEntityArray.push(
           name +
-            lvl[1].lvl +
+            lvl.lvl +
             " cost: $" +
-            lvl[1].value +
+            lvl.value +
             " hp: " +
-            lvl[1].hp +
+            lvl.hp +
             " dmg: " +
-            lvl[1].dmg +
+            lvl.dmg +
             " range: " +
-            lvl[1].range +
+            lvl.range +
             " attack speed: " +
-            lvl[1].rate
+            lvl.rate
         );
       });
     });
     return (
-      <div>
-        {parsedFriendlyEntityArray.map((entity) => {
-          return <p key={entity}>{entity}</p>;
-        })}
-      </div>
+      <>
+        <button onClick={purchasableButton}>show purchasables</button>
+        <div id="purchasables" style={{ display: "none" }}>
+          {parsedFriendlyEntityArray.map((entity) => {
+            return <p key={entity}>{entity}</p>;
+          })}
+        </div>
+      </>
     );
   }
 
@@ -1169,6 +1172,105 @@ export default function engineOutput() {
     );
   }
 
+  function Settings() {
+    return (
+      <div style={{ display: "flex", alignItems: "center" }}>
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <p>Gameboard width:</p>
+          <input
+            style={{ width: "30px" }}
+            type="number"
+            value={gameboardWidth}
+            onChange={updateGameboardWidth}
+          ></input>
+        </div>
+        <p>Gameboard height:</p>
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <input
+            style={{ width: "30px" }}
+            type="number"
+            value={gameboardHeight}
+            onChange={updateGameboardHeight}
+          ></input>
+        </div>
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <p>Ground height:</p>
+          <input
+            style={{ width: "30px" }}
+            type="number"
+            value={groundLevel}
+            onChange={updateGroundHeight}
+          ></input>
+        </div>
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <p>Ground roughness:</p>
+          <input
+            style={{ width: "30px" }}
+            type="number"
+            value={groundRoughness}
+            onChange={updateGroundRoughness}
+          ></input>
+        </div>
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <p>Game speed:</p>
+          <input
+            style={{ width: "30px" }}
+            type="number"
+            value={gameSpeed}
+            onChange={updateGameSpeed}
+          ></input>
+        </div>
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <p>Render speed:</p>
+          <input
+            style={{ width: "30px" }}
+            type="number"
+            value={renderSpeed}
+            onChange={updateRenderSpeed}
+          ></input>
+        </div>{" "}
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <p>Total spawns:</p>
+          <input
+            style={{ width: "30px" }}
+            type="number"
+            value={totalSpawns}
+            onChange={updateTotalSpawns}
+          ></input>
+        </div>
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <p>Spawn speed:</p>
+          <input
+            style={{ width: "30px" }}
+            type="number"
+            value={spawnSpeed}
+            onChange={updateSpawnSpeed}
+          ></input>
+        </div>
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <p>King HP:</p>
+          <input
+            style={{ width: "30px" }}
+            type="number"
+            value={kingHP}
+            onChange={updateKingHP}
+          ></input>
+        </div>
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <p>Gamemode:</p>
+          <select
+            style={{ width: "60px" }}
+            defaultValue="king"
+            onChange={updateGameMode}
+          >
+            <option value="king">king</option>
+            <option value="battle">battle</option>
+          </select>
+        </div>
+      </div>
+    );
+  }
+
   function startButton(e) {
     e.target.style = "display:none";
     engine(activeEntities, graveyard, bank, false);
@@ -1188,9 +1290,11 @@ export default function engineOutput() {
 
   function updateGameboardWidth(e) {
     setGameboardWidth(parseInt(e.target.value));
+    updateGameboardEntities();
   }
   function updateGameboardHeight(e) {
     setGameboardHeight(parseInt(e.target.value));
+    updateGameboardEntities();
   }
   function updateGroundHeight(e) {
     setGroundLevel(parseInt(e.target.value));
@@ -1227,104 +1331,8 @@ export default function engineOutput() {
     <>
       <div id="menu">
         <p>Money: ${bank}</p>
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <p>Gameboard width:</p>
-            <input
-              style={{ width: "30px" }}
-              type="number"
-              value={gameboardWidth}
-              onChange={updateGameboardWidth}
-            ></input>
-          </div>
-          <p>Gameboard height:</p>
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <input
-              style={{ width: "30px" }}
-              type="number"
-              value={gameboardHeight}
-              onChange={updateGameboardHeight}
-            ></input>
-          </div>
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <p>Ground height:</p>
-            <input
-              style={{ width: "30px" }}
-              type="number"
-              value={groundLevel}
-              onChange={updateGroundHeight}
-            ></input>
-          </div>
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <p>Ground roughness:</p>
-            <input
-              style={{ width: "30px" }}
-              type="number"
-              value={groundRoughness}
-              onChange={updateGroundRoughness}
-            ></input>
-          </div>
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <p>Game speed:</p>
-            <input
-              style={{ width: "30px" }}
-              type="number"
-              value={gameSpeed}
-              onChange={updateGameSpeed}
-            ></input>
-          </div>
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <p>Render speed:</p>
-            <input
-              style={{ width: "30px" }}
-              type="number"
-              value={renderSpeed}
-              onChange={updateRenderSpeed}
-            ></input>
-          </div>{" "}
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <p>Total spawns:</p>
-            <input
-              style={{ width: "30px" }}
-              type="number"
-              value={totalSpawns}
-              onChange={updateTotalSpawns}
-            ></input>
-          </div>
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <p>Spawn speed:</p>
-            <input
-              style={{ width: "30px" }}
-              type="number"
-              value={spawnSpeed}
-              onChange={updateSpawnSpeed}
-            ></input>
-          </div>
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <p>King HP:</p>
-            <input
-              style={{ width: "30px" }}
-              type="number"
-              value={kingHP}
-              onChange={updateKingHP}
-            ></input>
-          </div>
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <p>Gamemode:</p>
-            <select
-              style={{ width: "60px" }}
-              defaultValue="king"
-              onChange={updateGameMode}
-            >
-              <option value="king">king</option>
-              <option value="battle">battle</option>
-            </select>
-          </div>
-        </div>
-        <button onClick={purchasableButton}>show purchasables</button>
-        <div id="purchasables" style={{ display: "none" }}>
-          <Purchasables></Purchasables>
-        </div>
+        <Settings></Settings>
+        <Purchasables></Purchasables>
         <button id="startButton" onClick={startButton}>
           Start Round
         </button>
