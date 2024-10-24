@@ -118,7 +118,7 @@ export default function engineOutput() {
           currentEntity.speedCharge >= currentEntity.speed
         ) {
           let king = activeEntities.find((entity) => entity.type === "king");
-          king.hp = -currentEntity.dmg * 2;
+          king.hp -= currentEntity.dmg * 2;
           currentEntity.hp = 0;
           healthChecker(king, currentEntity);
           healthChecker(currentEntity, king);
@@ -127,6 +127,7 @@ export default function engineOutput() {
       }
     }
 
+    //holds functions for entity falling
     function entityFallHolder(currentEntity) {
       if (entityCanFall(currentEntity.position)) {
         entityFall(currentEntity);
@@ -167,6 +168,7 @@ export default function engineOutput() {
       }
     }
 
+    //holds functions for entity attacks
     function entityAttackHolder(currentEntity) {
       let rangeCells = rangeGetter(currentEntity);
       let targetEntity = attackTargetter(currentEntity, rangeCells);
@@ -233,13 +235,14 @@ export default function engineOutput() {
 
       //function to execute attack if can
       function entityAttack(currentEntity, targetEntity) {
-        targetEntity.hp = -currentEntity.dmg;
+        targetEntity.hp -= currentEntity.dmg;
         healthChecker(targetEntity, currentEntity);
         currentEntity.rateCharge = 0;
         currentEntity.speedCharge = 0;
       }
     }
 
+    //holds functions for entity movement
     function entityMovementHolder(currentEntity) {
       if (entityCanMove(currentEntity)) {
         return entityMovementType(currentEntity);
@@ -297,6 +300,7 @@ export default function engineOutput() {
             }
             return false;
 
+            //checks if position to climb into is free
             function climbSpotFree(positionNextTo) {
               let positionAbove = [positionNextTo[0], positionNextTo[1] - 1];
               if (
@@ -320,22 +324,20 @@ export default function engineOutput() {
           //makes entity climb
           function climbMovement(currentEntity, positionNextTo) {
             let positionAbove = [positionNextTo[0], positionNextTo[1] - 1];
-            if (currentEntity.speed <= currentEntity.speedCharge) {
-              currentEntity.position = positionAbove;
-              currentEntity.speedCharge = 0;
-              projectileChecker(currentEntity);
-            } else {
-              currentEntity.speedCharge++;
-            }
+            currentEntity.position = positionAbove;
+            currentEntity.speedCharge = 0;
+            projectileChecker(currentEntity);
           }
         }
 
+        //holds functions for normal walking
         function walkHolder(currentEntity, newPosition) {
           if (walkChecker(newPosition)) {
             walk(currentEntity, newPosition);
             return true;
           }
 
+          //checks if entity can walk
           function walkChecker(newPosition) {
             if (
               !activeEntities.find((entity) =>
@@ -349,6 +351,7 @@ export default function engineOutput() {
             }
           }
 
+          //makes entity walk
           function walk(currentEntity, newPosition) {
             currentEntity.speedCharge = 0;
             currentEntity.position = newPosition;
@@ -356,7 +359,7 @@ export default function engineOutput() {
           }
         }
 
-        //checks if entity walked into projectile and applies damage if so
+        //checks if entity walked/climbed into projectile and applies damage if so
         function projectileChecker(currentEntity) {
           let projectileInPosition = activeProjectiles.find((projectile) =>
             comparePosition(projectile.position, currentEntity.position)
@@ -365,7 +368,7 @@ export default function engineOutput() {
             projectileInPosition !== undefined &&
             projectileInPosition.enemy !== currentEntity.enemy
           ) {
-            currentEntity.hp = -projectileInPosition.dmg;
+            currentEntity.hp -= projectileInPosition.dmg;
             activeProjectiles.splice(
               activeProjectiles.indexOf(projectileInPosition),
               1
@@ -376,6 +379,7 @@ export default function engineOutput() {
       }
     }
 
+    //holds functions for entities attacking ground
     function entityAttackGroundHandler(currentEntity) {
       if (entityCanAttackGround(currentEntity)) {
         entityAttackGround(currentEntity);
@@ -410,7 +414,7 @@ export default function engineOutput() {
             currentEntity.position[1],
           ])
         );
-        targetGround.hp = targetGround.hp - currentEntity.dmg;
+        targetGround.hp -= currentEntity.dmg;
         healthChecker(targetGround, currentEntity);
         currentEntity.rateCharge = 0;
         currentEntity.speedCharge = 0;
@@ -423,7 +427,7 @@ export default function engineOutput() {
         if (entity.hp <= 0) {
           currentEntity.rateCharge = 0;
           if (entity.enemy) {
-            bank = bank + entity.value;
+            bank += entity.value;
             setBank(bank);
             expTracker(entity, currentEntity);
           }
@@ -441,7 +445,7 @@ export default function engineOutput() {
 
     //adds and checks exp on kill
     function expTracker(entity, currentEntity) {
-      currentEntity.currentExp = currentEntity.currentExp + entity.exp;
+      currentEntity.currentExp += entity.exp;
       if (
         currentEntity.currentExp >= currentEntity.neededExp &&
         entityList[currentEntity.type].lvls["lvl" + (currentEntity.lvl + 1)] !==
