@@ -152,8 +152,8 @@ export default function engineOutput() {
           ) {
             return false;
           }
+          return true;
         }
-        return true;
       }
 
       //moves entities down if falling
@@ -531,12 +531,12 @@ export default function engineOutput() {
         let spaceBelow = true;
         if (position[1] !== gameboardHeight) {
           let positionBelow = [position[0], position[1] + 1];
-          if (
+          let entityBelow =
             activeEntities.find((entity) =>
               comparePosition(entity.position, positionBelow)
-            ) !== undefined
-          ) {
-            spaceBelow = false;
+            ) !== undefined;
+          if (entityBelow) {
+            groundAttack(ground, entityBelow);
           }
           if (
             activeGround.find((ground) =>
@@ -558,6 +558,12 @@ export default function engineOutput() {
           let newPosition = [ground.position[0], ground.position[1] + 1];
           ground.position = newPosition;
         }
+      }
+
+      //kills entity ground falls onto
+      function groundAttack(ground, entityBelow) {
+        entityBelow.hp = 0;
+        healthChecker(entityBelow, ground);
       }
     }
 
@@ -714,10 +720,12 @@ export default function engineOutput() {
         );
         endEntities.forEach((entity) => {
           if (entity.position[1] <= spawnPosition[1]) {
-            spawnPosition =  [entity.position[0], entity.position[1] - 1];
+            spawnPosition = [entity.position[0], entity.position[1] - 1];
           }
         });
-        if (!comparePosition(spawnPosition, [gameboardWidth, gameboardHeight])) {
+        if (
+          !comparePosition(spawnPosition, [gameboardWidth, gameboardHeight])
+        ) {
           return spawnPosition;
         }
         let endGrounds = activeGround.filter(
@@ -992,16 +1000,9 @@ export default function engineOutput() {
 
   function updateGameboardEntities() {
     let grid = [];
-    let height = gameboardHeight;
-    let width = gameboardWidth;
-    const defaultStyle = {
-      outlineTopColor: "grey",
-      outlineLeftColor: "grey",
-      outlineRightColor: "grey",
-    };
-    for (let h = 0; h <= height; h++) {
+    for (let h = 0; h <= gameboardHeight; h++) {
       let subGrid = [];
-      for (let w = 0; w <= width; w++) {
+      for (let w = 0; w <= gameboardWidth; w++) {
         if (w === 0) {
           if (h === 0) {
             let style = {
@@ -1086,13 +1087,13 @@ export default function engineOutput() {
                   comparePosition(entity.position, projectile.position)
                 ) === undefined
               ) {
-                subGrid.push([w + "x" + h, [projectile.symbol], defaultStyle]);
+                subGrid.push([w + "x" + h, [projectile.symbol]]);
                 entityMade = true;
               }
             }
           });
           if (!entityMade) {
-            subGrid.push([w + "x" + h, [""], defaultStyle]);
+            subGrid.push([w + "x" + h, [""]]);
           }
         }
       }
