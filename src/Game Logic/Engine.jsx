@@ -9,8 +9,11 @@ export default function engineOutput() {
   const [graveyard, setGraveyard] = useState([]);
   const [bank, setBank] = useState(10000);
   const [savedTurn, setSavedTurn] = useState(1);
-  const [savedEnemySpawns, setSavedEnemySpawns] = useState(0);
-  const [savedLastSpawnTime, setSavedLastSpawnTime] = useState(0);
+  const [savedEnemySpawnsCount, setSavedEnemySpawnsCount] = useState(0);
+  const [savedFriendlySpawnsCount, setSavedFriendlySpawnsCount] = useState(0);
+  const [savedLastEnemySpawnTime, setSavedLastEnemySpawnTime] = useState(0);
+  const [savedLastFriendlySpawnTime, setSavedLastFriendlySpawnTime] =
+    useState(0);
   const [timer, setTimer] = useState();
   const [gameboardWidth, setGameboardWidth] = useState(11);
   const [gameboardHeight, setGameboardHeight] = useState(20);
@@ -19,9 +22,13 @@ export default function engineOutput() {
   const [renderSpeed, setRenderSpeed] = useState(1);
   const [gameSpeed, setGameSpeed] = useState(1 * renderSpeed);
   const [gameboardEntities, setGameboardEntities] = useState([]);
-  const entityList = EntityList;
-  const projectileList = ProjectileList;
-  const groundList = GroundList;
+  const [totalSpawns, setTotalSpawns] = useState(30);
+  const [spawnSpeed, setSpawnSpeed] = useState(1);
+  const [kingHP, setKingHP] = useState(20);
+  const [gameMode, setGameMode] = useState("king");
+  let entityList = EntityList;
+  let projectileList = ProjectileList;
+  let groundList = GroundList;
 
   //function that creates new active entities
   function Entity(type, lvl, position, name) {
@@ -532,10 +539,9 @@ export default function engineOutput() {
         let spaceBelow = true;
         if (position[1] !== gameboardHeight) {
           let positionBelow = [position[0], position[1] + 1];
-          let entityBelow =
-            activeEntities.find((entity) =>
-              comparePosition(entity.position, positionBelow)
-            );
+          let entityBelow = activeEntities.find((entity) =>
+            comparePosition(entity.position, positionBelow)
+          );
           if (entityBelow) {
             groundAttack(ground, entityBelow);
           }
@@ -602,9 +608,14 @@ export default function engineOutput() {
     function amountOfTurns(finished, currentTurn) {
       let gameFinished = finished;
       let innerTimer;
-      let totalSpawns = 30;
-      let enemySpawns = savedEnemySpawns;
-      let lastSpawnTime = savedLastSpawnTime;
+      let enemySpawns = savedEnemySpawnsCount;
+      let lastEnemySpawnTime = savedLastEnemySpawnTime;
+      let lastFriendlySpawnTime;
+      let friendlySpawns;
+      if (gameMode === "battle") {
+        lastFriendlySpawnTime = savedLastFriendlySpawnTime;
+        friendlySpawns = savedEnemySpawnsCount;
+      }
       if (!gameFinished) {
         setTimer(
           (innerTimer = setInterval(() => {
@@ -615,8 +626,11 @@ export default function engineOutput() {
 
       //runs through turn actions
       function turnCycler() {
-        spawnChecker();
-        nextTurn(currentTurn);
+        spawnChecker(true);
+        if (gameMode === "battle") {
+          spawnChecker(false);
+        }
+        nextTurn();
         if (!victoryChecker()) {
           clearInterval(innerTimer);
         }
@@ -626,7 +640,7 @@ export default function engineOutput() {
       }
 
       //makes all entities take turn
-      function nextTurn(currentTurn) {
+      function nextTurn() {
         activeEntities.forEach((entity) => {
           entityTurn(entity);
         });
@@ -640,25 +654,44 @@ export default function engineOutput() {
 
       //checks to see if the king died
       function victoryChecker() {
-        let kingAlive =
-          activeEntities.find((entity) => entity.type === "king") !== undefined;
-        if (!kingAlive) {
-          activeEntitiesClearer(false);
-          return false;
-        } else return true;
+        if (gameMode === "king") {
+          let kingAlive =
+            activeEntities.find((entity) => entity.type === "king") !==
+            undefined;
+          if (!kingAlive) {
+            activeEntitiesClearer(false);
+            return false;
+          } else return true;
+        } else if (gameMode === "battle") {
+          if (savedEnemySpawnsCount === totalSpawns && savedFriendlySpawnsCount === totalSpawns) {
+            return false;
+          } else return true
+        }
       }
 
       //checks if game is allowed to spawn on current turn
-      function spawnChecker() {
-        if (enemySpawns <= totalSpawns) {
-          lastSpawnTime++;
-          setSavedLastSpawnTime(lastSpawnTime);
-          if (lastSpawnTime > spawnTime()) {
-            enemySpawner(spawnType());
-            enemySpawns++;
-            setSavedEnemySpawns(enemySpawns);
-            lastSpawnTime = 0;
-            setSavedLastSpawnTime(0);
+      function spawnChecker(enemy) {
+        if (enemy) {
+          if (enemySpawns <= totalSpawns) {
+            lastEnemySpawnTime++;
+            setSavedLastEnemySpawnTime(lastEnemySpawnTime);
+            if (lastEnemySpawnTime > spawnTime()) {
+              entitySpawner(spawnType(enemy), enemy);
+              enemySpawns++;
+              setSavedEnemySpawnsCount(enemySpawns);
+              lastEnemySpawnTime = 0;
+              setSavedLastEnemySpawnTime(0);
+            }
+          }
+        } else if (!enemy) {
+          lastFriendlySpawnTime++;
+          setSavedLastFriendlySpawnTime(lastFriendlySpawnTime);
+          if (lastFriendlySpawnTime > spawnTime()) {
+            entitySpawner(spawnType(enemy), enemy);
+            friendlySpawns++;
+            setSavedFriendlySpawnsCount(friendlySpawns);
+            lastFriendlySpawnTime = 0;
+            setSavedLastEnemySpawnTime(0);
           }
         }
       }
@@ -666,21 +699,42 @@ export default function engineOutput() {
       //sets how long until next unit spawns
       function spawnTime() {
         let baseline = 80 / gameSpeed;
-        let actual = baseline + 80 * Math.random();
+        let actual = (baseline + 80 * Math.random()) / spawnSpeed;
         return actual;
       }
 
       //determines what entity will spawn based on weighted chance
-      function spawnType() {
-        let enemyEntities = Object.entries(entityList)
-          .filter((entity) => entity[1].enemy)
-          .map((entity) => entity[1]);
+      function spawnType(enemy) {
+        let entitiesEnemy;
+        if (enemy) {
+          entitiesEnemy = Object.entries(entityList)
+            .filter((entity) => entity[1].enemy)
+            .map((entity) => entity[1]);
+        } else if (!enemy) {
+          entitiesEnemy = Object.entries(entityList)
+            .filter((entity) => !entity[1].enemy)
+            .map((entity) => entity[1]);
+        }
         let parsedEntities = [];
-        enemyEntities.forEach((entity) => {
-          Object.entries(entity.lvls).forEach((level) => {
-            parsedEntities.push([entity.type, level[1].lvl, level[1].chance]);
+        if (enemy) {
+          entitiesEnemy.forEach((entity) => {
+            Object.entries(entity.lvls).forEach((level) => {
+              parsedEntities.push([entity.type, level[1].lvl, level[1].chance]);
+            });
           });
-        });
+        } else if (!enemy) {
+          entitiesEnemy.forEach((entity) => {
+            Object.entries(entity.lvls).forEach((level) => {
+              if (level[1].chance !== undefined) {
+                parsedEntities.push([
+                  entity.type,
+                  level[1].lvl,
+                  level[1].chance,
+                ]);
+              }
+            });
+          });
+        }
         let totalWeight = 0;
         parsedEntities.forEach((entity) => {
           totalWeight = totalWeight + entity[2];
@@ -703,34 +757,38 @@ export default function engineOutput() {
         return chosenEntity;
       }
 
-      //spawns chosen enemy
-      function enemySpawner(entity) {
+      //spawns chosen entity
+      function entitySpawner(entity, enemy) {
         let entityType = entityList[entity[0]];
         let entityLvl = entityType.lvls["lvl" + entity[1]];
-        let position = spawnPositionFinder();
+        let position = spawnPositionFinder(enemy);
         let entityID = entity[0] + currentTurn;
         entityID = new Entity(entityType, entityLvl, position, entityID);
         activeEntities.push(entityID);
       }
 
       //finds the position above the highest entity in the final column
-      function spawnPositionFinder() {
-        let spawnPosition = [gameboardWidth, gameboardHeight];
+      function spawnPositionFinder(enemy) {
+        let baselinePosition;
+        if (enemy) {
+          baselinePosition = [gameboardWidth, gameboardHeight];
+        } else if (!enemy) {
+          baselinePosition = [1, gameboardHeight];
+        }
+        let spawnPosition = baselinePosition;
         let endEntities = activeEntities.filter(
-          (entity) => entity.position[0] === gameboardWidth
+          (entity) => entity.position[0] === baselinePosition[0]
         );
         endEntities.forEach((entity) => {
           if (entity.position[1] <= spawnPosition[1]) {
             spawnPosition = [entity.position[0], entity.position[1] - 1];
           }
         });
-        if (
-          !comparePosition(spawnPosition, [gameboardWidth, gameboardHeight])
-        ) {
+        if (!comparePosition(spawnPosition, baselinePosition)) {
           return spawnPosition;
         }
         let endGrounds = activeGround.filter(
-          (ground) => ground.position[0] === gameboardWidth
+          (ground) => ground.position[0] === baselinePosition[0]
         );
         endGrounds.forEach((ground) => {
           if (ground.position[1] <= spawnPosition[1]) {
@@ -752,7 +810,9 @@ export default function engineOutput() {
 
     if (!paused) {
       groundMaker();
-      friendlySpawner("king", [1, gameboardHeight - groundLevel], 1);
+      if (gameMode === "king") {
+        friendlySpawner("king", [1, gameboardHeight - groundLevel], 1);
+      }
       updateGameboardEntities();
       amountOfTurns(false, 1);
     } else {
@@ -962,7 +1022,7 @@ export default function engineOutput() {
   function resume() {
     engine(activeEntities, graveyard, bank, true);
   }
-  
+
   //handles making a usable array for the grid renderer
   function updateGameboardEntities() {
     let grid = [];
@@ -1124,13 +1184,13 @@ export default function engineOutput() {
   }
 
   function updateGameboardWidth(e) {
-    setGameboardWidth(parseFloat(e.target.value));
+    setGameboardWidth(parseInt(e.target.value));
   }
   function updateGameboardHeight(e) {
-    setGameboardHeight(parseFloat(e.target.value));
+    setGameboardHeight(parseInt(e.target.value));
   }
   function updateGroundHeight(e) {
-    setGroundLevel(parseFloat(e.target.value));
+    setGroundLevel(parseInt(e.target.value));
   }
   function updateGroundRoughness(e) {
     setgroundRoughness(parseFloat(e.target.value));
@@ -1141,6 +1201,20 @@ export default function engineOutput() {
   function updateRenderSpeed(e) {
     setRenderSpeed(parseFloat(e.target.value));
   }
+  function updateTotalSpawns(e) {
+    setTotalSpawns(parseInt(e.target.value));
+  }
+  function updateSpawnSpeed(e) {
+    setSpawnSpeed(parseFloat(e.target.value));
+  }
+  function updateKingHP(e) {
+    console.log(entityList);
+    setKingHP(parseInt(e.target.value));
+    entityList.king.lvls.lvl1.hp = kingHP + 1;
+  }
+  function updateGameMode(e) {
+    setGameMode(e.target.value);
+  }
 
   return (
     <>
@@ -1150,6 +1224,7 @@ export default function engineOutput() {
           <div style={{ display: "flex", alignItems: "center" }}>
             <p>Gameboard width:</p>
             <input
+              style={{ width: "30px" }}
               type="number"
               value={gameboardWidth}
               onChange={updateGameboardWidth}
@@ -1158,6 +1233,7 @@ export default function engineOutput() {
           <p>Gameboard height:</p>
           <div style={{ display: "flex", alignItems: "center" }}>
             <input
+              style={{ width: "30px" }}
               type="number"
               value={gameboardHeight}
               onChange={updateGameboardHeight}
@@ -1166,6 +1242,7 @@ export default function engineOutput() {
           <div style={{ display: "flex", alignItems: "center" }}>
             <p>Ground height:</p>
             <input
+              style={{ width: "30px" }}
               type="number"
               value={groundLevel}
               onChange={updateGroundHeight}
@@ -1174,6 +1251,7 @@ export default function engineOutput() {
           <div style={{ display: "flex", alignItems: "center" }}>
             <p>Ground roughness:</p>
             <input
+              style={{ width: "30px" }}
               type="number"
               value={groundRoughness}
               onChange={updateGroundRoughness}
@@ -1182,6 +1260,7 @@ export default function engineOutput() {
           <div style={{ display: "flex", alignItems: "center" }}>
             <p>Game speed:</p>
             <input
+              style={{ width: "30px" }}
               type="number"
               value={gameSpeed}
               onChange={updateGameSpeed}
@@ -1190,10 +1269,49 @@ export default function engineOutput() {
           <div style={{ display: "flex", alignItems: "center" }}>
             <p>Render speed:</p>
             <input
+              style={{ width: "30px" }}
               type="number"
               value={renderSpeed}
               onChange={updateRenderSpeed}
             ></input>
+          </div>{" "}
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <p>Total spawns:</p>
+            <input
+              style={{ width: "30px" }}
+              type="number"
+              value={totalSpawns}
+              onChange={updateTotalSpawns}
+            ></input>
+          </div>
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <p>Spawn speed:</p>
+            <input
+              style={{ width: "30px" }}
+              type="number"
+              value={spawnSpeed}
+              onChange={updateSpawnSpeed}
+            ></input>
+          </div>
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <p>King HP:</p>
+            <input
+              style={{ width: "30px" }}
+              type="number"
+              value={kingHP}
+              onChange={updateKingHP}
+            ></input>
+          </div>
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <p>Gamemode:</p>
+            <select
+              style={{ width: "60px" }}
+              defaultValue="king"
+              onChange={updateGameMode}
+            >
+              <option value="king">king</option>
+              <option value="battle">battle</option>
+            </select>
           </div>
         </div>
         <button onClick={purchasableButton}>show purchasables</button>
