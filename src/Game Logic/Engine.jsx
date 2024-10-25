@@ -1102,14 +1102,7 @@ export default function engineOutput() {
         <tbody>
           {gameboardEntities.map((row) => {
             return (
-              <tr
-                className="boardRow"
-                key={row}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                }}
-              >
+              <tr className="boardRow" key={row}>
                 {row.map((position) => {
                   return (
                     <td key={position[0]}>
@@ -1140,8 +1133,18 @@ export default function engineOutput() {
     //removes king from array
     friendlyEntityArray.pop();
     let parsedFriendlyEntityArray = [
-      [["Name"], ["Level"], ["Cost"], ["HP"], ["Damage"], ["Range"], ["Rate"]],
+      [
+        [gameboardHeight + 1 + " "],
+        ["Name"],
+        ["Level"],
+        ["Cost"],
+        ["HP"],
+        ["Damage"],
+        ["Range"],
+        ["Rate"],
+      ],
     ];
+    let headerNumber = gameboardHeight + 2;
     friendlyEntityArray.forEach((entity) => {
       let lvls = Object.values(entity.lvls);
       lvls.forEach((lvl) => {
@@ -1150,6 +1153,7 @@ export default function engineOutput() {
           name = entity.type;
         }
         let thisLevel = [
+          [headerNumber + " "],
           [name],
           [lvl.lvl],
           [lvl.value],
@@ -1159,28 +1163,32 @@ export default function engineOutput() {
           [lvl.rate],
         ];
         parsedFriendlyEntityArray.push(thisLevel);
+        headerNumber++;
       });
     });
     let cellCount = 0;
+    let style = {};
     parsedFriendlyEntityArray.forEach((row) => {
       row.forEach((cell) => {
         cell.push(cellCount + "purchasable");
         cellCount++;
       });
     });
+    parsedFriendlyEntityArray.forEach((row) => {
+      style = {
+        textAlign: "center",
+        width: "50px",
+        boxShadow: "inset -1px 0px 0px #404040",
+        color: "#404040",
+      };
+      row[0].push(style);
+    });
     return (
       <table id="purchasables">
         <tbody>
           {parsedFriendlyEntityArray.map((row) => {
             return (
-              <tr
-                className="boardRow"
-                key={row}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                }}
-              >
+              <tr className="boardRow" key={row}>
                 {row.map((position) => {
                   return (
                     <td key={position[1]}>
@@ -1189,6 +1197,7 @@ export default function engineOutput() {
                         className="boardCell"
                         type="text"
                         defaultValue={position[0]}
+                        style={position[2]}
                       ></input>
                     </td>
                   );
@@ -1207,6 +1216,42 @@ export default function engineOutput() {
         <div className="statHolder">
           <p className="statTitle">Money:</p>
           <p className="stat">{bank}</p>
+        </div>
+        <div className="statHolder">
+          <p className="statTitle"></p>
+          <p className="stat"></p>
+        </div>{" "}
+        <div className="statHolder">
+          <p className="statTitle"></p>
+          <p className="stat"></p>
+        </div>{" "}
+        <div className="statHolder">
+          <p className="statTitle"></p>
+          <p className="stat"></p>
+        </div>{" "}
+        <div className="statHolder">
+          <p className="statTitle"></p>
+          <p className="stat"></p>
+        </div>{" "}
+        <div className="statHolder">
+          <p className="statTitle"></p>
+          <p className="stat"></p>
+        </div>{" "}
+        <div className="statHolder">
+          <p className="statTitle"></p>
+          <p className="stat"></p>
+        </div>{" "}
+        <div className="statHolder">
+          <p className="statTitle"></p>
+          <p className="stat"></p>
+        </div>{" "}
+        <div className="statHolder">
+          <p className="statTitle"></p>
+          <p className="stat"></p>
+        </div>{" "}
+        <div className="statHolder">
+          <p className="statTitle"></p>
+          <p className="stat"></p>
         </div>
       </div>
     );

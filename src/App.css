@@ -1,44 +1,35 @@
 body {
   background-color: #cacaca;
   background-size: cover;
+  padding: 20px;
+  padding-top: 15vh;
+  display:flex;
+  flex-direction: column;
 }
 #root {
-  padding: 20px;
+  padding: 5px;
+  background-color: white;
+  border-radius: 5px;
   display: flex;
   flex-direction: column;
   justify-items: start;
-  gap: 10px;
 }
-#gameboard {
+#gameboard,
+#purchasables,
+#settings,
+#stats {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: start;
-}
-#purchasables {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: start;
-}
-tbody {
-  margin: 0;
-  background-color: white;
-  padding: 10px;
-  padding-top: 8px;
-  padding-bottom: 13px;
-  border-radius: 5px;
-}
-
-tr {
-  margin: 0;
-  padding: 0;
-  width: 100%;
 }
 td {
-  margin: 0;
   padding: 0;
   height: 21px;
+}
+.boardRow {
+  display:flex;
+  justify-content: space-between;
 }
 input,
 select,
@@ -52,38 +43,38 @@ select,
   padding: 0;
   padding-left: 5px;
   border-width: 1px;
-  border-spacing: 0px;
   border-color: grey;
   border-style: solid;
   background-color: white;
-}
-#settings,
-#stats {
-  padding: 10px;
-  background-color: white;
-  border-radius: 5px;
-  display: "flex";
-  flex-direction: "column";
-  align-items: "center";
+  position: sticky;
 }
 .settingHolder,
 .statHolder {
   display: flex;
   align-items: center;
   height: 21px;
-  padding: 0px;
-  margin: 0px;
 }
 .settingTitle,
 .statTitle {
-  width: 157px;
+  width: 150px;
 }
 select {
   width: 157px;
   height: 23px;
+  padding-left: 0px;
+}
+#purchasables {
+  margin-top: -5px;
 }
 #below {
+  margin-top:2px;
   display: flex;
   justify-content: start;
-  gap: 10px;
+  align-items:center;
+  border-top-style:solid;
+  border-top-width:4px;
+  border-top-color: #404040;
+}
+button {
+  margin-top: 5px;
 }
