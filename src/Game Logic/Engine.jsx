@@ -92,7 +92,7 @@ export default function engineOutput() {
     this.style = groundList[type].style;
   }
 
-  function engine(paused) {
+  function engine(paused, newRound) {
     //tells entities what to do on their turn
     function entityTurn(currentEntity) {
       entityCharge(currentEntity);
@@ -139,13 +139,13 @@ export default function engineOutput() {
 
     //holds functions for entity falling
     function entityFallHolder(currentEntity) {
-      if (entityCanFall(currentEntity.position)) {
+      if (entityCanFall(currentEntity.position, currentEntity)) {
         entityFall(currentEntity);
         return true;
       }
 
       //function to determine if there is anything under the current entity
-      function entityCanFall(position) {
+      function entityCanFall(position, currentEntity) {
         if (position[1] !== gameboardHeight) {
           let positionBelow = [position[0], position[1] + 1];
           if (
@@ -163,6 +163,8 @@ export default function engineOutput() {
             return false;
           }
           return true;
+        } else if (currentEntity.ghost) {
+          entityKiller(currentEntity);
         }
       }
 
@@ -435,12 +437,11 @@ export default function engineOutput() {
     function healthChecker(entity, currentEntity) {
       if (entity.hp <= 0) {
         currentEntity.rateCharge = 0;
-        if (entity.enemy) {
-          bank += entity.value;
-          setBank(bank);
+        if (entity.enemy && !currentEntity.enemy) {
+          setBank(bank + entity.value);
           expTracker(entity, currentEntity);
         }
-        graveyardChooser(entity);
+        entityKiller(entity);
         updateGameboardEntities();
       }
     }
@@ -483,7 +484,8 @@ export default function engineOutput() {
       });
     }
 
-    function graveyardChooser(entity) {
+    //determines which graveyard entities get sent to
+    function entityKiller(entity) {
       if (entity.enemy === undefined) {
         groundGraveyard.push(
           activeGround.splice(activeGround.indexOf(entity), 1)
@@ -539,12 +541,12 @@ export default function engineOutput() {
 
     //initiates ground turn
     function groundTurn(ground) {
-      if (groundCanFall(ground.position)) {
+      if (groundCanFall(ground.position, ground)) {
         groundFall(ground);
       }
 
       //checks if ground can fall
-      function groundCanFall(position) {
+      function groundCanFall(position, ground) {
         let spaceBelow = true;
         if (position[1] !== gameboardHeight) {
           let positionBelow = [position[0], position[1] + 1];
@@ -562,7 +564,9 @@ export default function engineOutput() {
             spaceBelow = false;
           }
           return spaceBelow;
-        } else return false;
+        } else if (ground.ghost) {
+          entityKiller(ground);
+        }
       }
 
       //makes ground fall
@@ -821,17 +825,27 @@ export default function engineOutput() {
       }
     }
 
-    if (!paused) {
-      setActiveEntities([]);
-      setActiveGround([]);
-      setActiveProjectiles([]);
+    function ghoster() {
+      activeEntities.forEach((entity) => {
+        entity.fallSpeed = 0;
+        entity.ghost = true;
+      });
+      activeGround.forEach((ground) => {
+        ground.fallSpeed = 0;
+        ground.ghost = true;
+      });
+    }
+
+    if (newRound) {
+      ghoster();
       groundMaker();
       if (gameMode === "king") {
         friendlySpawner("king", [1, -groundLevel], 1);
       }
       updateGameboardEntities();
       amountOfTurns(false, 1);
-    } else {
+    }
+    if (paused) {
       amountOfTurns(false, savedTurn);
     }
   }
@@ -1000,7 +1014,7 @@ export default function engineOutput() {
 
   //pushes everything back into the game and starts the loop
   function resume() {
-    engine(true);
+    engine(true, false);
   }
 
   //handles making a usable array for the grid renderer
@@ -1381,29 +1395,20 @@ export default function engineOutput() {
   const [buttonState, setButtonState] = useState(true);
 
   function StartButton() {
-    if (buttonState) {
-      return (
-        <button id="startButton" onClick={startButton}>
-          Start Round
-        </button>
-      );
-    } else {
-      return (
-        <button id="newButton" onClick={newButton}>
-          New Round
-        </button>
-      );
-    }
-  }
-
-  function startButton() {
-    setButtonState(false);
-    engine(false);
+    return (
+      <button id="newButton" onClick={newButton} onFocus={pause}>
+        New Round
+      </button>
+    );
   }
 
   function newButton() {
     clearInterval(timer);
-    engine(false);
+    setSavedEnemySpawnsCount(30);
+    setSavedFriendlySpawnsCount(30);
+    setSavedLastEnemySpawnTime(0);
+    setSavedLastFriendlySpawnTime(0);
+    engine(false, true);
   }
 
   //temp for the moment
