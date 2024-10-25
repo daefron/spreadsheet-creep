@@ -595,7 +595,7 @@ export default function engineOutput() {
                 type = "stone";
               }
             }
-            let position = [w, h];
+            let position = [w, h - gameboardHeight];
             let groundID = type + position[0] + position[1];
             groundID = new Ground(type, position, groundID);
             activeGround.push(groundID);
@@ -814,7 +814,7 @@ export default function engineOutput() {
     if (!paused) {
       groundMaker();
       if (gameMode === "king") {
-        friendlySpawner("king", [1, gameboardHeight - groundLevel], 1);
+        friendlySpawner("king", [1, - groundLevel], 1);
       }
       updateGameboardEntities();
       amountOfTurns(false, 1);
