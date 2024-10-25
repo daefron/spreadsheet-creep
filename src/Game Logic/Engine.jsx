@@ -980,73 +980,6 @@ export default function engineOutput() {
       "inset " + currentWidth + "px 0px 0px 0px #0000001e";
   }
 
-  //makes a list of purchasble entities
-  function Purchasables() {
-    let entityArray = Object.values(entityList);
-    let friendlyEntityArray = entityArray.filter((entity) => !entity.enemy);
-    //removes king from array
-    friendlyEntityArray.pop();
-    let parsedFriendlyEntityArray = [
-      [["Name"], ["Level"], ["Cost"], ["HP"], ["Damage"], ["Range"], ["Rate"]],
-    ];
-    friendlyEntityArray.forEach((entity) => {
-      let lvls = Object.values(entity.lvls);
-      lvls.forEach((lvl) => {
-        let name = "";
-        if (lvl.lvl === 1) {
-          name = entity.type;
-        }
-        let thisLevel = [
-          [name],
-          [lvl.lvl],
-          [lvl.value],
-          [lvl.hp],
-          [lvl.dmg],
-          [lvl.range],
-          [lvl.rate],
-        ];
-        parsedFriendlyEntityArray.push(thisLevel);
-      });
-    });
-    let cellCount = 0;
-    parsedFriendlyEntityArray.forEach((row) => {
-      row.forEach((cell) => {
-        cell.push(cellCount + "purchasable");
-        cellCount++;
-      });
-    });
-    return (
-      <table id="purchasables">
-        <tbody>
-          {parsedFriendlyEntityArray.map((row) => {
-            return (
-              <tr
-                className="boardRow"
-                key={row}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                }}
-              >
-                {row.map((position) => {
-                  return (
-                    <td key={position[1]}>
-                      <input
-                        className="boardCell"
-                        type="text"
-                        defaultValue={position[0]}
-                      ></input>
-                    </td>
-                  );
-                })}
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    );
-  }
-
   //stops the game loop
   function pause() {
     clearInterval(timer);
@@ -1200,94 +1133,182 @@ export default function engineOutput() {
     );
   }
 
+  //makes a list of purchasble entities
+  function Purchasables() {
+    let entityArray = Object.values(entityList);
+    let friendlyEntityArray = entityArray.filter((entity) => !entity.enemy);
+    //removes king from array
+    friendlyEntityArray.pop();
+    let parsedFriendlyEntityArray = [
+      [["Name"], ["Level"], ["Cost"], ["HP"], ["Damage"], ["Range"], ["Rate"]],
+    ];
+    friendlyEntityArray.forEach((entity) => {
+      let lvls = Object.values(entity.lvls);
+      lvls.forEach((lvl) => {
+        let name = "";
+        if (lvl.lvl === 1) {
+          name = entity.type;
+        }
+        let thisLevel = [
+          [name],
+          [lvl.lvl],
+          [lvl.value],
+          [lvl.hp],
+          [lvl.dmg],
+          [lvl.range],
+          [lvl.rate],
+        ];
+        parsedFriendlyEntityArray.push(thisLevel);
+      });
+    });
+    let cellCount = 0;
+    parsedFriendlyEntityArray.forEach((row) => {
+      row.forEach((cell) => {
+        cell.push(cellCount + "purchasable");
+        cellCount++;
+      });
+    });
+    return (
+      <table id="purchasables">
+        <tbody>
+          {parsedFriendlyEntityArray.map((row) => {
+            return (
+              <tr
+                className="boardRow"
+                key={row}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                }}
+              >
+                {row.map((position) => {
+                  return (
+                    <td key={position[1]}>
+                      <input
+                        id={position[1]}
+                        className="boardCell"
+                        type="text"
+                        defaultValue={position[0]}
+                      ></input>
+                    </td>
+                  );
+                })}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    );
+  }
+
+  function Stats() {
+    return (
+      <div id="stats">
+        <div className="statHolder">
+          <p className="statTitle">Money:</p>
+          <p className="stat">{bank}</p>
+        </div>
+      </div>
+    );
+  }
+
   function Settings() {
     return (
-      <div style={{ display: "flex", alignItems: "center" }}>
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <p>Gameboard width:</p>
+      <div id="settings">
+        <div className="settingHolder">
+          <p className="settingTitle">Gameboard width:</p>
           <input
-            style={{ width: "30px" }}
+            id="boardWidth"
             type="number"
             value={gameboardWidth}
             onChange={updateGameboardWidth}
           ></input>
         </div>
-        <p>Gameboard height:</p>
-        <div style={{ display: "flex", alignItems: "center" }}>
+        <div className="settingHolder">
+          <p className="settingTitle">Gameboard height:</p>
           <input
-            style={{ width: "30px" }}
+            id="boardHeight"
             type="number"
             value={gameboardHeight}
             onChange={updateGameboardHeight}
           ></input>
         </div>
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <p>Ground height:</p>
+        <div className="settingHolder">
+          <p className="settingTitle">Ground height:</p>
           <input
-            style={{ width: "30px" }}
+            id="groundLevel"
             type="number"
             value={groundLevel}
             onChange={updateGroundHeight}
           ></input>
         </div>
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <p>Ground roughness:</p>
+        <div className="settingHolder">
+          <p className="settingTitle">Ground roughness:</p>
           <input
-            style={{ width: "30px" }}
+            id="groundRoughness"
             type="number"
             value={groundRoughness}
             onChange={updateGroundRoughness}
           ></input>
         </div>
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <p>Game speed:</p>
+        <div className="settingHolder">
+          <p className="settingTitle">Game speed:</p>
           <input
-            style={{ width: "30px" }}
+            id="gameSpeed"
             type="number"
             value={gameSpeed}
             onChange={updateGameSpeed}
           ></input>
         </div>
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <p>Render speed:</p>
+        <div className="settingHolder">
+          <p className="settingTitle">Render speed:</p>
           <input
-            style={{ width: "30px" }}
+            id="renderSpeed"
             type="number"
             value={renderSpeed}
             onChange={updateRenderSpeed}
           ></input>
         </div>{" "}
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <p>Total spawns:</p>
+        <div className="settingHolder">
+          <p className="settingTitle">Total spawns:</p>
           <input
-            style={{ width: "30px" }}
+            id="totalSpawns"
             type="number"
             value={totalSpawns}
             onChange={updateTotalSpawns}
           ></input>
         </div>
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <p>Spawn speed:</p>
+        <div
+          className="settingHolder"
+          style={{ display: "flex", alignItems: "center" }}
+        >
+          <p className="settingTitle">Spawn speed:</p>
           <input
-            style={{ width: "30px" }}
+            id="spawnSpeed"
             type="number"
             value={spawnSpeed}
             onChange={updateSpawnSpeed}
           ></input>
         </div>
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <p>King HP:</p>
+        <div
+          className="settingHolder"
+          style={{ display: "flex", alignItems: "center" }}
+        >
+          <p className="settingTitle">King HP:</p>
           <input
-            style={{ width: "30px" }}
+            id="kingHP"
             type="number"
             value={kingHP}
             onChange={updateKingHP}
           ></input>
         </div>
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <p>Gamemode:</p>
+        <div
+          className="settingHolder"
+          style={{ display: "flex", alignItems: "center" }}
+        >
+          <p className="settingTitle">Gamemode:</p>
           <select
-            style={{ width: "60px" }}
+            id="gamemodeSelect"
             defaultValue="king"
             onChange={updateGameMode}
           >
@@ -1357,15 +1378,15 @@ export default function engineOutput() {
 
   return (
     <>
-      <div id="menu">
-        <p>Money: ${bank}</p>
-        <Settings></Settings>
-        <button id="startButton" onClick={startButton}>
-          Start Round
-        </button>
-      </div>
       <GameboardRender></GameboardRender>
-      <Purchasables></Purchasables>
+      <div id="below" style={{ display: "flex" }}>
+        <Purchasables></Purchasables>
+        <Stats></Stats>
+        <Settings></Settings>
+      </div>
+      <button id="startButton" onClick={startButton}>
+        Start Round
+      </button>
     </>
   );
 }
