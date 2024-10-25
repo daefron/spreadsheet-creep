@@ -6,7 +6,9 @@ export default function engineOutput() {
   const [activeEntities, setActiveEntities] = useState([]);
   const [activeProjectiles, setActiveProjectiles] = useState([]);
   const [activeGround, setActiveGround] = useState([]);
-  const [graveyard, setGraveyard] = useState([]);
+  const [friendlyGraveyard, setfriendlyGraveyard] = useState([]);
+  const [enemyGraveyard, setEnemyGraveyard] = useState([]);
+  const [groundGraveyard, setGroundGraveyard] = useState([]);
   const [bank, setBank] = useState(10000);
   const [savedTurn, setSavedTurn] = useState(1);
   const [savedEnemySpawnsCount, setSavedEnemySpawnsCount] = useState(0);
@@ -90,7 +92,7 @@ export default function engineOutput() {
     this.style = groundList[type].style;
   }
 
-  function engine(activeEntities, graveyard, bank, paused) {
+  function engine(paused) {
     //tells entities what to do on their turn
     function entityTurn(currentEntity) {
       entityCharge(currentEntity);
@@ -431,26 +433,17 @@ export default function engineOutput() {
 
     //checks to see if entity dies
     function healthChecker(entity, currentEntity) {
-      if (entity.enemy !== undefined) {
-        if (entity.hp <= 0) {
-          currentEntity.rateCharge = 0;
-          if (entity.enemy) {
-            bank += entity.value;
-            setBank(bank);
-            expTracker(entity, currentEntity);
-          }
-          graveyard.push(
-            activeEntities.splice(activeEntities.indexOf(entity), 1)
-          );
+      if (entity.hp <= 0) {
+        currentEntity.rateCharge = 0;
+        if (entity.enemy) {
+          bank += entity.value;
+          setBank(bank);
+          expTracker(entity, currentEntity);
         }
-      } else {
-        if (entity.hp <= 0) {
-          currentEntity.rateCharge = 0;
-          graveyard.push(activeGround.splice(activeGround.indexOf(entity), 1));
-        }
+        graveyardChooser(entity);
+        updateGameboardEntities();
       }
     }
-
     //adds and checks exp on kill
     function expTracker(entity, currentEntity) {
       currentEntity.currentExp += entity.exp;
@@ -488,6 +481,22 @@ export default function engineOutput() {
           }
         });
       });
+    }
+
+    function graveyardChooser(entity) {
+      if (entity.enemy === undefined) {
+        groundGraveyard.push(
+          activeGround.splice(activeGround.indexOf(entity), 1)
+        );
+      } else if (entity.enemy) {
+        enemyGraveyard.push(
+          activeEntities.splice(activeEntities.indexOf(entity), 1)
+        );
+      } else if (!entity.enemy) {
+        friendlyGraveyard.push(
+          activeEntities.splice(activeEntities.indexOf(entity), 1)
+        );
+      }
     }
 
     //tells the projectile what to do on its turn
@@ -991,7 +1000,7 @@ export default function engineOutput() {
 
   //pushes everything back into the game and starts the loop
   function resume() {
-    engine(activeEntities, graveyard, bank, true);
+    engine(true);
   }
 
   //handles making a usable array for the grid renderer
@@ -1222,16 +1231,16 @@ export default function engineOutput() {
           <p className="stat">{bank}</p>
         </div>
         <div className="statHolder">
-          <p className="statTitle"></p>
-          <p className="stat"></p>
+          <p className="statTitle">Friendly deaths: </p>
+          <p className="stat">{friendlyGraveyard.length}</p>
         </div>{" "}
         <div className="statHolder">
-          <p className="statTitle"></p>
-          <p className="stat"></p>
+          <p className="statTitle">Enemy deaths: </p>
+          <p className="stat">{enemyGraveyard.length}</p>
         </div>{" "}
         <div className="statHolder">
-          <p className="statTitle"></p>
-          <p className="stat"></p>
+          <p className="statTitle">Terrain destroyed: </p>
+          <p className="stat">{groundGraveyard.length}</p>
         </div>{" "}
         <div className="statHolder">
           <p className="statTitle"></p>
@@ -1389,12 +1398,12 @@ export default function engineOutput() {
 
   function startButton() {
     setButtonState(false);
-    engine(activeEntities, graveyard, bank, false);
+    engine(false);
   }
 
   function newButton() {
     clearInterval(timer);
-    engine(activeEntities, graveyard, bank, false);
+    engine(false);
   }
 
   //temp for the moment
