@@ -633,6 +633,7 @@ export default function engineOutput() {
         nextTurn();
         if (!victoryChecker()) {
           clearInterval(innerTimer);
+          setButtonState(true);
         }
         currentTurn++;
         setSavedTurn(currentTurn);
@@ -812,9 +813,12 @@ export default function engineOutput() {
     }
 
     if (!paused) {
+      setActiveEntities([]);
+      setActiveGround([]);
+      setActiveProjectiles([]);
       groundMaker();
       if (gameMode === "king") {
-        friendlySpawner("king", [1, - groundLevel], 1);
+        friendlySpawner("king", [1, -groundLevel], 1);
       }
       updateGameboardEntities();
       amountOfTurns(false, 1);
@@ -1365,8 +1369,31 @@ export default function engineOutput() {
     );
   }
 
-  function startButton(e) {
-    e.target.style = "display:none";
+  const [buttonState, setButtonState] = useState(true);
+
+  function StartButton() {
+    if (buttonState) {
+      return (
+        <button id="startButton" onClick={startButton}>
+          Start Round
+        </button>
+      );
+    } else {
+      return (
+        <button id="newButton" onClick={newButton}>
+          New Round
+        </button>
+      );
+    }
+  }
+
+  function startButton() {
+    setButtonState(false);
+    engine(activeEntities, graveyard, bank, false);
+  }
+
+  function newButton() {
+    clearInterval(timer);
     engine(activeEntities, graveyard, bank, false);
   }
 
@@ -1429,9 +1456,7 @@ export default function engineOutput() {
         <Stats></Stats>
         <Settings></Settings>
       </div>
-      <button id="startButton" onClick={startButton}>
-        Start Round
-      </button>
+      <StartButton></StartButton>
     </>
   );
 }
