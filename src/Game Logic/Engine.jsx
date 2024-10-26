@@ -1069,12 +1069,14 @@ export default function engineOutput() {
           cellMade = true;
         }
         if (!cellMade) {
-          let entityInPosition = activeEntities.current.find((entity) =>
-            comparePosition(entity.position, [w, h])
-          );
-          if (entityInPosition !== undefined) {
-            subGrid.push(entityCell(entityInPosition, w, h));
-            cellMade = true;
+          if (activeEntities.current.length > 0) {
+            let entityInPosition = activeEntities.current.find((entity) =>
+              comparePosition(entity.position, [w, h])
+            );
+            if (entityInPosition !== undefined) {
+              subGrid.push(entityCell(entityInPosition, w, h));
+              cellMade = true;
+            }
           }
         }
         if (!cellMade) {
@@ -1087,12 +1089,14 @@ export default function engineOutput() {
           }
         }
         if (!cellMade) {
-          let projectileInPosition = activeProjectiles.current.find(
-            (projectile) => comparePosition(projectile.position, [w, h])
-          );
-          if (projectileInPosition !== undefined) {
-            subGrid.push(projectileCell(projectileInPosition, w, h));
-            cellMade = true;
+          if (activeProjectiles.current.length > 0) {
+            let projectileInPosition = activeProjectiles.current.find(
+              (projectile) => comparePosition(projectile.position, [w, h])
+            );
+            if (projectileInPosition !== undefined) {
+              subGrid.push(projectileCell(projectileInPosition, w, h));
+              cellMade = true;
+            }
           }
         }
         if (!cellMade) {
