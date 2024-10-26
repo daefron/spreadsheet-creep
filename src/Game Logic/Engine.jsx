@@ -1,33 +1,34 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import EntityList from "./EntityList.jsx";
 import ProjectileList from "./ProjectileList.jsx";
 import GroundList from "./GroundList.jsx";
 export default function engineOutput() {
-  const [activeEntities, setActiveEntities] = useState([]);
-  const [activeProjectiles, setActiveProjectiles] = useState([]);
-  const [activeGround, setActiveGround] = useState([]);
-  const [friendlyGraveyard, setfriendlyGraveyard] = useState([]);
-  const [enemyGraveyard, setEnemyGraveyard] = useState([]);
-  const [groundGraveyard, setGroundGraveyard] = useState([]);
-  const [bank, setBank] = useState(10000);
-  const [savedTurn, setSavedTurn] = useState(1);
-  const [savedEnemySpawnsCount, setSavedEnemySpawnsCount] = useState(0);
-  const [savedFriendlySpawnsCount, setSavedFriendlySpawnsCount] = useState(0);
-  const [savedLastEnemySpawnTime, setSavedLastEnemySpawnTime] = useState(0);
-  const [savedLastFriendlySpawnTime, setSavedLastFriendlySpawnTime] =
-    useState(0);
-  const [timer, setTimer] = useState();
-  const [gameboardWidth, setGameboardWidth] = useState(11);
-  const [gameboardHeight, setGameboardHeight] = useState(20);
-  const [groundLevel, setGroundLevel] = useState(7);
-  const [groundRoughness, setgroundRoughness] = useState(5);
-  const [renderSpeed, setRenderSpeed] = useState(1);
-  const [gameSpeed, setGameSpeed] = useState(1 * renderSpeed);
   const [gameboardEntities, setGameboardEntities] = useState([]);
-  const [totalSpawns, setTotalSpawns] = useState(30);
-  const [spawnSpeed, setSpawnSpeed] = useState(1);
-  const [kingHP, setKingHP] = useState(20);
-  const [gameMode, setGameMode] = useState("king");
+  const activeEntities = useRef([]);
+  const activeProjectiles = useRef([]);
+  const activeGround = useRef([]);
+  const friendlyGraveyard = useRef([]);
+  const enemyGraveyard = useRef([]);
+  const groundGraveyard = useRef([]);
+  const [bank, setBank] = useState(10000);
+  const savedTurn = useRef(1);
+  const savedEnemySpawnsCount = useRef(0);
+  const savedFriendlySpawnsCount = useRef(0);
+  const savedLastEnemySpawnTime = useRef(0);
+  const savedLastFriendlySpawnTime = useRef(0);
+  const timer = useRef();
+  const gameboardWidth = useRef(11);
+  const gameboardHeight = useRef(20);
+  const groundLevel = useRef(7);
+  const groundRoughness = useRef(5);
+  const renderSpeed = useRef(1);
+  const gameSpeed = useRef(1 * renderSpeed.current);
+  const totalSpawns = useRef(30);
+  const spawnSpeed = useRef(1);
+  const kingHP = useRef(20);
+  const gameMode = useRef("king");
+  const friendlyCount = useRef(1);
+
   let entityList = EntityList;
   let projectileList = ProjectileList;
   let groundList = GroundList;
@@ -42,9 +43,9 @@ export default function engineOutput() {
     this.dmg = lvl.dmg;
     this.range = lvl.range;
     this.rate = lvl.rate;
-    let neededRate = lvl.rate / gameSpeed;
+    let neededRate = lvl.rate / gameSpeed.current;
     this.rateCharge = neededRate;
-    this.speed = lvl.speed / gameSpeed;
+    this.speed = lvl.speed / gameSpeed.current;
     this.speedCharge = 0;
     this.enemy = type.enemy;
     this.value = lvl.value;
@@ -54,7 +55,7 @@ export default function engineOutput() {
     } else {
       this.exp = lvl.exp;
     }
-    this.fallSpeed = type.fallSpeed / gameSpeed;
+    this.fallSpeed = type.fallSpeed / gameSpeed.current;
     this.fallCharge = 0;
     this.climber = type.climber;
     this.projectile = type.projectile;
@@ -68,9 +69,9 @@ export default function engineOutput() {
     this.parent = parent;
     let type = projectileList[this.type];
     this.dmg = parent.dmg;
-    this.speed = type.speed / gameSpeed;
+    this.speed = type.speed / gameSpeed.current;
     this.speedCharge = 0;
-    this.fallSpeed = type.fallSpeed / gameSpeed;
+    this.fallSpeed = type.fallSpeed / gameSpeed.current;
     this.fallCharge = 0;
     this.enemy = parent.enemy;
     this.position = parent.position;
@@ -87,7 +88,7 @@ export default function engineOutput() {
     this.position = position;
     this.name = ID;
     this.hp = groundList[type].hp;
-    this.fallSpeed = groundList[type].fallSpeed / gameSpeed;
+    this.fallSpeed = groundList[type].fallSpeed / gameSpeed.current;
     this.fallCharge = 0;
     this.style = groundList[type].style;
   }
@@ -127,7 +128,9 @@ export default function engineOutput() {
           newPosition[0] === 0 &&
           currentEntity.speedCharge >= currentEntity.speed
         ) {
-          let king = activeEntities.find((entity) => entity.type === "king");
+          let king = activeEntities.current.find(
+            (entity) => entity.type === "king"
+          );
           king.hp -= currentEntity.dmg * 2;
           currentEntity.hp = 0;
           healthChecker(king, currentEntity);
@@ -146,17 +149,17 @@ export default function engineOutput() {
 
       //function to determine if there is anything under the current entity
       function entityCanFall(position, currentEntity) {
-        if (position[1] !== gameboardHeight) {
+        if (position[1] !== gameboardHeight.current) {
           let positionBelow = [position[0], position[1] + 1];
           if (
-            activeGround.find((ground) =>
+            activeGround.current.find((ground) =>
               comparePosition(ground.position, positionBelow)
             ) !== undefined
           ) {
             return false;
           }
           if (
-            activeEntities.find((entity) =>
+            activeEntities.current.find((entity) =>
               comparePosition(entity.position, positionBelow)
             ) !== undefined
           ) {
@@ -210,7 +213,7 @@ export default function engineOutput() {
       function attackTargetter(currentEntity, rangeCells) {
         let target;
         rangeCells.forEach((cell) => {
-          let targetEntity = activeEntities.find((entity) =>
+          let targetEntity = activeEntities.current.find((entity) =>
             comparePosition(entity.position, cell)
           );
           if (
@@ -240,7 +243,9 @@ export default function engineOutput() {
         let projectileID =
           currentEntity.projectile + projectileCount + currentEntity.name;
         projectileCount++;
-        activeProjectiles.push(new Projectile(currentEntity, projectileID));
+        activeProjectiles.current.push(
+          new Projectile(currentEntity, projectileID)
+        );
         currentEntity.rateCharge = 0;
         currentEntity.speedCharge = 0;
       }
@@ -273,7 +278,7 @@ export default function engineOutput() {
       //function to determine how entity moves if it can
       function entityMovementType(currentEntity) {
         let newPosition = [direction(currentEntity), currentEntity.position[1]];
-        if (climbHolder(currentEntity, newPosition)) {
+        if (climbHolder(currentEntity)) {
           return true;
         }
         if (walkHolder(currentEntity, newPosition)) {
@@ -282,23 +287,23 @@ export default function engineOutput() {
         return false;
 
         //holds climbing functions
-        function climbHolder(currentEntity, newPosition) {
+        function climbHolder(currentEntity) {
           let positionNextTo = [
             direction(currentEntity),
             currentEntity.position[1],
           ];
-          if (climbChecker(currentEntity, positionNextTo, newPosition)) {
+          if (climbChecker(currentEntity, positionNextTo)) {
             climbMovement(currentEntity, positionNextTo);
             return true;
           }
           return false;
 
           //checks if entity wants to climb
-          function climbChecker(currentEntity, positionNextTo, newPosition) {
-            let entityInPositionNextTo = activeEntities.find((entity) =>
+          function climbChecker(currentEntity, positionNextTo) {
+            let entityInPositionNextTo = activeEntities.current.find((entity) =>
               comparePosition(entity.position, positionNextTo)
             );
-            let groundInPositionNextTo = activeGround.find((ground) =>
+            let groundInPositionNextTo = activeGround.current.find((ground) =>
               comparePosition(ground.position, positionNextTo)
             );
             if (
@@ -316,14 +321,14 @@ export default function engineOutput() {
             function climbSpotFree(positionNextTo) {
               let positionAbove = [positionNextTo[0], positionNextTo[1] - 1];
               if (
-                activeEntities.find((entity) =>
+                activeEntities.current.find((entity) =>
                   comparePosition(entity.position, positionAbove)
                 ) !== undefined
               ) {
                 return false;
               }
               if (
-                activeGround.find((ground) =>
+                activeGround.current.find((ground) =>
                   comparePosition(ground.position, positionAbove)
                 ) !== undefined
               ) {
@@ -352,10 +357,10 @@ export default function engineOutput() {
           //checks if entity can walk
           function walkChecker(newPosition) {
             if (
-              !activeEntities.find((entity) =>
+              !activeEntities.current.find((entity) =>
                 comparePosition(entity.position, newPosition)
               ) &&
-              !activeGround.find((ground) =>
+              !activeGround.current.find((ground) =>
                 comparePosition(ground.position, newPosition)
               )
             ) {
@@ -373,16 +378,17 @@ export default function engineOutput() {
 
         //checks if entity walked/climbed into projectile and applies damage if so
         function projectileChecker(currentEntity) {
-          let projectileInPosition = activeProjectiles.find((projectile) =>
-            comparePosition(projectile.position, currentEntity.position)
+          let projectileInPosition = activeProjectiles.current.find(
+            (projectile) =>
+              comparePosition(projectile.position, currentEntity.position)
           );
           if (
             projectileInPosition !== undefined &&
             projectileInPosition.enemy !== currentEntity.enemy
           ) {
             currentEntity.hp -= projectileInPosition.dmg;
-            activeProjectiles.splice(
-              activeProjectiles.indexOf(projectileInPosition),
+            activeProjectiles.current.splice(
+              activeProjectiles.current.indexOf(projectileInPosition),
               1
             );
             healthChecker(currentEntity, projectileInPosition.parent);
@@ -405,7 +411,7 @@ export default function engineOutput() {
           currentEntity.speedCharge >= currentEntity.speed &&
           currentEntity.rate !== 0
         ) {
-          let targetGround = activeGround.find((ground) =>
+          let targetGround = activeGround.current.find((ground) =>
             comparePosition(ground.position, [
               direction(currentEntity),
               currentEntity.position[1],
@@ -420,7 +426,7 @@ export default function engineOutput() {
 
       //makes entity attack adjacent ground
       function entityAttackGround(currentEntity) {
-        let targetGround = activeGround.find((ground) =>
+        let targetGround = activeGround.current.find((ground) =>
           comparePosition(ground.position, [
             direction(currentEntity),
             currentEntity.position[1],
@@ -487,16 +493,22 @@ export default function engineOutput() {
     //determines which graveyard entities get sent to
     function entityKiller(entity) {
       if (entity.enemy === undefined) {
-        groundGraveyard.push(
-          activeGround.splice(activeGround.indexOf(entity), 1)
+        groundGraveyard.current.push(
+          activeGround.current.splice(activeGround.current.indexOf(entity), 1)
         );
       } else if (entity.enemy) {
-        enemyGraveyard.push(
-          activeEntities.splice(activeEntities.indexOf(entity), 1)
+        enemyGraveyard.current.push(
+          activeEntities.current.splice(
+            activeEntities.current.indexOf(entity),
+            1
+          )
         );
       } else if (!entity.enemy) {
-        friendlyGraveyard.push(
-          activeEntities.splice(activeEntities.indexOf(entity), 1)
+        friendlyGraveyard.current.push(
+          activeEntities.current.splice(
+            activeEntities.current.indexOf(entity),
+            1
+          )
         );
       }
     }
@@ -504,7 +516,10 @@ export default function engineOutput() {
     //tells the projectile what to do on its turn
     function projectileTurn(projectile) {
       if (projectile.distance === 0) {
-        activeProjectiles.splice(activeProjectiles.indexOf(projectile), 1);
+        activeProjectiles.current.splice(
+          activeProjectiles.current.indexOf(projectile),
+          1
+        );
       }
       projectile.speedCharge++;
       if (projectileCanMove(projectile)) {
@@ -521,7 +536,7 @@ export default function engineOutput() {
       //checks to see if projectile will move or attack enemy
       function projectileMovement(projectile) {
         let newPosition = [direction(projectile), projectile.position[1]];
-        let entityAtPosition = activeEntities.find((entity) =>
+        let entityAtPosition = activeEntities.current.find((entity) =>
           comparePosition(entity.position, newPosition)
         );
         if (
@@ -529,7 +544,10 @@ export default function engineOutput() {
           entityAtPosition.enemy !== projectile.enemy
         ) {
           entityAtPosition.hp = entityAtPosition.hp - projectile.dmg;
-          activeProjectiles.splice(activeProjectiles.indexOf(projectile), 1);
+          activeProjectiles.current.splice(
+            activeProjectiles.current.indexOf(projectile),
+            1
+          );
           healthChecker(entityAtPosition, projectile.parent);
         } else {
           projectile.speedCharge = 0;
@@ -548,16 +566,16 @@ export default function engineOutput() {
       //checks if ground can fall
       function groundCanFall(position, ground) {
         let spaceBelow = true;
-        if (position[1] !== gameboardHeight) {
+        if (position[1] !== gameboardHeight.current) {
           let positionBelow = [position[0], position[1] + 1];
-          let entityBelow = activeEntities.find((entity) =>
+          let entityBelow = activeEntities.current.find((entity) =>
             comparePosition(entity.position, positionBelow)
           );
           if (entityBelow) {
             groundAttack(ground, entityBelow);
           }
           if (
-            activeGround.find((ground) =>
+            activeGround.current.find((ground) =>
               comparePosition(ground.position, positionBelow)
             ) !== undefined
           ) {
@@ -589,29 +607,33 @@ export default function engineOutput() {
 
     //creates ground based on groundHeight and type
     function groundMaker() {
-      for (let h = gameboardHeight; h > gameboardHeight - groundLevel; h--) {
-        for (let w = 1; w <= gameboardWidth; w++) {
+      for (
+        let h = gameboardHeight.current;
+        h > gameboardHeight.current - groundLevel.current;
+        h--
+      ) {
+        for (let w = 1; w <= gameboardWidth.current; w++) {
           let spawnChance = 10;
           if (w < 3) {
             spawnChance = 10;
-          } else if (w > gameboardWidth / 2) {
+          } else if (w > gameboardWidth.current / 2) {
             spawnChance = Math.random() * 10;
           } else {
             spawnChance = Math.random() * 50;
           }
-          if (spawnChance > groundRoughness) {
+          if (spawnChance > groundRoughness.current) {
             let stoneChance;
             let type = "dirt";
-            if (h > gameboardHeight - groundLevel / 3) {
+            if (h > gameboardHeight.current - groundLevel.current / 3) {
               stoneChance = 40;
               if (Math.random() * 100 < stoneChance) {
                 type = "stone";
               }
             }
-            let position = [w, h - gameboardHeight];
+            let position = [w, h - gameboardHeight.current];
             let groundID = type + position[0] + position[1];
             groundID = new Ground(type, position, groundID);
-            activeGround.push(groundID);
+            activeGround.current.push(groundID);
           }
         }
       }
@@ -621,65 +643,62 @@ export default function engineOutput() {
     function amountOfTurns(finished, currentTurn) {
       let gameFinished = finished;
       let innerTimer;
-      let enemySpawns = savedEnemySpawnsCount;
-      let lastEnemySpawnTime = savedLastEnemySpawnTime;
+      let enemySpawns = savedEnemySpawnsCount.current;
+      let lastEnemySpawnTime = savedLastEnemySpawnTime.current;
       let lastFriendlySpawnTime;
       let friendlySpawns;
-      if (gameMode === "battle") {
-        lastFriendlySpawnTime = savedLastFriendlySpawnTime;
-        friendlySpawns = savedEnemySpawnsCount;
+      if (gameMode.current === "battle") {
+        lastFriendlySpawnTime = savedLastFriendlySpawnTime.current;
+        friendlySpawns = savedEnemySpawnsCount.current;
       }
       if (!gameFinished) {
-        setTimer(
-          (innerTimer = setInterval(() => {
-            turnCycler();
-          }, renderSpeed * 20))
-        );
+        timer.current = innerTimer = setInterval(() => {
+          turnCycler();
+        }, renderSpeed.current * 20);
       }
 
       //runs through turn actions
       function turnCycler() {
         spawnChecker(true);
-        if (gameMode === "battle") {
+        if (gameMode.current === "battle") {
           spawnChecker(false);
         }
         nextTurn();
         if (!victoryChecker()) {
           clearInterval(innerTimer);
-          setButtonState(true);
         }
         currentTurn++;
-        setSavedTurn(currentTurn);
+        savedTurn.current = currentTurn;
         updateGameboardEntities();
       }
 
       //makes all entities take turn
       function nextTurn() {
-        activeEntities.forEach((entity) => {
+        activeEntities.current.forEach((entity) => {
           entityTurn(entity);
         });
-        activeProjectiles.forEach((projectile) => {
+        activeProjectiles.current.forEach((projectile) => {
           projectileTurn(projectile);
         });
-        activeGround.forEach((ground) => {
+        activeGround.current.forEach((ground) => {
           groundTurn(ground);
         });
       }
 
       //checks to see if the king died
       function victoryChecker() {
-        if (gameMode === "king") {
+        if (gameMode.current === "king") {
           let kingAlive =
-            activeEntities.find((entity) => entity.type === "king") !==
+            activeEntities.current.find((entity) => entity.type === "king") !==
             undefined;
           if (!kingAlive) {
             activeEntitiesClearer(false);
             return false;
           } else return true;
-        } else if (gameMode === "battle") {
+        } else if (gameMode.current === "battle") {
           if (
-            savedEnemySpawnsCount === totalSpawns &&
-            savedFriendlySpawnsCount === totalSpawns
+            savedEnemySpawnsCount === totalSpawns.current &&
+            savedFriendlySpawnsCount === totalSpawns.current
           ) {
             return false;
           } else return true;
@@ -689,34 +708,34 @@ export default function engineOutput() {
       //checks if game is allowed to spawn on current turn
       function spawnChecker(enemy) {
         if (enemy) {
-          if (enemySpawns <= totalSpawns) {
+          if (enemySpawns <= totalSpawns.current) {
             lastEnemySpawnTime++;
-            setSavedLastEnemySpawnTime(lastEnemySpawnTime);
+            savedLastEnemySpawnTime.current = lastEnemySpawnTime;
             if (lastEnemySpawnTime > spawnTime()) {
               entitySpawner(spawnType(enemy), enemy);
               enemySpawns++;
-              setSavedEnemySpawnsCount(enemySpawns);
+              savedEnemySpawnsCount.current = enemySpawns;
               lastEnemySpawnTime = 0;
-              setSavedLastEnemySpawnTime(0);
+              savedLastEnemySpawnTime.current = 0;
             }
           }
         } else if (!enemy) {
           lastFriendlySpawnTime++;
-          setSavedLastFriendlySpawnTime(lastFriendlySpawnTime);
+          savedLastFriendlySpawnTime.current = lastFriendlySpawnTime;
           if (lastFriendlySpawnTime > spawnTime()) {
             entitySpawner(spawnType(enemy), enemy);
             friendlySpawns++;
-            setSavedFriendlySpawnsCount(friendlySpawns);
+            savedFriendlySpawnsCount.current = friendlySpawns;
             lastFriendlySpawnTime = 0;
-            setSavedLastEnemySpawnTime(0);
+            savedLastEnemySpawnTime.current = 0;
           }
         }
       }
 
       //sets how long until next unit spawns
       function spawnTime() {
-        let baseline = 80 / gameSpeed;
-        let actual = (baseline + 80 * Math.random()) / spawnSpeed;
+        let baseline = 80 / gameSpeed.current;
+        let actual = (baseline + 80 * Math.random()) / spawnSpeed.current;
         return actual;
       }
 
@@ -781,19 +800,19 @@ export default function engineOutput() {
         let position = spawnPositionFinder(enemy);
         let entityID = entity[0] + currentTurn;
         entityID = new Entity(entityType, entityLvl, position, entityID);
-        activeEntities.push(entityID);
+        activeEntities.current.push(entityID);
       }
 
       //finds the position above the highest entity in the final column
       function spawnPositionFinder(enemy) {
         let baselinePosition;
         if (enemy) {
-          baselinePosition = [gameboardWidth, gameboardHeight];
+          baselinePosition = [gameboardWidth.current, gameboardHeight.current];
         } else if (!enemy) {
-          baselinePosition = [1, gameboardHeight];
+          baselinePosition = [1, gameboardHeight.current];
         }
         let spawnPosition = baselinePosition;
-        let endEntities = activeEntities.filter(
+        let endEntities = activeEntities.current.filter(
           (entity) => entity.position[0] === baselinePosition[0]
         );
         endEntities.forEach((entity) => {
@@ -804,7 +823,7 @@ export default function engineOutput() {
         if (!comparePosition(spawnPosition, baselinePosition)) {
           return spawnPosition;
         }
-        let endGrounds = activeGround.filter(
+        let endGrounds = activeGround.current.filter(
           (ground) => ground.position[0] === baselinePosition[0]
         );
         endGrounds.forEach((ground) => {
@@ -815,32 +834,40 @@ export default function engineOutput() {
         return spawnPosition;
       }
 
-      //clears the activeEntities on victory
+      //clears the activeEntities.current on victory
       function activeEntitiesClearer(victory) {
         if (victory) {
-          activeEntities = activeEntities.filter((entity) => !entity.enemy);
+          activeEntities.current = activeEntities.current.filter(
+            (entity) => !entity.enemy
+          );
         } else {
-          setActiveEntities([]);
+          setActiveEntities.current([]);
         }
       }
     }
 
     function ghoster() {
-      activeEntities.forEach((entity) => {
+      activeEntities.current.forEach((entity) => {
         entity.fallSpeed = 0;
         entity.ghost = true;
       });
-      activeGround.forEach((ground) => {
+      activeGround.current.forEach((ground) => {
         ground.fallSpeed = 0;
         ground.ghost = true;
+      });
+      activeProjectiles.current.forEach((projectile) => {
+        activeProjectiles.current.splice(
+          activeProjectiles.current.indexOf(projectile),
+          1
+        );
       });
     }
 
     if (newRound) {
       ghoster();
       groundMaker();
-      if (gameMode === "king") {
-        friendlySpawner("king", [1, -groundLevel], 1);
+      if (gameMode.current === "king") {
+        friendlySpawner("king", [1, -groundLevel.current], 1);
       }
       updateGameboardEntities();
       amountOfTurns(false, 1);
@@ -902,15 +929,14 @@ export default function engineOutput() {
   }
 
   //translates user input into data Entity maker can use
-  const [friendlyCount, setFriendlyCount] = useState(1);
   function friendlyEntityMaker(entityType, entityPosition, entitylvl) {
-    let ID = friendlyCount + 1;
-    setFriendlyCount(ID);
+    let ID = friendlyCount.current + 1;
+    friendlyCount.current = ID;
     entityType = entityList[entityType];
     entitylvl = entityType.lvls["lvl" + entitylvl];
-    let entityID = entityType.type + friendlyCount;
+    let entityID = entityType.type + friendlyCount.current;
     entityID = new Entity(entityType, entitylvl, entityPosition, entityID);
-    activeEntities.push(entityID);
+    activeEntities.current.push(entityID);
     updateGameboardEntities();
   }
 
@@ -920,11 +946,11 @@ export default function engineOutput() {
     let position = e.target.id.split("x");
     position[0] = parseInt(position[0]);
     position[1] = parseInt(position[1]);
-    let entityInPosition = activeEntities.find((entity) =>
+    let entityInPosition = activeEntities.current.find((entity) =>
       comparePosition(entity.position, position)
     );
     if (entityInPosition === undefined) {
-      entityInPosition = activeGround.find((ground) =>
+      entityInPosition = activeGround.current.find((ground) =>
         comparePosition(ground.position, position)
       );
     }
@@ -944,26 +970,29 @@ export default function engineOutput() {
 
   //gives the ground entities a thicker outline if groundline
   function groundLine(ground) {
+    if (ground.fallSpeed > ground.fallCharge) {
+      return;
+    }
     ground.style.boxShadow = "";
     let made = false;
-    let groundAbove = activeGround.find((targetGround) =>
+    let groundAbove = activeGround.current.find((targetGround) =>
       comparePosition(
         [ground.position[0], ground.position[1] - 1],
         targetGround.position
       )
     );
     if (groundAbove === undefined) {
-      ground.style.boxShadow = "0px -1px 0px grey, inset 0px 1px 0px grey";
+      ground.style.boxShadow = "inset 0px 2px 0px grey";
       made = true;
     }
-    let groundLeft = activeGround.find((targetGround) =>
+    let groundLeft = activeGround.current.find((targetGround) =>
       comparePosition(
         [ground.position[0] - 1, ground.position[1]],
         targetGround.position
       )
     );
     if (groundLeft === undefined && ground.position[0] - 1 !== 0 && !made) {
-      ground.style.boxShadow = "-1px 0px 0px grey, inset 1px 0px 0px grey";
+      ground.style.boxShadow = "inset 2px 0px 0px grey";
       made = true;
     } else if (
       groundLeft === undefined &&
@@ -971,9 +1000,9 @@ export default function engineOutput() {
       made
     ) {
       ground.style.boxShadow =
-        ground.style.boxShadow + ", -1px 0px 0px grey, inset 1px 0px 0px grey";
+        ground.style.boxShadow + ",inset 2px 0px 0px grey";
     }
-    let groundRight = activeGround.find((targetGround) =>
+    let groundRight = activeGround.current.find((targetGround) =>
       comparePosition(
         [ground.position[0] + 1, ground.position[1]],
         targetGround.position
@@ -981,19 +1010,19 @@ export default function engineOutput() {
     );
     if (
       groundRight === undefined &&
-      ground.position[0] < gameboardWidth &&
+      ground.position[0] < gameboardWidth.current &&
       !made
     ) {
-      ground.style.boxShadow = "1px 0px 0px grey, inset -1px 0px 0px grey";
+      ground.style.boxShadow = "inset -2px 0px 0px grey";
       ground.style.position = "sticky";
       made = true;
     } else if (
       groundRight === undefined &&
-      ground.position[0] < gameboardWidth &&
+      ground.position[0] < gameboardWidth.current &&
       made
     ) {
       ground.style.boxShadow =
-        ground.style.boxShadow + ", 1px 0px 0px grey, inset -1px 0px 0px grey";
+        ground.style.boxShadow + ",inset -2px 0px 0px grey";
       ground.style.position = "sticky";
     }
   }
@@ -1009,7 +1038,7 @@ export default function engineOutput() {
 
   //stops the game loop
   function pause() {
-    clearInterval(timer);
+    clearInterval(timer.current);
   }
 
   //pushes everything back into the game and starts the loop
@@ -1020,9 +1049,9 @@ export default function engineOutput() {
   //handles making a usable array for the grid renderer
   function updateGameboardEntities() {
     let grid = [];
-    for (let h = 0; h <= gameboardHeight; h++) {
+    for (let h = 0; h <= gameboardHeight.current; h++) {
       let subGrid = [];
-      for (let w = 0; w <= gameboardWidth; w++) {
+      for (let w = 0; w <= gameboardWidth.current; w++) {
         if (w === 0) {
           if (h === 0) {
             let style = {
@@ -1051,7 +1080,7 @@ export default function engineOutput() {
           subGrid.push([[w + "x" + h], [toLetter(w - 1) + " "], style]);
         } else {
           let entityMade = false;
-          activeGround.forEach((ground) => {
+          activeGround.current.forEach((ground) => {
             groundLine(ground);
             let style = {
               boxShadow: ground.style.boxShadow,
@@ -1066,7 +1095,7 @@ export default function engineOutput() {
               entityMade = true;
             }
           });
-          activeEntities.forEach((entity) => {
+          activeEntities.current.forEach((entity) => {
             if (comparePosition(entity.position, [w, h]) && !entityMade) {
               attackBar(entity);
               let style = {
@@ -1100,10 +1129,10 @@ export default function engineOutput() {
               entityMade = true;
             }
           });
-          activeProjectiles.forEach((projectile) => {
+          activeProjectiles.current.forEach((projectile) => {
             if (comparePosition(projectile.position, [w, h]) && !entityMade) {
               if (
-                activeEntities.find((entity) =>
+                activeEntities.current.find((entity) =>
                   comparePosition(entity.position, projectile.position)
                 ) === undefined
               ) {
@@ -1122,7 +1151,7 @@ export default function engineOutput() {
     setGameboardEntities(grid);
   }
 
-  // pushes the entities from updateGameboardEntities to the DOM
+  // pushes the entities from updateGameboardEntities.current to the DOM
   function GameboardRender() {
     return (
       <table id="gameboard">
@@ -1161,7 +1190,7 @@ export default function engineOutput() {
     friendlyEntityArray.pop();
     let parsedFriendlyEntityArray = [
       [
-        [gameboardHeight + 1 + " "],
+        [gameboardHeight.current + 1 + " "],
         ["Name"],
         ["Level"],
         ["Cost"],
@@ -1171,7 +1200,7 @@ export default function engineOutput() {
         ["Rate"],
       ],
     ];
-    let headerNumber = gameboardHeight + 2;
+    let headerNumber = gameboardHeight.current + 2;
     friendlyEntityArray.forEach((entity) => {
       let lvls = Object.values(entity.lvls);
       lvls.forEach((lvl) => {
@@ -1246,15 +1275,15 @@ export default function engineOutput() {
         </div>
         <div className="statHolder">
           <p className="statTitle">Friendly deaths: </p>
-          <p className="stat">{friendlyGraveyard.length}</p>
+          <p className="stat">{friendlyGraveyard.current.length}</p>
         </div>{" "}
         <div className="statHolder">
           <p className="statTitle">Enemy deaths: </p>
-          <p className="stat">{enemyGraveyard.length}</p>
+          <p className="stat">{enemyGraveyard.current.length}</p>
         </div>{" "}
         <div className="statHolder">
           <p className="statTitle">Terrain destroyed: </p>
-          <p className="stat">{groundGraveyard.length}</p>
+          <p className="stat">{groundGraveyard.current.length}</p>
         </div>{" "}
         <div className="statHolder">
           <p className="statTitle"></p>
@@ -1292,7 +1321,7 @@ export default function engineOutput() {
           <input
             id="boardWidth"
             type="number"
-            value={gameboardWidth}
+            value={gameboardWidth.current}
             onChange={updateGameboardWidth}
           ></input>
         </div>
@@ -1301,52 +1330,52 @@ export default function engineOutput() {
           <input
             id="boardHeight"
             type="number"
-            value={gameboardHeight}
+            value={gameboardHeight.current}
             onChange={updateGameboardHeight}
           ></input>
         </div>
         <div className="settingHolder">
           <p className="settingTitle">Ground height:</p>
           <input
-            id="groundLevel"
+            id="groundLevel.current"
             type="number"
-            value={groundLevel}
+            value={groundLevel.current}
             onChange={updateGroundHeight}
           ></input>
         </div>
         <div className="settingHolder">
           <p className="settingTitle">Ground roughness:</p>
           <input
-            id="groundRoughness"
+            id="groundRoughness.current"
             type="number"
-            value={groundRoughness}
+            value={groundRoughness.current}
             onChange={updateGroundRoughness}
           ></input>
         </div>
         <div className="settingHolder">
           <p className="settingTitle">Game speed:</p>
           <input
-            id="gameSpeed"
+            id="gameSpeed.current"
             type="number"
-            value={gameSpeed}
+            value={gameSpeed.current}
             onChange={updateGameSpeed}
           ></input>
         </div>
         <div className="settingHolder">
           <p className="settingTitle">Render speed:</p>
           <input
-            id="renderSpeed"
+            id="renderSpeed.current"
             type="number"
-            value={renderSpeed}
+            value={renderSpeed.current}
             onChange={updateRenderSpeed}
           ></input>
         </div>{" "}
         <div className="settingHolder">
           <p className="settingTitle">Total spawns:</p>
           <input
-            id="totalSpawns"
+            id="totalSpawns.current"
             type="number"
-            value={totalSpawns}
+            value={totalSpawns.current}
             onChange={updateTotalSpawns}
           ></input>
         </div>
@@ -1356,9 +1385,9 @@ export default function engineOutput() {
         >
           <p className="settingTitle">Spawn speed:</p>
           <input
-            id="spawnSpeed"
+            id="spawnSpeed.current"
             type="number"
-            value={spawnSpeed}
+            value={spawnSpeed.current}
             onChange={updateSpawnSpeed}
           ></input>
         </div>
@@ -1368,9 +1397,9 @@ export default function engineOutput() {
         >
           <p className="settingTitle">King HP:</p>
           <input
-            id="kingHP"
+            id="kingHP.current"
             type="number"
-            value={kingHP}
+            value={kingHP.current}
             onChange={updateKingHP}
           ></input>
         </div>
@@ -1378,9 +1407,9 @@ export default function engineOutput() {
           className="settingHolder"
           style={{ display: "flex", alignItems: "center" }}
         >
-          <p className="settingTitle">Gamemode:</p>
+          <p className="settingTitle">Gamemode.current:</p>
           <select
-            id="gamemodeSelect"
+            id="gamemode.currentSelect"
             defaultValue="king"
             onChange={updateGameMode}
           >
@@ -1392,22 +1421,25 @@ export default function engineOutput() {
     );
   }
 
-  const [buttonState, setButtonState] = useState(true);
-
   function StartButton() {
     return (
-      <button id="newButton" onClick={newButton} onFocus={pause}>
+      <button
+        id="newButton"
+        onClick={newButton}
+        onFocus={pause}
+        onBlur={resume}
+      >
         New Round
       </button>
     );
   }
 
   function newButton() {
-    clearInterval(timer);
-    setSavedEnemySpawnsCount(30);
-    setSavedFriendlySpawnsCount(30);
-    setSavedLastEnemySpawnTime(0);
-    setSavedLastFriendlySpawnTime(0);
+    clearInterval(timer.current);
+    savedEnemySpawnsCount.current = 30;
+    savedFriendlySpawnsCount.current = 30;
+    savedLastEnemySpawnTime.current = 0;
+    savedLastFriendlySpawnTime.current = 0;
     engine(false, true);
   }
 
@@ -1424,38 +1456,37 @@ export default function engineOutput() {
   }
 
   function updateGameboardWidth(e) {
-    setGameboardWidth(parseInt(e.target.value));
+    gameboardWidth.current = parseInt(e.target.value);
     updateGameboardEntities();
   }
   function updateGameboardHeight(e) {
-    setGameboardHeight(parseInt(e.target.value));
+    gameboardHeight.current = parseInt(e.target.value);
     updateGameboardEntities();
   }
   function updateGroundHeight(e) {
-    setGroundLevel(parseInt(e.target.value));
+    groundLevel.current = parseInt(e.target.value);
   }
   function updateGroundRoughness(e) {
-    setgroundRoughness(parseFloat(e.target.value));
+    groundRoughness.current = parseFloat(e.target.value);
   }
   function updateGameSpeed(e) {
-    setGameSpeed(parseFloat(e.target.value));
+    gameSpeed.current = parseFloat(e.target.value);
   }
   function updateRenderSpeed(e) {
-    setRenderSpeed(parseFloat(e.target.value));
+    renderSpeed.current = parseFloat(e.target.value);
   }
   function updateTotalSpawns(e) {
-    setTotalSpawns(parseInt(e.target.value));
+    totalSpawns.current = parseInt(e.target.value);
   }
   function updateSpawnSpeed(e) {
-    setSpawnSpeed(parseFloat(e.target.value));
+    spawnSpeed.current = parseFloat(e.target.value);
   }
   function updateKingHP(e) {
-    console.log(entityList);
-    setKingHP(parseInt(e.target.value));
-    entityList.king.lvls.lvl1.hp = kingHP + 1;
+    kingHP.current = parseInt(e.target.value);
+    entityList.king.lvls.lvl1.hp = kingHP.current + 1;
   }
   function updateGameMode(e) {
-    setGameMode(e.target.value);
+    gameMode.current = e.target.value;
   }
 
   useEffect(() => {
