@@ -1284,8 +1284,8 @@ export default function engineOutput() {
           <p className="stat">{groundGraveyard.current.length}</p>
         </div>{" "}
         <div className="statHolder">
-          <p className="statTitle"></p>
-          <p className="stat"></p>
+          <p className="statTitle">Enemies remaining: </p>
+          <p className="stat">{totalSpawns.current - enemyGraveyard.current.length}/{totalSpawns.current}</p>
         </div>{" "}
         <div className="statHolder">
           <p className="statTitle"></p>
