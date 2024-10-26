@@ -4,11 +4,13 @@ export default {
     hp: 20,
     fallSpeed: 0,
     style: {},
+    falling: false,
   },
   stone: {
     type: "stone",
     hp: 80,
     fallSpeed: 0,
     style: {},
+    falling: false,
   },
 };

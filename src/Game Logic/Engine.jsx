@@ -558,8 +558,9 @@ export default function engineOutput() {
     //initiates ground turn
     function groundTurn(ground) {
       if (groundCanFall(ground.position, ground)) {
+        ground.falling = true;
         groundFall(ground);
-      }
+      } else ground.falling = false;
 
       //checks if ground can fall
       function groundCanFall(position, ground) {
@@ -687,7 +688,6 @@ export default function engineOutput() {
             activeEntities.current.find((entity) => entity.type === "king") !==
             undefined;
           if (!kingAlive) {
-            activeEntitiesClearer(false);
             return false;
           } else return true;
         } else if (gameMode.current === "battle") {
@@ -968,60 +968,64 @@ export default function engineOutput() {
 
   //gives the ground entities a thicker outline if groundline
   function groundLine(ground) {
-    if (ground.fallSpeed > ground.fallCharge) {
-      return;
-    }
-    ground.style.boxShadow = "";
-    let made = false;
-    let groundAbove = activeGround.current.find((targetGround) =>
-      comparePosition(
-        [ground.position[0], ground.position[1] - 1],
-        targetGround.position
-      )
-    );
-    if (groundAbove === undefined) {
-      ground.style.boxShadow = "inset 0px 2px 0px grey";
-      made = true;
-    }
-    let groundLeft = activeGround.current.find((targetGround) =>
-      comparePosition(
-        [ground.position[0] - 1, ground.position[1]],
-        targetGround.position
-      )
-    );
-    if (groundLeft === undefined && ground.position[0] - 1 !== 0 && !made) {
-      ground.style.boxShadow = "inset 2px 0px 0px grey";
-      made = true;
-    } else if (
-      groundLeft === undefined &&
-      ground.position[0] - 1 !== 0 &&
-      made
-    ) {
-      ground.style.boxShadow =
-        ground.style.boxShadow + ",inset 2px 0px 0px grey";
-    }
-    let groundRight = activeGround.current.find((targetGround) =>
-      comparePosition(
-        [ground.position[0] + 1, ground.position[1]],
-        targetGround.position
-      )
-    );
-    if (
-      groundRight === undefined &&
-      ground.position[0] < gameboardWidth.current &&
-      !made
-    ) {
-      ground.style.boxShadow = "inset -2px 0px 0px grey";
-      ground.style.position = "sticky";
-      made = true;
-    } else if (
-      groundRight === undefined &&
-      ground.position[0] < gameboardWidth.current &&
-      made
-    ) {
-      ground.style.boxShadow =
-        ground.style.boxShadow + ",inset -2px 0px 0px grey";
-      ground.style.position = "sticky";
+    if (!ground.falling) {
+      if (ground.fallSpeed > ground.fallCharge) {
+        return;
+      }
+      ground.style.boxShadow = "";
+      let made = false;
+      let groundAbove = activeGround.current.find((targetGround) =>
+        comparePosition(
+          [ground.position[0], ground.position[1] - 1],
+          targetGround.position
+        )
+      );
+      if (groundAbove === undefined) {
+        ground.style.boxShadow = "inset 0px 2px 0px grey";
+        made = true;
+      }
+      let groundLeft = activeGround.current.find((targetGround) =>
+        comparePosition(
+          [ground.position[0] - 1, ground.position[1]],
+          targetGround.position
+        )
+      );
+      if (groundLeft === undefined && ground.position[0] - 1 !== 0 && !made) {
+        ground.style.boxShadow = "inset 2px 0px 0px grey";
+        made = true;
+      } else if (
+        groundLeft === undefined &&
+        ground.position[0] - 1 !== 0 &&
+        made
+      ) {
+        ground.style.boxShadow =
+          ground.style.boxShadow + ",inset 2px 0px 0px grey";
+      }
+      let groundRight = activeGround.current.find((targetGround) =>
+        comparePosition(
+          [ground.position[0] + 1, ground.position[1]],
+          targetGround.position
+        )
+      );
+      if (
+        groundRight === undefined &&
+        ground.position[0] < gameboardWidth.current &&
+        !made
+      ) {
+        ground.style.boxShadow = "inset -2px 0px 0px grey";
+        ground.style.position = "sticky";
+        made = true;
+      } else if (
+        groundRight === undefined &&
+        ground.position[0] < gameboardWidth.current &&
+        made
+      ) {
+        ground.style.boxShadow =
+          ground.style.boxShadow + ",inset -2px 0px 0px grey";
+        ground.style.position = "sticky";
+      }
+    } else {
+      ground.style.boxShadow = false;
     }
   }
 
