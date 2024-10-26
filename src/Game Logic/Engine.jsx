@@ -755,25 +755,13 @@ export default function engineOutput() {
             .map((entity) => entity[1]);
         }
         let parsedEntities = [];
-        if (enemy) {
-          entitiesEnemy.forEach((entity) => {
-            Object.entries(entity.lvls).forEach((level) => {
+        entitiesEnemy.forEach((entity) => {
+          Object.entries(entity.lvls).forEach((level) => {
+            if (level[1].chance !== undefined) {
               parsedEntities.push([entity.type, level[1].lvl, level[1].chance]);
-            });
+            }
           });
-        } else if (!enemy) {
-          entitiesEnemy.forEach((entity) => {
-            Object.entries(entity.lvls).forEach((level) => {
-              if (level[1].chance !== undefined) {
-                parsedEntities.push([
-                  entity.type,
-                  level[1].lvl,
-                  level[1].chance,
-                ]);
-              }
-            });
-          });
-        }
+        });
         let totalWeight = 0;
         parsedEntities.forEach((entity) => {
           totalWeight = totalWeight + entity[2];
@@ -1499,7 +1487,7 @@ export default function engineOutput() {
           <p className="settingTitle">Gamemode.current:</p>
           <select
             id="gamemode.currentSelect"
-            defaultValue="king"
+            defaultValue={gameMode.current}
             onChange={updateGameMode}
           >
             <option value="king">king</option>
@@ -1549,7 +1537,7 @@ export default function engineOutput() {
     updateGameboardEntities();
   }
   function updateGameSpeed(e) {
-    gameSpeed.current = parseFloat(e.target.value);
+    gameSpeed.current = parseFloat(e.target.value * renderSpeed.current);
     updateGameboardEntities();
   }
   function updateRenderSpeed(e) {
