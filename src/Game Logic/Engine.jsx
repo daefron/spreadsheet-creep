@@ -1149,7 +1149,7 @@ export default function engineOutput() {
     setGameboardEntities(grid);
   }
 
-  // pushes the entities from updateGameboardEntities.current to the DOM
+  // pushes the entities from updateGameboardEntities to the DOM
   function GameboardRender() {
     return (
       <table id="gameboard">
@@ -1189,6 +1189,16 @@ export default function engineOutput() {
     let parsedFriendlyEntityArray = [
       [
         [gameboardHeight.current + 1 + " "],
+        ["Purchasable entities:"],
+        [""],
+        [""],
+        [""],
+        [""],
+        [""],
+        [""],
+      ],
+      [
+        [gameboardHeight.current + 2 + " "],
         ["Name"],
         ["Level"],
         ["Cost"],
@@ -1198,7 +1208,7 @@ export default function engineOutput() {
         ["Rate"],
       ],
     ];
-    let headerNumber = gameboardHeight.current + 2;
+    let headerNumber = gameboardHeight.current + 3;
     friendlyEntityArray.forEach((entity) => {
       let lvls = Object.values(entity.lvls);
       lvls.forEach((lvl) => {
@@ -1237,6 +1247,14 @@ export default function engineOutput() {
       };
       row[0].push(style);
     });
+    parsedFriendlyEntityArray[0].forEach((cell) => {
+      if (cell[0] !== gameboardHeight.current + 1 + " ") {
+        style = {
+          boxShadow: "inset 0px -2px 0px 0px black",
+        };
+        cell.push(style);
+      }
+    });
     return (
       <table id="purchasables">
         <tbody>
@@ -1268,41 +1286,56 @@ export default function engineOutput() {
     return (
       <div id="stats">
         <div className="statHolder">
+          <p
+            className="statTitle"
+            style={{ boxShadow: "inset 0px -2px 0px 0px black" }}
+          >
+            Stats:
+          </p>
+          <p
+            className="stat"
+            style={{ boxShadow: "inset 0px -2px 0px 0px black" }}
+          ></p>
+        </div>
+        <div className="statHolder">
           <p className="statTitle">Money:</p>
           <p className="stat">{bank}</p>
         </div>
         <div className="statHolder">
           <p className="statTitle">Friendly deaths: </p>
           <p className="stat">{friendlyGraveyard.current.length}</p>
-        </div>{" "}
+        </div>
         <div className="statHolder">
           <p className="statTitle">Enemy deaths: </p>
           <p className="stat">{enemyGraveyard.current.length}</p>
-        </div>{" "}
+        </div>
         <div className="statHolder">
           <p className="statTitle">Terrain destroyed: </p>
           <p className="stat">{groundGraveyard.current.length}</p>
-        </div>{" "}
+        </div>
         <div className="statHolder">
           <p className="statTitle">Enemies remaining: </p>
-          <p className="stat">{totalSpawns.current - enemyGraveyard.current.length}/{totalSpawns.current}</p>
-        </div>{" "}
+          <p className="stat">
+            {totalSpawns.current - enemyGraveyard.current.length}/
+            {totalSpawns.current}
+          </p>
+        </div>
         <div className="statHolder">
           <p className="statTitle"></p>
           <p className="stat"></p>
-        </div>{" "}
+        </div>
         <div className="statHolder">
           <p className="statTitle"></p>
           <p className="stat"></p>
-        </div>{" "}
+        </div>
         <div className="statHolder">
           <p className="statTitle"></p>
           <p className="stat"></p>
-        </div>{" "}
+        </div>
         <div className="statHolder">
           <p className="statTitle"></p>
           <p className="stat"></p>
-        </div>{" "}
+        </div>
         <div className="statHolder">
           <p className="statTitle"></p>
           <p className="stat"></p>
@@ -1314,6 +1347,21 @@ export default function engineOutput() {
   function Settings() {
     return (
       <div id="settings">
+        <div
+          className="settingHolder"
+          style={{ display: "flex", alignItems: "center" }}
+        >
+          <p
+            className="settingTitle"
+            style={{ boxShadow: "inset 0px -2px 0px 0px black" }}
+          >
+            Settings:
+          </p>
+          <input
+            id="settingTitle"
+            style={{ boxShadow: "inset 0px -2px 0px 0px black" }}
+          ></input>
+        </div>
         <div className="settingHolder">
           <p className="settingTitle">Gameboard width:</p>
           <input
@@ -1367,7 +1415,7 @@ export default function engineOutput() {
             value={renderSpeed.current}
             onChange={updateRenderSpeed}
           ></input>
-        </div>{" "}
+        </div>
         <div className="settingHolder">
           <p className="settingTitle">Total spawns:</p>
           <input
