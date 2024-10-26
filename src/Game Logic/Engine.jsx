@@ -640,7 +640,6 @@ export default function engineOutput() {
     //sets amount of turns to play
     function amountOfTurns(finished) {
       let gameFinished = finished;
-      let innerTimer;
       let enemySpawns = savedEnemySpawnsCount.current;
       let lastEnemySpawnTime = savedLastEnemySpawnTime.current;
       let lastFriendlySpawnTime;
@@ -650,7 +649,7 @@ export default function engineOutput() {
         friendlySpawns = savedEnemySpawnsCount.current;
       }
       if (!gameFinished) {
-        timer.current = innerTimer = setInterval(() => {
+        timer.current = setInterval(() => {
           turnCycler();
         }, renderSpeed.current * 20);
       }
@@ -663,7 +662,7 @@ export default function engineOutput() {
         }
         nextTurn();
         if (!victoryChecker()) {
-          clearInterval(innerTimer);
+          clearInterval(timer.current);
         }
         updateGameboardEntities();
       }
@@ -840,7 +839,7 @@ export default function engineOutput() {
             (entity) => !entity.enemy
           );
         } else {
-          setActiveEntities.current([]);
+          activeEntities.current = [];
         }
       }
     }
@@ -1452,28 +1451,36 @@ export default function engineOutput() {
   }
   function updateGroundHeight(e) {
     groundLevel.current = parseInt(e.target.value);
+    updateGameboardEntities();
   }
   function updateGroundRoughness(e) {
     groundRoughness.current = parseFloat(e.target.value);
+    updateGameboardEntities();
   }
   function updateGameSpeed(e) {
     gameSpeed.current = parseFloat(e.target.value);
+    updateGameboardEntities();
   }
   function updateRenderSpeed(e) {
     renderSpeed.current = parseFloat(e.target.value);
+    updateGameboardEntities();
   }
   function updateTotalSpawns(e) {
     totalSpawns.current = parseInt(e.target.value);
+    updateGameboardEntities();
   }
   function updateSpawnSpeed(e) {
     spawnSpeed.current = parseFloat(e.target.value);
+    updateGameboardEntities();
   }
   function updateKingHP(e) {
     kingHP.current = parseInt(e.target.value);
     entityList.king.lvls.lvl1.hp = kingHP.current + 1;
+    updateGameboardEntities();
   }
   function updateGameMode(e) {
     gameMode.current = e.target.value;
+    updateGameboardEntities();
   }
 
   //renders the gameboard once on page load
