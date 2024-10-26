@@ -11,7 +11,6 @@ export default function engineOutput() {
   const enemyGraveyard = useRef([]);
   const groundGraveyard = useRef([]);
   const [bank, setBank] = useState(10000);
-  const savedTurn = useRef(1);
   const savedEnemySpawnsCount = useRef(0);
   const savedFriendlySpawnsCount = useRef(0);
   const savedLastEnemySpawnTime = useRef(0);
@@ -639,7 +638,7 @@ export default function engineOutput() {
     }
 
     //sets amount of turns to play
-    function amountOfTurns(finished, currentTurn) {
+    function amountOfTurns(finished) {
       let gameFinished = finished;
       let innerTimer;
       let enemySpawns = savedEnemySpawnsCount.current;
@@ -666,8 +665,6 @@ export default function engineOutput() {
         if (!victoryChecker()) {
           clearInterval(innerTimer);
         }
-        currentTurn++;
-        savedTurn.current = currentTurn;
         updateGameboardEntities();
       }
 
@@ -797,7 +794,10 @@ export default function engineOutput() {
         let entityType = entityList[entity[0]];
         let entityLvl = entityType.lvls["lvl" + entity[1]];
         let position = spawnPositionFinder(enemy);
-        let entityID = entity[0] + currentTurn;
+        let entityID = entity[0];
+        if (enemy) {
+          entityID += savedEnemySpawnsCount;
+        } else entityID += savedFriendlySpawnsCount;
         entityID = new Entity(entityType, entityLvl, position, entityID);
         activeEntities.current.push(entityID);
       }
@@ -872,7 +872,7 @@ export default function engineOutput() {
       amountOfTurns(false, 1);
     }
     if (paused) {
-      amountOfTurns(false, savedTurn);
+      amountOfTurns(false);
     }
   }
 
@@ -1442,18 +1442,6 @@ export default function engineOutput() {
     engine(false, true);
   }
 
-  //temp for the moment
-  let purchasableButtonClicked = false;
-  function purchasableButton() {
-    if (!purchasableButtonClicked) {
-      document.getElementById("purchasables").style = "";
-      purchasableButtonClicked = true;
-    } else {
-      document.getElementById("purchasables").style = "display:none";
-      purchasableButtonClicked = false;
-    }
-  }
-
   function updateGameboardWidth(e) {
     gameboardWidth.current = parseInt(e.target.value);
     updateGameboardEntities();
@@ -1488,6 +1476,7 @@ export default function engineOutput() {
     gameMode.current = e.target.value;
   }
 
+  //renders the gameboard once on page load
   useEffect(() => {
     updateGameboardEntities();
   }, []);
