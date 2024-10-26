@@ -448,7 +448,6 @@ export default function engineOutput() {
           expTracker(entity, currentEntity);
         }
         entityKiller(entity);
-        updateGameboardEntities();
       }
     }
     //adds and checks exp on kill
@@ -1436,8 +1435,8 @@ export default function engineOutput() {
 
   function newButton() {
     clearInterval(timer.current);
-    savedEnemySpawnsCount.current = 30;
-    savedFriendlySpawnsCount.current = 30;
+    savedEnemySpawnsCount.current = 0;
+    savedFriendlySpawnsCount.current = 0;
     savedLastEnemySpawnTime.current = 0;
     savedLastFriendlySpawnTime.current = 0;
     engine(false, true);
