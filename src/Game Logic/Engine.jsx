@@ -1056,7 +1056,7 @@ export default function engineOutput() {
               width: "50px",
               position: "sticky",
               boxShadow:
-                "inset -1px 0px 0px #404040, inset 0px -1px 0px #404040",
+                "inset -1px 0px 0px #404040, inset 0px -2px 0px #404040",
             };
             subGrid.push([[w + "x" + h], [], style]);
           } else {
@@ -1073,7 +1073,7 @@ export default function engineOutput() {
             textAlign: "center",
             color: "#404040",
             position: "sticky",
-            boxShadow: "inset 0px -1px 0px #404040",
+            boxShadow: "inset 0px -2px 0px #404040",
           };
           subGrid.push([[w + "x" + h], [toLetter(w - 1) + " "], style]);
         } else {
