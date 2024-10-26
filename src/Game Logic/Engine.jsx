@@ -27,7 +27,7 @@ export default function engineOutput() {
   const kingHP = useRef(20);
   const gameMode = useRef("king");
   const friendlyCount = useRef(1);
-
+  const groundIsFalling = useRef(false);
   let entityList = EntityList;
   let projectileList = ProjectileList;
   let groundList = GroundList;
@@ -127,14 +127,18 @@ export default function engineOutput() {
           newPosition[0] === 0 &&
           currentEntity.speedCharge >= currentEntity.speed
         ) {
-          let king = activeEntities.current.find(
-            (entity) => entity.type === "king"
-          );
-          king.hp -= currentEntity.dmg * 2;
-          currentEntity.hp = 0;
-          healthChecker(king, currentEntity);
-          healthChecker(currentEntity, king);
-          return true;
+          if (gameMode.current === "king") {
+            let king = activeEntities.current.find(
+              (entity) => entity.type === "king"
+            );
+            king.hp -= currentEntity.dmg * 2;
+            currentEntity.hp = 0;
+            healthChecker(king, currentEntity);
+            healthChecker(currentEntity, king);
+            return true;
+          } else if (gameMode.current === "battle") {
+            entityKiller(currentEntity);
+          }
         }
       }
     }
@@ -558,14 +562,18 @@ export default function engineOutput() {
     //initiates ground turn
     function groundTurn(ground) {
       if (groundCanFall(ground.position, ground)) {
+        groundIsFalling.current = true;
         ground.falling = true;
         groundFall(ground);
-      } else ground.falling = false;
+      } else {
+        ground.falling = false;
+        groundIsFalling.current = true;
+      }
 
       //checks if ground can fall
       function groundCanFall(position, ground) {
-        let spaceBelow = true;
         if (position[1] !== gameboardHeight.current) {
+          let spaceBelow = true;
           let positionBelow = [position[0], position[1] + 1];
           let entityBelow = activeEntities.current.find((entity) =>
             comparePosition(entity.position, positionBelow)
@@ -1013,7 +1021,6 @@ export default function engineOutput() {
         !made
       ) {
         ground.style.boxShadow = "inset -2px 0px 0px grey";
-        ground.style.position = "sticky";
         made = true;
       } else if (
         groundRight === undefined &&
@@ -1022,7 +1029,6 @@ export default function engineOutput() {
       ) {
         ground.style.boxShadow =
           ground.style.boxShadow + ",inset -2px 0px 0px grey";
-        ground.style.position = "sticky";
       }
     } else {
       ground.style.boxShadow = false;
@@ -1054,103 +1060,132 @@ export default function engineOutput() {
     for (let h = 0; h <= gameboardHeight.current; h++) {
       let subGrid = [];
       for (let w = 0; w <= gameboardWidth.current; w++) {
+        let cellMade = false;
         if (w === 0) {
-          if (h === 0) {
-            let style = {
-              width: "50px",
-              position: "sticky",
-              boxShadow:
-                "inset -1px 0px 0px #404040, inset 0px -2px 0px #404040",
-            };
-            subGrid.push([[w + "x" + h], [], style]);
-          } else {
-            let style = {
-              textAlign: "center",
-              width: "50px",
-              boxShadow: "inset -1px 0px 0px #404040",
-              color: "#404040",
-            };
-            subGrid.push([[w + "x" + h], [h + " "], style]);
+          subGrid.push(firstColumnCell(w, h));
+          cellMade = true;
+        } else if (h === 0 && !cellMade) {
+          subGrid.push(firstRowCell(w, h));
+          cellMade = true;
+        }
+        if (!cellMade) {
+          let entityInPosition = activeEntities.current.find((entity) =>
+            comparePosition(entity.position, [w, h])
+          );
+          if (entityInPosition !== undefined) {
+            subGrid.push(entityCell(entityInPosition, w, h));
+            cellMade = true;
           }
-        } else if (h === 0) {
-          let style = {
-            textAlign: "center",
-            color: "#404040",
-            position: "sticky",
-            boxShadow: "inset 0px -2px 0px #404040",
-          };
-          subGrid.push([[w + "x" + h], [toLetter(w - 1) + " "], style]);
-        } else {
-          let entityMade = false;
-          activeGround.current.forEach((ground) => {
-            groundLine(ground);
-            let style = {
-              boxShadow: ground.style.boxShadow,
-              position: ground.style.position,
-            };
-            if (comparePosition(ground.position, [w, h])) {
-              subGrid.push([
-                [w + "x" + h],
-                [ground.type + "(hp: " + ground.hp + ")"],
-                style,
-              ]);
-              entityMade = true;
-            }
-          });
-          activeEntities.current.forEach((entity) => {
-            if (comparePosition(entity.position, [w, h]) && !entityMade) {
-              attackBar(entity);
-              let style = {
-                boxShadow: entity.style.boxShadow,
-              };
-              if (entity.enemy === true) {
-                style.color = "darkRed";
-                subGrid.push([
-                  [w + "x" + h],
-                  [entity.type + entity.lvl + " (hp: " + entity.hp + ")"],
-                  style,
-                ]);
-              } else {
-                style.color = "darkGreen";
-                subGrid.push([
-                  [w + "x" + h],
-                  [
-                    entity.type +
-                      entity.lvl +
-                      " (hp: " +
-                      entity.hp +
-                      " exp: " +
-                      entity.currentExp +
-                      "/" +
-                      entity.neededExp +
-                      ")",
-                  ],
-                  style,
-                ]);
-              }
-              entityMade = true;
-            }
-          });
-          activeProjectiles.current.forEach((projectile) => {
-            if (comparePosition(projectile.position, [w, h]) && !entityMade) {
-              if (
-                activeEntities.current.find((entity) =>
-                  comparePosition(entity.position, projectile.position)
-                ) === undefined
-              ) {
-                subGrid.push([w + "x" + h, [projectile.symbol]]);
-                entityMade = true;
-              }
-            }
-          });
-          if (!entityMade) {
-            subGrid.push([w + "x" + h, [""]]);
+        }
+        if (!cellMade) {
+          let groundInPosition = activeGround.current.find((ground) =>
+            comparePosition(ground.position, [w, h])
+          );
+          if (groundInPosition !== undefined) {
+            subGrid.push(groundCell(groundInPosition, w, h));
+            cellMade = true;
           }
+        }
+        if (!cellMade) {
+          let projectileInPosition = activeProjectiles.current.find(
+            (projectile) => comparePosition(projectile.position, [w, h])
+          );
+          if (projectileInPosition !== undefined) {
+            subGrid.push(projectileCell(projectileInPosition, w, h));
+            cellMade = true;
+          }
+        }
+        if (!cellMade) {
+          subGrid.push([w + "x" + h, [""]]);
         }
       }
       grid.push(subGrid);
     }
     setGameboardEntities(grid);
+
+    //below functions return what is to be rendered in cell
+    function firstColumnCell(w, h) {
+      if (h === 0) {
+        let style = {
+          width: "50px",
+          position: "sticky",
+          boxShadow: "inset -1px 0px 0px #404040, inset 0px -2px 0px #404040",
+        };
+        return [[w + "x" + h], [], style];
+      } else {
+        let style = {
+          textAlign: "center",
+          width: "50px",
+          boxShadow: "inset -1px 0px 0px #404040",
+          color: "#404040",
+        };
+        return [[w + "x" + h], [h + " "], style];
+      }
+    }
+    function firstRowCell(w, h) {
+      let style = {
+        textAlign: "center",
+        color: "#404040",
+        position: "sticky",
+        boxShadow: "inset 0px -2px 0px #404040",
+      };
+      return [[w + "x" + h], [toLetter(w - 1) + " "], style];
+    }
+    function groundCell(ground, w, h) {
+      if (groundIsFalling.current) {
+        groundLine(ground);
+      }
+      let style = {
+        boxShadow: ground.style.boxShadow,
+      };
+      if (comparePosition(ground.position, [w, h])) {
+        return [
+          [w + "x" + h],
+          [ground.type + "(hp: " + ground.hp + ")"],
+          style,
+        ];
+      }
+    }
+    function entityCell(entity, w, h) {
+      attackBar(entity);
+      let style = {
+        boxShadow: entity.style.boxShadow,
+      };
+      if (entity.enemy === true) {
+        style.color = "darkRed";
+        return [
+          [w + "x" + h],
+          [entity.type + entity.lvl + " (hp: " + entity.hp + ")"],
+          style,
+        ];
+      } else {
+        style.color = "darkGreen";
+        return [
+          [w + "x" + h],
+          [
+            entity.type +
+              entity.lvl +
+              " (hp: " +
+              entity.hp +
+              " exp: " +
+              entity.currentExp +
+              "/" +
+              entity.neededExp +
+              ")",
+          ],
+          style,
+        ];
+      }
+    }
+    function projectileCell(projectile, w, h) {
+      if (
+        activeEntities.current.find((entity) =>
+          comparePosition(entity.position, projectile.position)
+        ) === undefined
+      ) {
+        return [w + "x" + h, [projectile.symbol]];
+      }
+    }
   }
 
   // pushes the entities from updateGameboardEntities to the DOM
