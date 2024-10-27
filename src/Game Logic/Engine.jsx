@@ -653,12 +653,16 @@ export default function engineOutput() {
       ) {
         for (let w = 1; w <= gameboardWidth.current; w++) {
           let spawnChance = 10;
-          if (w < 3) {
-            spawnChance = 10;
-          } else if (w > gameboardWidth.current / 2) {
-            spawnChance = Math.random() * 10;
+          if (gameMode === "king") {
+            if (w < 3) {
+              spawnChance = 10;
+            } else if (w > gameboardWidth.current / 2) {
+              spawnChance = Math.random() * 10;
+            } else {
+              spawnChance = Math.random() * 50;
+            }
           } else {
-            spawnChance = Math.random() * 50;
+            spawnChance = Math.random() * 10;
           }
           if (spawnChance > groundRoughness.current) {
             let stoneChance;
