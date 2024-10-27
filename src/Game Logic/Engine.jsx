@@ -563,16 +563,26 @@ export default function engineOutput() {
         let entityAtPosition = activeEntities.current.find((entity) =>
           comparePosition(entity.position, newPosition)
         );
+        let groundAtPosition = activeGround.current.find((ground) =>
+          comparePosition(ground.position, newPosition)
+        );
         if (
           entityAtPosition !== undefined &&
           entityAtPosition.enemy !== projectile.enemy
         ) {
-          entityAtPosition.hp = entityAtPosition.hp - projectile.dmg;
+          entityAtPosition.hp -= projectile.dmg;
           activeProjectiles.current.splice(
             activeProjectiles.current.indexOf(projectile),
             1
           );
           healthChecker(entityAtPosition, projectile.parent);
+        } else if (groundAtPosition !== undefined) {
+          groundAtPosition.hp -= projectile.dmg;
+          activeProjectiles.current.splice(
+            activeProjectiles.current.indexOf(projectile),
+            1
+          );
+          healthChecker(groundAtPosition, projectile.parent);
         } else {
           projectile.speedCharge = 0;
           projectile.position = newPosition;
