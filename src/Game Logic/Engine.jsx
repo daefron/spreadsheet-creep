@@ -494,24 +494,40 @@ export default function engineOutput() {
 
     //determines which graveyard entities get sent to
     function entityKiller(entity) {
-      if (entity.enemy === undefined) {
-        groundGraveyard.current.push(
-          activeGround.current.splice(activeGround.current.indexOf(entity), 1)
-        );
-      } else if (entity.enemy) {
-        enemyGraveyard.current.push(
+      if (entity.ghost === undefined) {
+        if (entity.enemy === undefined) {
+          groundGraveyard.current.push(
+            activeGround.current.splice(activeGround.current.indexOf(entity), 1)
+          );
+        } else if (entity.enemy) {
+          enemyGraveyard.current.push(
+            activeEntities.current.splice(
+              activeEntities.current.indexOf(entity),
+              1
+            )
+          );
+        } else if (!entity.enemy) {
+          friendlyGraveyard.current.push(
+            activeEntities.current.splice(
+              activeEntities.current.indexOf(entity),
+              1
+            )
+          );
+        }
+      } else {
+        if (entity.enemy === undefined) {
+          activeGround.current.splice(activeGround.current.indexOf(entity), 1);
+        } else if (entity.enemy) {
           activeEntities.current.splice(
             activeEntities.current.indexOf(entity),
             1
-          )
-        );
-      } else if (!entity.enemy) {
-        friendlyGraveyard.current.push(
+          );
+        } else if (!entity.enemy) {
           activeEntities.current.splice(
             activeEntities.current.indexOf(entity),
             1
-          )
-        );
+          );
+        }
       }
     }
 
@@ -1054,7 +1070,7 @@ export default function engineOutput() {
     }
     setGameboardEntities(grid);
 
-    //determins what type function to call
+    //determines what type function to call
     function cellType(w, h) {
       if (w === 0) {
         return firstColumnCell(w, h);
@@ -1105,7 +1121,7 @@ export default function engineOutput() {
         return [[w + "x" + h], [h + " "], style];
       }
     }
-    
+
     function firstRowCell(w, h) {
       let style = {
         textAlign: "center",
@@ -1508,6 +1524,9 @@ export default function engineOutput() {
 
   function newButton() {
     clearInterval(timer.current);
+    enemyGraveyard.current = [];
+    friendlyGraveyard.current = [];
+    groundGraveyard.current = [];
     savedEnemySpawnsCount.current = 0;
     savedFriendlySpawnsCount.current = 0;
     savedLastEnemySpawnTime.current = 0;
