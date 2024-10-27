@@ -123,6 +123,16 @@ export default {
       },
       lvl2: {
         lvl: 2,
+        hp: 20,
+        dmg: 0,
+        range: 0,
+        rate: 0,
+        speed: 0,
+        value: 2,
+        neededExp: 100,
+      },
+      lvl3: {
+        lvl: 3,
         hp: 100000000,
         dmg: 0,
         range: 0,

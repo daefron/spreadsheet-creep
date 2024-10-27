@@ -28,6 +28,7 @@ export default function engineOutput() {
   const gameMode = useRef("king");
   const friendlyCount = useRef(1);
   const groundIsFalling = useRef(false);
+  const projectileCount = useRef(0);
   let entityList = EntityList;
   let projectileList = ProjectileList;
   let groundList = GroundList;
@@ -61,7 +62,6 @@ export default function engineOutput() {
     this.style = type.style;
   }
 
-  let projectileCount = 1;
   //function that creates new active projectiles
   function Projectile(parent, name, type) {
     this.type = type.type;
@@ -249,8 +249,10 @@ export default function engineOutput() {
       //function to spawn projectile
       function rangedAttack(currentEntity) {
         let projectileID =
-          currentEntity.projectile + projectileCount + currentEntity.name;
-        projectileCount++;
+          currentEntity.projectile +
+          projectileCount.current +
+          currentEntity.name;
+        projectileCount.current++;
         let type = projectileList[currentEntity.projectile];
         activeProjectiles.current.push(
           new Projectile(currentEntity, projectileID, type)
@@ -653,7 +655,7 @@ export default function engineOutput() {
       ) {
         for (let w = 1; w <= gameboardWidth.current; w++) {
           let spawnChance = 10;
-          if (gameMode === "king") {
+          if (gameMode.current === "king") {
             if (w < 3) {
               spawnChance = 10;
             } else if (w > gameboardWidth.current / 2) {
@@ -864,7 +866,7 @@ export default function engineOutput() {
         return spawnPosition;
       }
 
-      //clears the activeEntities.current on victory
+      //clears the activeEntities enemies on victory
       function activeEntitiesClearer(victory) {
         if (victory) {
           activeEntities.current = activeEntities.current.filter(
@@ -1322,7 +1324,7 @@ export default function engineOutput() {
         <tbody>
           {parsedFriendlyEntityArray.map((row) => {
             return (
-              <tr className="boardRow" key={row}>
+              <tr className="purchasableRow" key={row}>
                 {row.map((position) => {
                   return (
                     <td key={position[1]}>
@@ -1381,26 +1383,6 @@ export default function engineOutput() {
             {totalSpawns.current - enemyGraveyard.current.length}/
             {totalSpawns.current}
           </p>
-        </div>
-        <div className="statHolder">
-          <p className="statTitle"></p>
-          <p className="stat"></p>
-        </div>
-        <div className="statHolder">
-          <p className="statTitle"></p>
-          <p className="stat"></p>
-        </div>
-        <div className="statHolder">
-          <p className="statTitle"></p>
-          <p className="stat"></p>
-        </div>
-        <div className="statHolder">
-          <p className="statTitle"></p>
-          <p className="stat"></p>
-        </div>
-        <div className="statHolder">
-          <p className="statTitle"></p>
-          <p className="stat"></p>
         </div>
       </div>
     );

@@ -28,7 +28,7 @@ td {
   padding: 0;
   height: 21px;
 }
-.boardRow {
+.boardRow, .purchasableRow {
   display: flex;
   justify-content: space-between;
 }
@@ -68,14 +68,14 @@ select {
   padding-left: 0px;
 }
 #purchasables {
-  margin-top: -5px;
+  margin-top: -3px;
 }
+
 #below {
   margin-top: 2px;
   display: flex;
   justify-content: start;
-  align-items: center;
-  box-shadow: 1px 0px 0px 0px black;
+  align-items: start;
   border-top-style: solid;
   border-top-width: 4px;
   border-top-color: #404040;
