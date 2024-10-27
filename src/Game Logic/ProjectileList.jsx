@@ -3,7 +3,7 @@ export default {
     friendlySymbol: ">-<>",
     enemySymbol: "<>-<",
     projectile: true,
-    speed: 30,
+    speed: 10,
     fallSpeed: 40,
     distance: 5,
   },

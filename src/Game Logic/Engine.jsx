@@ -63,17 +63,16 @@ export default function engineOutput() {
 
   let projectileCount = 1;
   //function that creates new active projectiles
-  function Projectile(parent, name) {
-    this.type = parent.projectile;
+  function Projectile(parent, name, type) {
+    this.type = type.type;
     this.parent = parent;
-    let type = projectileList[this.type];
     this.dmg = parent.dmg;
     this.speed = type.speed / gameSpeed.current;
     this.speedCharge = 0;
     this.fallSpeed = type.fallSpeed / gameSpeed.current;
     this.fallCharge = 0;
     this.enemy = parent.enemy;
-    this.position = parent.position;
+    this.position = [direction(parent), parent.position[1]];
     this.distance = parent.range;
     if (this.enemy) {
       this.symbol = type.enemySymbol;
@@ -191,7 +190,13 @@ export default function engineOutput() {
       let rangeCells = rangeGetter(currentEntity);
       let targetEntity = attackTargetter(currentEntity, rangeCells);
       if (entityCanAttack(currentEntity, targetEntity)) {
-        if (currentEntity.projectile !== false) {
+        if (
+          currentEntity.projectile !== false &&
+          !comparePosition(targetEntity.position, [
+            direction(currentEntity),
+            currentEntity.position[1],
+          ])
+        ) {
           rangedAttack(currentEntity);
         } else entityAttack(currentEntity, targetEntity);
         return true;
@@ -246,8 +251,9 @@ export default function engineOutput() {
         let projectileID =
           currentEntity.projectile + projectileCount + currentEntity.name;
         projectileCount++;
+        let type = projectileList[currentEntity.projectile];
         activeProjectiles.current.push(
-          new Projectile(currentEntity, projectileID)
+          new Projectile(currentEntity, projectileID, type)
         );
         currentEntity.rateCharge = 0;
         currentEntity.speedCharge = 0;
@@ -445,7 +451,6 @@ export default function engineOutput() {
     //checks to see if entity dies
     function healthChecker(entity, currentEntity) {
       if (entity.hp <= 0) {
-        currentEntity.rateCharge = 0;
         if (entity.enemy && !currentEntity.enemy) {
           setBank(bank + entity.value);
           expTracker(entity, currentEntity);
@@ -533,12 +538,6 @@ export default function engineOutput() {
 
     //tells the projectile what to do on its turn
     function projectileTurn(projectile) {
-      if (projectile.distance === 0) {
-        activeProjectiles.current.splice(
-          activeProjectiles.current.indexOf(projectile),
-          1
-        );
-      }
       projectile.speedCharge++;
       if (projectileCanMove(projectile)) {
         projectileMovement(projectile);
@@ -546,6 +545,13 @@ export default function engineOutput() {
 
       //checks if the projectile can move this turn
       function projectileCanMove(projectile) {
+        if (projectile.distance === 0) {
+          activeProjectiles.current.splice(
+            activeProjectiles.current.indexOf(projectile),
+            1
+          );
+          return false;
+        }
         if (projectile.speedCharge >= projectile.speed) {
           return true;
         }
