@@ -1048,52 +1048,43 @@ export default function engineOutput() {
     for (let h = 0; h <= gameboardHeight.current; h++) {
       let subGrid = [];
       for (let w = 0; w <= gameboardWidth.current; w++) {
-        let cellMade = false;
-        if (w === 0) {
-          subGrid.push(firstColumnCell(w, h));
-          cellMade = true;
-        } else if (h === 0 && !cellMade) {
-          subGrid.push(firstRowCell(w, h));
-          cellMade = true;
-        }
-        if (!cellMade) {
-          if (activeEntities.current.length > 0) {
-            let entityInPosition = activeEntities.current.find((entity) =>
-              comparePosition(entity.position, [w, h])
-            );
-            if (entityInPosition !== undefined) {
-              subGrid.push(entityCell(entityInPosition, w, h));
-              cellMade = true;
-            }
-          }
-        }
-        if (!cellMade) {
-          let groundInPosition = activeGround.current.find((ground) =>
-            comparePosition(ground.position, [w, h])
-          );
-          if (groundInPosition !== undefined) {
-            subGrid.push(groundCell(groundInPosition, w, h));
-            cellMade = true;
-          }
-        }
-        if (!cellMade) {
-          if (activeProjectiles.current.length > 0) {
-            let projectileInPosition = activeProjectiles.current.find(
-              (projectile) => comparePosition(projectile.position, [w, h])
-            );
-            if (projectileInPosition !== undefined) {
-              subGrid.push(projectileCell(projectileInPosition, w, h));
-              cellMade = true;
-            }
-          }
-        }
-        if (!cellMade) {
-          subGrid.push([w + "x" + h, [""]]);
-        }
+        subGrid.push(cellType(w, h));
       }
       grid.push(subGrid);
     }
     setGameboardEntities(grid);
+
+    //determins what type function to call
+    function cellType(w, h) {
+      if (w === 0) {
+        return firstColumnCell(w, h);
+      } else if (h === 0) {
+        return firstRowCell(w, h);
+      }
+      if (activeEntities.current.length > 0) {
+        let entityInPosition = activeEntities.current.find((entity) =>
+          comparePosition(entity.position, [w, h])
+        );
+        if (entityInPosition !== undefined) {
+          return entityCell(entityInPosition, w, h);
+        }
+      }
+      let groundInPosition = activeGround.current.find((ground) =>
+        comparePosition(ground.position, [w, h])
+      );
+      if (groundInPosition !== undefined) {
+        return groundCell(groundInPosition, w, h);
+      }
+      if (activeProjectiles.current.length > 0) {
+        let projectileInPosition = activeProjectiles.current.find(
+          (projectile) => comparePosition(projectile.position, [w, h])
+        );
+        if (projectileInPosition !== undefined) {
+          return projectileCell(projectileInPosition, w, h);
+        }
+      }
+      return [w + "x" + h, [""]];
+    }
 
     //below functions return what is to be rendered in cell
     function firstColumnCell(w, h) {
@@ -1114,6 +1105,7 @@ export default function engineOutput() {
         return [[w + "x" + h], [h + " "], style];
       }
     }
+    
     function firstRowCell(w, h) {
       let style = {
         textAlign: "center",
@@ -1123,6 +1115,7 @@ export default function engineOutput() {
       };
       return [[w + "x" + h], [toLetter(w - 1) + " "], style];
     }
+
     function groundCell(ground, w, h) {
       if (groundIsFalling.current) {
         groundLine(ground);
@@ -1138,6 +1131,7 @@ export default function engineOutput() {
         ];
       }
     }
+
     function entityCell(entity, w, h) {
       attackBar(entity);
       let style = {
@@ -1169,6 +1163,7 @@ export default function engineOutput() {
         ];
       }
     }
+
     function projectileCell(projectile, w, h) {
       if (
         activeEntities.current.find((entity) =>
