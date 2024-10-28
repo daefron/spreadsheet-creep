@@ -1066,8 +1066,13 @@ export default function engineOutput() {
     let maxWidth = 157;
     let percentage = currentEntity.rateCharge / currentEntity.rate;
     let currentWidth = maxWidth * percentage;
-    currentEntity.style.boxShadow =
-      "inset " + currentWidth + "px 0px 0px 0px #0000001e";
+    if (currentEntity.enemy) {
+      currentEntity.style.boxShadow =
+        "inset " +- currentWidth + "px 0px 0px 0px #0000001e";
+    } else {
+      currentEntity.style.boxShadow =
+        "inset " + currentWidth + "px 0px 0px 0px #0000001e";
+    }
   }
 
   //stops the game loop
@@ -1133,7 +1138,7 @@ export default function engineOutput() {
           position: "sticky",
           boxShadow: "inset -1px 0px 0px #404040, inset 0px -2px 0px #404040",
         };
-        return [[w + "x" + h], [], style];
+        return [w + "x" + h, [], style];
       } else {
         let style = {
           textAlign: "center",
@@ -1141,7 +1146,7 @@ export default function engineOutput() {
           boxShadow: "inset -1px 0px 0px #404040",
           color: "#404040",
         };
-        return [[w + "x" + h], [h + " "], style];
+        return [w + "x" + h, [h + " "], style];
       }
     }
 
@@ -1152,7 +1157,7 @@ export default function engineOutput() {
         position: "sticky",
         boxShadow: "inset 0px -2px 0px #404040",
       };
-      return [[w + "x" + h], [toLetter(w - 1) + " "], style];
+      return [w + "x" + h, [toLetter(w - 1) + " "], style];
     }
 
     function groundCell(ground, w, h) {
@@ -1163,11 +1168,7 @@ export default function engineOutput() {
         boxShadow: ground.style.boxShadow,
       };
       if (comparePosition(ground.position, [w, h])) {
-        return [
-          [w + "x" + h],
-          [ground.type + "(hp: " + ground.hp + ")"],
-          style,
-        ];
+        return [w + "x" + h, [ground.type + "(hp: " + ground.hp + ")"], style];
       }
     }
 
@@ -1179,14 +1180,14 @@ export default function engineOutput() {
       if (entity.enemy === true) {
         style.color = "darkRed";
         return [
-          [w + "x" + h],
+          w + "x" + h,
           [entity.type + entity.lvl + " (hp: " + entity.hp + ")"],
           style,
         ];
       } else {
         style.color = "darkGreen";
         return [
-          [w + "x" + h],
+          w + "x" + h,
           [
             entity.type +
               entity.lvl +
@@ -1222,7 +1223,7 @@ export default function engineOutput() {
         <tbody>
           {gameboardEntities.map((row) => {
             return (
-              <tr className="boardRow" key={row}>
+              <tr className="boardRow" key={row[0][0].split("x")[1]}>
                 {row.map((position) => {
                   return (
                     <td key={position[0]}>
@@ -1632,7 +1633,7 @@ export default function engineOutput() {
                 className="settingSlider"
                 type="range"
                 min="1"
-                max="100"
+                max="10000"
                 value={gameSpeed.current}
                 onChange={updateGameSpeed}
               ></input>

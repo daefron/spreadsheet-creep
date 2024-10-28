@@ -63,6 +63,8 @@ select,
   border-width: 2px;
   border-color: rgb(0, 128, 32);
   z-index: 1000;
+  /* margin-top: -1px; */
+  /* margin-left: -1px; */
 }
 .purchasableCell:focus {
   outline: none;
