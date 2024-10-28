@@ -28,7 +28,8 @@ td {
   padding: 0;
   height: 21px;
 }
-.boardRow, .purchasableRow {
+.boardRow,
+.purchasableRow {
   display: flex;
   justify-content: space-between;
 }
@@ -47,8 +48,19 @@ select,
   border-width: 1px;
   border-color: grey;
   border-style: solid;
+  border-radius: 0px;
   background-color: white;
   position: sticky;
+}
+input:focus {
+  outline: none;
+  box-sizing: content-box;
+  width: 148px;
+  height: 18px;
+  border: solid;
+  border-width: 2px;
+  border-color: rgb(0, 128, 32);
+  z-index: 1000;
 }
 .settingHolder,
 .statHolder {
@@ -58,21 +70,17 @@ select,
   position: sticky;
   box-shadow: -1px 0px 0px 0px black;
 }
-.settingTitle,
-.statTitle {
-  width: 150px;
-}
 select {
   width: 157px;
   height: 23px;
   padding-left: 0px;
 }
 #purchasables {
-  margin-top: -3px;
+  margin-top: -2px;
 }
 
 #below {
-  margin-top: 2px;
+  margin-top: 1px;
   display: flex;
   justify-content: start;
   align-items: start;

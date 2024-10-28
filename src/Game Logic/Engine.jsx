@@ -31,6 +31,7 @@ export default function engineOutput() {
   const projectileCount = useRef(0);
   const cellSelect = useRef(0);
   const selectedCell = useRef();
+  const cellTyping = useRef(false);
   let entityList = EntityList;
   let projectileList = ProjectileList;
   let groundList = GroundList;
@@ -1252,48 +1253,68 @@ export default function engineOutput() {
     );
   }
 
+  //incrementor on click for user input
   function cellClick(e) {
-    cellSelect.current++;
-    if (cellSelect.current === 2) {
+    if (!cellTyping.current) {
+      cellSelect.current++;
+    }
+    if (cellSelect.current >= 2) {
       e.target.readOnly = false;
       selectedCell.current = e;
     }
   }
 
+  //gives the user input a spreadsheet like experience
   function keyboardSelect(e) {
+    console.log(cellSelect.current);
     let position = e.target.id.split("x");
     position[0] = parseInt(position[0]);
     position[1] = parseInt(position[1]);
     let newPosition = keyPosition(e.key, position, e);
     function keyPosition(keyPressed, position, e) {
       if (keyPressed === "ArrowUp") {
+        cellTyping.current = false;
         return [position[0], position[1] - 1];
       } else if (keyPressed === "ArrowDown") {
+        cellTyping.current = false;
         return [position[0], position[1] + 1];
       } else if (keyPressed === "ArrowLeft") {
+        if (cellSelect.current >= 2) {
+          return;
+        }
+        cellTyping.current = false;
         return [position[0] - 1, position[1]];
       } else if (keyPressed === "ArrowRight") {
+        if (cellSelect.current >= 2) {
+          return;
+        }
+        cellTyping.current = false;
         return [position[0] + 1, position[1]];
       } else if (keyPressed === "Enter") {
-        if (cellSelect.current == 2) {
-          return [position[0], position[1] + 1];
+        if (cellTyping.current) {
+          friendlyInput(e);
         }
+        cellTyping.current = false;
+        if (cellSelect.current >= 2) {
+          return [position[0], position[1] + 1];
+        } else {
+          e.target.click();
+        }
+      } else if (keyPressed === "Tab") {
+        cellTyping.current = false;
+        cellSelect.current = 2;
+      } else {
+        e.target.click();
+        cellTyping.current = true;
       }
     }
-    e.target.click();
-    if (newPosition === undefined) {
-      return;
-    }
-    if (newPosition[0] === 0) {
-      return;
-    }
-    if (newPosition[0] > gameboardWidth.current) {
-      return;
-    }
-    if (newPosition[1] === 0) {
-      return;
-    }
-    if (newPosition[1] > gameboardHeight.current) {
+    if (
+      newPosition === undefined ||
+      newPosition[0] === 0 ||
+      newPosition[0] > gameboardWidth.current ||
+      newPosition[1] === 0 ||
+      newPosition[1] > gameboardHeight.current
+    ) {
       return;
     }
     let newID = newPosition[0] + "x" + newPosition[1];
