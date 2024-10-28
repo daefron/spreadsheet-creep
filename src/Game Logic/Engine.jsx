@@ -718,13 +718,17 @@ export default function engineOutput() {
 
       //runs through turn actions
       function turnCycler() {
-        spawnChecker(true);
-        if (gameMode.current === "battle") {
-          spawnChecker(false);
+        if (gameMode.current === "king") {
+          spawnChecker(true);
+          if (gameMode.current === "battle") {
+            spawnChecker(false);
+          }
         }
         nextTurn();
-        if (!victoryChecker()) {
-          clearInterval(timer.current);
+        if (gameMode.current !== "sandbox") {
+          if (!victoryChecker()) {
+            clearInterval(timer.current);
+          }
         }
         updateGameboardEntities();
       }
@@ -946,7 +950,11 @@ export default function engineOutput() {
   function validFriendly(friendlyType, friendlyLvl) {
     if (entityList[friendlyType] !== undefined) {
       if (entityList[friendlyType].lvls["lvl" + friendlyLvl] !== undefined) {
-        return true;
+        if (gameMode.current === "sandbox") {
+          return true;
+        } else if (!entityList[friendlyType].enemy) {
+          return true;
+        }
       }
     }
   }
@@ -1068,7 +1076,7 @@ export default function engineOutput() {
     let currentWidth = maxWidth * percentage;
     if (currentEntity.enemy) {
       currentEntity.style.boxShadow =
-        "inset " +- currentWidth + "px 0px 0px 0px #0000001e";
+        "inset " + -currentWidth + "px 0px 0px 0px #0000001e";
     } else {
       currentEntity.style.boxShadow =
         "inset " + currentWidth + "px 0px 0px 0px #0000001e";
@@ -1573,7 +1581,7 @@ export default function engineOutput() {
                 className="settingSlider"
                 type="range"
                 min="2"
-                max="11"
+                max="30"
                 value={gameboardWidth.current}
                 onChange={updateGameboardWidth}
               ></input>
@@ -1711,6 +1719,7 @@ export default function engineOutput() {
             >
               <option value="king">king</option>
               <option value="battle">battle</option>
+              <option value="sandbox">sandbox</option>
             </select>
           </div>
         </div>
