@@ -1266,16 +1266,21 @@ export default function engineOutput() {
 
   //gives the user input a spreadsheet like experience
   function keyboardSelect(e) {
-    console.log(cellSelect.current);
     let position = e.target.id.split("x");
     position[0] = parseInt(position[0]);
     position[1] = parseInt(position[1]);
     let newPosition = keyPosition(e.key, position, e);
     function keyPosition(keyPressed, position, e) {
       if (keyPressed === "ArrowUp") {
+        if (cellSelect.current >= 2) {
+          return;
+        }
         cellTyping.current = false;
         return [position[0], position[1] - 1];
       } else if (keyPressed === "ArrowDown") {
+        if (cellSelect.current >= 2) {
+          return;
+        }
         cellTyping.current = false;
         return [position[0], position[1] + 1];
       } else if (keyPressed === "ArrowLeft") {
@@ -1409,10 +1414,11 @@ export default function engineOutput() {
                     <td key={position[1]}>
                       <input
                         id={position[1]}
-                        className="boardCell"
+                        className="purchasableCell"
                         type="text"
                         defaultValue={position[0]}
                         style={position[2]}
+                        readOnly
                       ></input>
                     </td>
                   );
@@ -1576,7 +1582,7 @@ export default function engineOutput() {
           className="settingHolder"
           style={{ display: "flex", alignItems: "center" }}
         >
-          <p className="settingTitle">Gamemode.current:</p>
+          <p className="settingTitle">Gamemode:</p>
           <select
             id="gamemode.currentSelect"
             defaultValue={gameMode.current}

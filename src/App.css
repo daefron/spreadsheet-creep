@@ -3,8 +3,8 @@ body {
   background-color: #cacaca;
   margin: 20px;
   display: flex;
-  flex-direction: column;
-  justify-content: end;
+  align-items: end;
+  justify-content: start;
 }
 #root {
   padding: 10px;
@@ -14,6 +14,7 @@ body {
   border-radius: 5px;
   display: flex;
   flex-direction: column;
+  align-self: flex-end;
 }
 #gameboard,
 #purchasables,
@@ -38,6 +39,7 @@ select,
 .settingTitle,
 .statTitle,
 .stat {
+  cursor: initial;
   font-size: 13px;
   margin: 0;
   margin-right: -1px;
@@ -52,7 +54,7 @@ select,
   background-color: white;
   position: sticky;
 }
-input:focus {
+.boardCell:focus {
   outline: none;
   box-sizing: content-box;
   width: 148px;
@@ -61,6 +63,9 @@ input:focus {
   border-width: 2px;
   border-color: rgb(0, 128, 32);
   z-index: 1000;
+}
+.purchasableCell:focus {
+  outline: none;
 }
 .settingHolder,
 .statHolder {
@@ -76,7 +81,7 @@ select {
   padding-left: 0px;
 }
 #purchasables {
-  margin-top: -2px;
+  margin-top: -3px;
 }
 
 #below {
