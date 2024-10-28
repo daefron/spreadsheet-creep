@@ -30,6 +30,7 @@ export default function engineOutput() {
   const groundIsFalling = useRef(false);
   const projectileCount = useRef(0);
   const cellSelect = useRef(0);
+  const selectedCell = useRef();
   let entityList = EntityList;
   let projectileList = ProjectileList;
   let groundList = GroundList;
@@ -975,6 +976,7 @@ export default function engineOutput() {
   //parses user input into usable data
   function friendlyInput(e) {
     cellSelect.current = 0;
+    e.target.readOnly = true;
     let input = e.target.value;
     let position = e.target.id.split("x");
     position[0] = parseInt(position[0]);
@@ -1236,6 +1238,7 @@ export default function engineOutput() {
                         onClick={cellClick}
                         onFocus={pause}
                         onBlur={friendlyInput}
+                        onKeyDown={keyboardSelect}
                         readOnly={true}
                       ></input>
                     </td>
@@ -1253,7 +1256,38 @@ export default function engineOutput() {
     cellSelect.current++;
     if (cellSelect.current === 2) {
       e.target.readOnly = false;
+      selectedCell.current = e;
     }
+  }
+
+  function keyboardSelect(e) {
+    let position = e.target.id.split("x");
+    position[0] = parseInt(position[0]);
+    position[1] = parseInt(position[1]);
+    let newPosition = keyPosition(e.key, position, e);
+    function keyPosition(keyPressed, position, e) {
+      if (keyPressed === "ArrowUp") {
+        return [position[0], position[1] - 1];
+      } else if (keyPressed === "ArrowDown") {
+        return [position[0], position[1] + 1];
+      } else if (keyPressed === "ArrowLeft") {
+        return [position[0] - 1, position[1]];
+      } else if (keyPressed === "ArrowRight") {
+        return [position[0] + 1, position[1]];
+      } else if (keyPressed === "Enter") {
+        if (cellSelect.current == 2) {
+          return [position[0], position[1] + 1];
+        } 
+      }
+    }
+    e.target.click();
+    if (newPosition === undefined) {
+      return;
+    }
+    let newID = newPosition[0] + "x" + newPosition[1];
+    let selectedElement = document.getElementById(newID);
+    selectedElement.focus();
+    selectedElement.click();
   }
 
   //makes a list of purchasble entities
