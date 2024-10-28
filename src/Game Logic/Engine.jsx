@@ -1469,129 +1469,6 @@ export default function engineOutput() {
     );
   }
 
-  function Settings() {
-    return (
-      <div id="settings">
-        <div
-          className="settingHolder"
-          style={{ display: "flex", alignItems: "center" }}
-        >
-          <p
-            className="settingTitle"
-            style={{ boxShadow: "inset 0px -2px 0px 0px black" }}
-          >
-            Settings:
-          </p>
-          <input
-            id="settingTitle"
-            style={{ boxShadow: "inset 0px -2px 0px 0px black" }}
-          ></input>
-        </div>
-        <div className="settingHolder">
-          <p className="settingTitle">Gameboard width:</p>
-          <input
-            id="boardWidth"
-            type="number"
-            value={gameboardWidth.current}
-            onChange={updateGameboardWidth}
-          ></input>
-        </div>
-        <div className="settingHolder">
-          <p className="settingTitle">Gameboard height:</p>
-          <input
-            id="boardHeight"
-            type="number"
-            value={gameboardHeight.current}
-            onChange={updateGameboardHeight}
-          ></input>
-        </div>
-        <div className="settingHolder">
-          <p className="settingTitle">Ground height:</p>
-          <input
-            id="groundLevel.current"
-            type="number"
-            value={groundLevel.current}
-            onChange={updateGroundHeight}
-          ></input>
-        </div>
-        <div className="settingHolder">
-          <p className="settingTitle">Ground roughness:</p>
-          <input
-            id="groundRoughness.current"
-            type="number"
-            value={groundRoughness.current}
-            onChange={updateGroundRoughness}
-          ></input>
-        </div>
-        <div className="settingHolder">
-          <p className="settingTitle">Game speed:</p>
-          <input
-            id="gameSpeed.current"
-            type="number"
-            value={gameSpeed.current}
-            onChange={updateGameSpeed}
-          ></input>
-        </div>
-        <div className="settingHolder">
-          <p className="settingTitle">Render speed:</p>
-          <input
-            id="renderSpeed.current"
-            type="number"
-            value={renderSpeed.current}
-            onChange={updateRenderSpeed}
-          ></input>
-        </div>
-        <div className="settingHolder">
-          <p className="settingTitle">Total spawns:</p>
-          <input
-            id="totalSpawns.current"
-            type="number"
-            value={totalSpawns.current}
-            onChange={updateTotalSpawns}
-          ></input>
-        </div>
-        <div
-          className="settingHolder"
-          style={{ display: "flex", alignItems: "center" }}
-        >
-          <p className="settingTitle">Spawn speed:</p>
-          <input
-            id="spawnSpeed.current"
-            type="number"
-            value={spawnSpeed.current}
-            onChange={updateSpawnSpeed}
-          ></input>
-        </div>
-        <div
-          className="settingHolder"
-          style={{ display: "flex", alignItems: "center" }}
-        >
-          <p className="settingTitle">King HP:</p>
-          <input
-            id="kingHP.current"
-            type="number"
-            value={kingHP.current}
-            onChange={updateKingHP}
-          ></input>
-        </div>
-        <div
-          className="settingHolder"
-          style={{ display: "flex", alignItems: "center" }}
-        >
-          <p className="settingTitle">Gamemode:</p>
-          <select
-            id="gamemode.currentSelect"
-            defaultValue={gameMode.current}
-            onChange={updateGameMode}
-          >
-            <option value="king">king</option>
-            <option value="battle">battle</option>
-          </select>
-        </div>
-      </div>
-    );
-  }
-
   function StartButton() {
     return (
       <button
@@ -1670,7 +1547,172 @@ export default function engineOutput() {
       <div id="below">
         <Purchasables></Purchasables>
         <Stats></Stats>
-        <Settings></Settings>
+        <div id="settings">
+          <div
+            className="settingHolder"
+            style={{ display: "flex", alignItems: "center" }}
+          >
+            <p
+              className="settingTitle"
+              style={{ boxShadow: "inset 0px -2px 0px 0px black" }}
+            >
+              Settings:
+            </p>
+            <input
+              id="settingTitle"
+              style={{ boxShadow: "inset 0px -2px 0px 0px black" }}
+            ></input>
+          </div>
+          <div className="settingHolder">
+            <p className="settingTitle">Gameboard width:</p>
+            <div>
+              <p>{gameboardWidth.current}</p>
+              <input
+                id="boardWidth"
+                className="settingSlider"
+                type="range"
+                min="2"
+                max="11"
+                value={gameboardWidth.current}
+                onChange={updateGameboardWidth}
+              ></input>
+            </div>
+          </div>
+          <div className="settingHolder">
+            <p className="settingTitle">Gameboard height:</p>
+            <div>
+              <p>{gameboardHeight.current}</p>
+              <input
+                id="boardHeight"
+                className="settingSlider"
+                type="range"
+                min="1"
+                max="25"
+                value={gameboardHeight.current}
+                onChange={updateGameboardHeight}
+              ></input>
+            </div>
+          </div>
+          <div className="settingHolder">
+            <p className="settingTitle">Ground height:</p>
+            <div>
+              <p>{groundLevel.current}</p>
+              <input
+                id="groundLevel.current"
+                className="settingSlider"
+                type="range"
+                min="0"
+                max={gameboardHeight.current}
+                value={groundLevel.current}
+                onChange={updateGroundHeight}
+              ></input>
+            </div>
+          </div>
+          <div className="settingHolder">
+            <p className="settingTitle">Ground roughness:</p>
+            <div>
+              <p>{groundRoughness.current}</p>
+              <input
+                id="groundRoughness.current"
+                className="settingSlider"
+                type="range"
+                min="0"
+                max="10"
+                value={groundRoughness.current}
+                onChange={updateGroundRoughness}
+              ></input>
+            </div>
+          </div>
+          <div className="settingHolder">
+            <p className="settingTitle">Game speed:</p>
+            <div>
+              <p>{gameSpeed.current}</p>
+              <input
+                id="gameSpeed.current"
+                className="settingSlider"
+                type="range"
+                min="1"
+                max="100"
+                value={gameSpeed.current}
+                onChange={updateGameSpeed}
+              ></input>
+            </div>
+          </div>
+          <div className="settingHolder">
+            <p className="settingTitle">Render speed:</p>
+            <div>
+              <p>{renderSpeed.current}</p>
+              <input
+                id="renderSpeed.current"
+                className="settingSlider"
+                type="range"
+                min="1"
+                max="10"
+                value={renderSpeed.current}
+                onChange={updateRenderSpeed}
+              ></input>
+            </div>
+          </div>
+          <div className="settingHolder">
+            <p className="settingTitle">Total spawns:</p>
+            <div>
+              <p>{totalSpawns.current}</p>
+              <input
+                id="totalSpawns.current"
+                className="settingSlider"
+                type="range"
+                min="1"
+                max="300"
+                value={totalSpawns.current}
+                onChange={updateTotalSpawns}
+              ></input>
+            </div>
+          </div>
+          <div className="settingHolder">
+            <p className="settingTitle">Spawn speed:</p>
+            <div>
+              <p>{spawnSpeed.current}</p>
+              <input
+                id="spawnSpeed.current"
+                className="settingSlider"
+                type="range"
+                min="1"
+                max="100"
+                value={spawnSpeed.current}
+                onChange={updateSpawnSpeed}
+              ></input>
+            </div>
+          </div>
+          <div className="settingHolder">
+            <p className="settingTitle">King HP:</p>
+            <div>
+              <p>{kingHP.current}</p>
+              <input
+                id="kingHP.current"
+                className="settingSlider"
+                type="range"
+                min="10"
+                max="10000"
+                value={kingHP.current}
+                onChange={updateKingHP}
+              ></input>
+            </div>
+          </div>
+          <div
+            className="settingHolder"
+            style={{ display: "flex", alignItems: "center" }}
+          >
+            <p className="settingTitle">Gamemode:</p>
+            <select
+              id="gamemode.currentSelect"
+              defaultValue={gameMode.current}
+              onChange={updateGameMode}
+            >
+              <option value="king">king</option>
+              <option value="battle">battle</option>
+            </select>
+          </div>
+        </div>
       </div>
       <StartButton></StartButton>
     </>

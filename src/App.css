@@ -96,3 +96,18 @@ select {
 button {
   margin-top: 5px;
 }
+.settingSlider {
+  accent-color: #404040;
+  width: 110px;
+}
+.settingHolder > div {
+  padding-inline: 5px;
+  height: 21px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2px;
+  width: 146px;
+  border-bottom: solid 1px grey;
+  border-right: solid 1px grey;
+}
