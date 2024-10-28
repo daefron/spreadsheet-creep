@@ -11,10 +11,10 @@ export default function engineOutput() {
   const enemyGraveyard = useRef([]);
   const groundGraveyard = useRef([]);
   const [bank, setBank] = useState(10000);
-  const savedEnemySpawnsCount = useRef(0);
-  const savedFriendlySpawnsCount = useRef(0);
-  const savedLastEnemySpawnTime = useRef(0);
-  const savedLastFriendlySpawnTime = useRef(0);
+  const enemySpawnCount = useRef(0);
+  const friendlySpawnCount = useRef(0);
+  const lastEnemySpawnTime = useRef(0);
+  const lastFriendlySpawnTime = useRef(0);
   const timer = useRef();
   const gameboardWidth = useRef(11);
   const gameboardHeight = useRef(20);
@@ -124,10 +124,14 @@ export default function engineOutput() {
       //determines what happens to entity if hits boundary wall
       function entityBoundaryHandler(currentEntity) {
         let newPosition = [direction(currentEntity), currentEntity.position[1]];
+
         if (
-          newPosition[0] === 0 &&
-          currentEntity.speedCharge >= currentEntity.speed
+          (newPosition[0] === 0 &&
+            currentEntity.speedCharge >= currentEntity.speed) ||
+          (newPosition[0] === gameboardWidth.current + 1 &&
+            currentEntity.speedCharge >= currentEntity.speed)
         ) {
+          console.log(newPosition[0]);
           if (gameMode.current === "king") {
             let king = activeEntities.current.find(
               (entity) => entity.type === "king"
@@ -138,6 +142,11 @@ export default function engineOutput() {
             healthChecker(currentEntity, king);
             return true;
           } else if (gameMode.current === "battle") {
+            if (currentEntity.enemy) {
+              friendlySpawnCount.current += 2;
+            } else if (!currentEntity.enemy) {
+              enemySpawnCount.current += 2;
+            }
             entityKiller(currentEntity);
           }
         }
@@ -212,7 +221,15 @@ export default function engineOutput() {
           rangeCells.push([rangeLetter, currentEntity.position[1]]);
           if (!currentEntity.projectile) {
             rangeCells.push([rangeLetter, currentEntity.position[1] - 1]);
+            rangeCells.push([
+              currentEntity.position[0],
+              currentEntity.position[1] - 1,
+            ]);
             rangeCells.push([rangeLetter, currentEntity.position[1] + 1]);
+            rangeCells.push([
+              currentEntity.position[0],
+              currentEntity.position[1] + 1,
+            ]);
           }
           if (currentEntity.enemy) {
             rangeLetter--;
@@ -693,14 +710,6 @@ export default function engineOutput() {
     //sets amount of turns to play
     function amountOfTurns(finished) {
       let gameFinished = finished;
-      let enemySpawns = savedEnemySpawnsCount.current;
-      let lastEnemySpawnTime = savedLastEnemySpawnTime.current;
-      let lastFriendlySpawnTime;
-      let friendlySpawns;
-      if (gameMode.current === "battle") {
-        lastFriendlySpawnTime = savedLastFriendlySpawnTime.current;
-        friendlySpawns = savedEnemySpawnsCount.current;
-      }
       if (!gameFinished) {
         timer.current = setInterval(() => {
           turnCycler();
@@ -744,8 +753,8 @@ export default function engineOutput() {
           } else return true;
         } else if (gameMode.current === "battle") {
           if (
-            savedEnemySpawnsCount === totalSpawns.current &&
-            savedFriendlySpawnsCount === totalSpawns.current
+            enemySpawnCount.current === totalSpawns.current ||
+            friendlySpawnCount.current === totalSpawns.current
           ) {
             return false;
           } else return true;
@@ -755,26 +764,20 @@ export default function engineOutput() {
       //checks if game is allowed to spawn on current turn
       function spawnChecker(enemy) {
         if (enemy) {
-          if (enemySpawns <= totalSpawns.current) {
-            lastEnemySpawnTime++;
-            savedLastEnemySpawnTime.current = lastEnemySpawnTime;
-            if (lastEnemySpawnTime > spawnTime()) {
+          if (enemySpawnCount.current <= totalSpawns.current) {
+            lastEnemySpawnTime.current++;
+            if (lastEnemySpawnTime.current > spawnTime()) {
               entitySpawner(spawnType(enemy), enemy);
-              enemySpawns++;
-              savedEnemySpawnsCount.current = enemySpawns;
-              lastEnemySpawnTime = 0;
-              savedLastEnemySpawnTime.current = 0;
+              enemySpawnCount.current++;
+              lastEnemySpawnTime.current = 0;
             }
           }
         } else if (!enemy) {
-          lastFriendlySpawnTime++;
-          savedLastFriendlySpawnTime.current = lastFriendlySpawnTime;
-          if (lastFriendlySpawnTime > spawnTime()) {
+          lastFriendlySpawnTime.current++;
+          if (lastFriendlySpawnTime.current > spawnTime()) {
             entitySpawner(spawnType(enemy), enemy);
-            friendlySpawns++;
-            savedFriendlySpawnsCount.current = friendlySpawns;
-            lastFriendlySpawnTime = 0;
-            savedLastEnemySpawnTime.current = 0;
+            friendlySpawnCount.current++;
+            lastFriendlySpawnTime.current = 0;
           }
         }
       }
@@ -835,8 +838,8 @@ export default function engineOutput() {
         let position = spawnPositionFinder(enemy);
         let entityID = entity[0];
         if (enemy) {
-          entityID += savedEnemySpawnsCount;
-        } else entityID += savedFriendlySpawnsCount;
+          entityID += enemySpawnCount;
+        } else entityID += friendlySpawnCount;
         entityID = new Entity(entityType, entityLvl, position, entityID);
         activeEntities.current.push(entityID);
       }
@@ -1458,7 +1461,7 @@ export default function engineOutput() {
         <div className="statHolder">
           <p className="statTitle">Enemies remaining: </p>
           <p className="stat">
-            {totalSpawns.current - enemyGraveyard.current.length}/
+            {totalSpawns.current - enemySpawnCount.current}/
             {totalSpawns.current}
           </p>
         </div>
@@ -1607,10 +1610,10 @@ export default function engineOutput() {
     enemyGraveyard.current = [];
     friendlyGraveyard.current = [];
     groundGraveyard.current = [];
-    savedEnemySpawnsCount.current = 0;
-    savedFriendlySpawnsCount.current = 0;
-    savedLastEnemySpawnTime.current = 0;
-    savedLastFriendlySpawnTime.current = 0;
+    enemySpawnCount.current = 0;
+    friendlySpawnCount.current = 0;
+    lastEnemySpawnTime.current = 0;
+    lastFriendlySpawnTime.current = 0;
     engine(false, true);
   }
 
