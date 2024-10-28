@@ -193,7 +193,7 @@ export default function engineOutput() {
       let targetEntity = attackTargetter(currentEntity, rangeCells);
       if (entityCanAttack(currentEntity, targetEntity)) {
         if (
-          currentEntity.projectile !== false &&
+          currentEntity.projectile &&
           !comparePosition(targetEntity.position, [
             direction(currentEntity),
             currentEntity.position[1],
@@ -210,6 +210,10 @@ export default function engineOutput() {
         let rangeLetter = direction(currentEntity);
         for (let i = currentEntity.range; i > 0; i--) {
           rangeCells.push([rangeLetter, currentEntity.position[1]]);
+          if (!currentEntity.projectile) {
+            rangeCells.push([rangeLetter, currentEntity.position[1] - 1]);
+            rangeCells.push([rangeLetter, currentEntity.position[1] + 1]);
+          }
           if (currentEntity.enemy) {
             rangeLetter--;
           } else {
@@ -866,17 +870,6 @@ export default function engineOutput() {
           }
         });
         return spawnPosition;
-      }
-
-      //clears the activeEntities enemies on victory
-      function activeEntitiesClearer(victory) {
-        if (victory) {
-          activeEntities.current = activeEntities.current.filter(
-            (entity) => !entity.enemy
-          );
-        } else {
-          activeEntities.current = [];
-        }
       }
     }
 
@@ -1671,7 +1664,7 @@ export default function engineOutput() {
   return (
     <>
       <GameboardRender></GameboardRender>
-      <div id="below" style={{ display: "flex" }}>
+      <div id="below">
         <Purchasables></Purchasables>
         <Stats></Stats>
         <Settings></Settings>
