@@ -29,6 +29,7 @@ export default function engineOutput() {
   const friendlyCount = useRef(1);
   const groundIsFalling = useRef(false);
   const projectileCount = useRef(0);
+  const cellSelect = useRef(0);
   let entityList = EntityList;
   let projectileList = ProjectileList;
   let groundList = GroundList;
@@ -42,9 +43,8 @@ export default function engineOutput() {
     this.hp = lvl.hp;
     this.dmg = lvl.dmg;
     this.range = lvl.range;
-    this.rate = lvl.rate;
-    let neededRate = lvl.rate / gameSpeed.current;
-    this.rateCharge = neededRate;
+    this.rate = lvl.rate / gameSpeed.current;
+    this.rateCharge = this.rate;
     this.speed = lvl.speed / gameSpeed.current;
     this.speedCharge = 0;
     this.enemy = type.enemy;
@@ -974,6 +974,7 @@ export default function engineOutput() {
 
   //parses user input into usable data
   function friendlyInput(e) {
+    cellSelect.current = 0;
     let input = e.target.value;
     let position = e.target.id.split("x");
     position[0] = parseInt(position[0]);
@@ -1121,7 +1122,8 @@ export default function engineOutput() {
           return projectileCell(projectileInPosition, w, h);
         }
       }
-      return [w + "x" + h, [""]];
+      let style = {};
+      return [w + "x" + h, [""], style];
     }
 
     //below functions return what is to be rendered in cell
@@ -1208,7 +1210,8 @@ export default function engineOutput() {
           comparePosition(entity.position, projectile.position)
         ) === undefined
       ) {
-        return [w + "x" + h, [projectile.symbol]];
+        let style = {};
+        return [w + "x" + h, [projectile.symbol], style];
       }
     }
   }
@@ -1230,8 +1233,10 @@ export default function engineOutput() {
                         style={position[2]}
                         id={position[0]}
                         defaultValue={position[1]}
+                        onClick={cellClick}
                         onFocus={pause}
                         onBlur={friendlyInput}
+                        readOnly={true}
                       ></input>
                     </td>
                   );
@@ -1242,6 +1247,13 @@ export default function engineOutput() {
         </tbody>
       </table>
     );
+  }
+
+  function cellClick(e) {
+    cellSelect.current++;
+    if (cellSelect.current === 2) {
+      e.target.readOnly = false;
+    }
   }
 
   //makes a list of purchasble entities
