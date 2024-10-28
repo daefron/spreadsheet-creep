@@ -1277,11 +1277,23 @@ export default function engineOutput() {
       } else if (keyPressed === "Enter") {
         if (cellSelect.current == 2) {
           return [position[0], position[1] + 1];
-        } 
+        }
       }
     }
     e.target.click();
     if (newPosition === undefined) {
+      return;
+    }
+    if (newPosition[0] === 0) {
+      return;
+    }
+    if (newPosition[0] > gameboardWidth.current) {
+      return;
+    }
+    if (newPosition[1] === 0) {
+      return;
+    }
+    if (newPosition[1] > gameboardHeight.current) {
       return;
     }
     let newID = newPosition[0] + "x" + newPosition[1];
