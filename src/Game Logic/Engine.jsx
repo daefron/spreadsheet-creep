@@ -3,7 +3,6 @@ import EntityList from "./EntityList.jsx";
 import ProjectileList from "./ProjectileList.jsx";
 import GroundList from "./GroundList.jsx";
 export default function engineOutput() {
-  const [gameboardEntities, setGameboardEntities] = useState([]);
   const cellsToUpdate = useRef([]);
   const activeEntities = useRef([]);
   const activeProjectiles = useRef([]);
@@ -33,6 +32,8 @@ export default function engineOutput() {
   const cellSelect = useRef(0);
   const selectedCell = useRef();
   const cellTyping = useRef(false);
+  const [gameboardEntities, setGameboardEntities] = useState([]);
+  const keyCount = useRef(0);
   let entityList = EntityList;
   let projectileList = ProjectileList;
   let groundList = GroundList;
@@ -97,6 +98,7 @@ export default function engineOutput() {
   function engine(paused, newRound) {
     //tells entities what to do on their turn
     function entityTurn(currentEntity) {
+      updateCell(currentEntity);
       entityCharge(currentEntity);
       if (entityBoundaryHandler(currentEntity)) {
         return;
@@ -125,14 +127,12 @@ export default function engineOutput() {
       //determines what happens to entity if hits boundary wall
       function entityBoundaryHandler(currentEntity) {
         let newPosition = [direction(currentEntity), currentEntity.position[1]];
-
         if (
           (newPosition[0] === 0 &&
             currentEntity.speedCharge >= currentEntity.speed) ||
           (newPosition[0] === gameboardWidth.current + 1 &&
             currentEntity.speedCharge >= currentEntity.speed)
         ) {
-          console.log(newPosition[0]);
           if (gameMode.current === "king") {
             let king = activeEntities.current.find(
               (entity) => entity.type === "king"
@@ -476,6 +476,7 @@ export default function engineOutput() {
 
     //checks to see if entity dies
     function healthChecker(entity, currentEntity) {
+      updateCell(entity);
       if (entity.hp <= 0) {
         if (entity.enemy && !currentEntity.enemy) {
           setBank(bank + entity.value);
@@ -564,6 +565,7 @@ export default function engineOutput() {
 
     //tells the projectile what to do on its turn
     function projectileTurn(projectile) {
+      updateCell(projectile);
       projectile.speedCharge++;
       if (projectileCanMove(projectile)) {
         projectileMovement(projectile);
@@ -654,6 +656,7 @@ export default function engineOutput() {
 
       //makes ground fall
       function groundFall(ground) {
+        updateCell(ground);
         if (ground.fallCharge < ground.fallSpeed) {
           ground.fallCharge++;
         } else {
@@ -929,8 +932,7 @@ export default function engineOutput() {
   //turns position into spreadsheet style coordinate
   function toLetter(position) {
     const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    let width = letters[position];
-    return width;
+    return letters[position];
   }
 
   //parses user input into usable data
@@ -958,12 +960,13 @@ export default function engineOutput() {
           parsedType = parsedType.concat(input[i]);
         } else parsedLvl = parsedLvl.concat(input[i]);
       }
-      friendlySpawner(parsedType, position, parsedLvl, e);
+      friendlySpawner(parsedType, position, parsedLvl);
     }
+    e.target.value = "";
   }
 
   //runs friendly through checks before spawning
-  function friendlySpawner(friendlyType, friendlyPosition, friendlyLvl, e) {
+  function friendlySpawner(friendlyType, friendlyPosition, friendlyLvl) {
     if (validFriendly(friendlyType, friendlyLvl)) {
       let friendlyCost =
         entityList[friendlyType].lvls["lvl" + friendlyLvl].value;
@@ -1003,6 +1006,7 @@ export default function engineOutput() {
     let entityID = entityType.type + friendlyCount.current;
     entityID = new Entity(entityType, entitylvl, entityPosition, entityID);
     activeEntities.current.push(entityID);
+    updateCell(activeEntities.current[activeEntities.current.length - 1]);
     updateGameboardEntities();
   }
 
@@ -1091,6 +1095,10 @@ export default function engineOutput() {
     engine(true, false);
   }
 
+  function updateCell(entity) {
+    cellsToUpdate.current.push(entity.position);
+  }
+
   //handles making a usable array for the grid renderer
   function updateGameboardEntities() {
     let grid = [];
@@ -1101,50 +1109,59 @@ export default function engineOutput() {
       }
       grid.push(subGrid);
     }
+    cellsToUpdate.current = [];
     setGameboardEntities(grid);
 
     //determines what type function to call
     function cellType(w, h) {
+      let keyPosition = cellsToUpdate.current.find((position) =>
+        comparePosition(position, [w, h])
+      );
+      let key = w + "x" + h;
+      if (keyPosition !== undefined) {
+        key = key + keyCount.current;
+        keyCount.current++;
+      }
       if (w === 0) {
-        return firstColumnCell(w, h);
+        return firstColumnCell(w, h, key);
       } else if (h === 0) {
-        return firstRowCell(w, h);
+        return firstRowCell(w, h, key);
       }
       if (activeEntities.current.length > 0) {
         let entityInPosition = activeEntities.current.find((entity) =>
           comparePosition(entity.position, [w, h])
         );
         if (entityInPosition !== undefined) {
-          return entityCell(entityInPosition, w, h);
+          return entityCell(entityInPosition, w, h, key);
         }
       }
       let groundInPosition = activeGround.current.find((ground) =>
         comparePosition(ground.position, [w, h])
       );
       if (groundInPosition !== undefined) {
-        return groundCell(groundInPosition, w, h);
+        return groundCell(groundInPosition, w, h, key);
       }
       if (activeProjectiles.current.length > 0) {
         let projectileInPosition = activeProjectiles.current.find(
           (projectile) => comparePosition(projectile.position, [w, h])
         );
         if (projectileInPosition !== undefined) {
-          return projectileCell(projectileInPosition, w, h);
+          return projectileCell(projectileInPosition, w, h, key);
         }
       }
       let style = {};
-      return [w + "x" + h, [""], style];
+      return [key, "", style];
     }
 
     //below functions return what is to be rendered in cell
-    function firstColumnCell(w, h) {
+    function firstColumnCell(w, h, key) {
       if (h === 0) {
         let style = {
           width: "50px",
           position: "sticky",
           boxShadow: "inset -1px 0px 0px #404040, inset 0px -2px 0px #404040",
         };
-        return [w + "x" + h, [], style];
+        return [key, "", style];
       } else {
         let style = {
           textAlign: "center",
@@ -1152,21 +1169,21 @@ export default function engineOutput() {
           boxShadow: "inset -1px 0px 0px #404040",
           color: "#404040",
         };
-        return [w + "x" + h, [h + " "], style];
+        return [key, h + " ", style];
       }
     }
 
-    function firstRowCell(w, h) {
+    function firstRowCell(w, h, key) {
       let style = {
         textAlign: "center",
         color: "#404040",
         position: "sticky",
         boxShadow: "inset 0px -2px 0px #404040",
       };
-      return [w + "x" + h, [toLetter(w - 1) + " "], style];
+      return [key, toLetter(w - 1) + " ", style];
     }
 
-    function groundCell(ground, w, h) {
+    function groundCell(ground, w, h, key) {
       if (groundIsFalling.current) {
         groundLine(ground);
       }
@@ -1174,11 +1191,11 @@ export default function engineOutput() {
         boxShadow: ground.style.boxShadow,
       };
       if (comparePosition(ground.position, [w, h])) {
-        return [w + "x" + h, [ground.type + "(hp: " + ground.hp + ")"], style];
+        return [key, ground.type + "(hp: " + ground.hp + ")", style];
       }
     }
 
-    function entityCell(entity, w, h) {
+    function entityCell(entity, w, h, key) {
       attackBar(entity);
       let style = {
         boxShadow: entity.style.boxShadow,
@@ -1186,38 +1203,36 @@ export default function engineOutput() {
       if (entity.enemy === true) {
         style.color = "darkRed";
         return [
-          w + "x" + h,
-          [entity.type + entity.lvl + " (hp: " + entity.hp + ")"],
+          key,
+          entity.type + entity.lvl + " (hp: " + entity.hp + ")",
           style,
         ];
       } else {
         style.color = "darkGreen";
         return [
-          w + "x" + h,
-          [
-            entity.type +
-              entity.lvl +
-              " (hp: " +
-              entity.hp +
-              " exp: " +
-              entity.currentExp +
-              "/" +
-              entity.neededExp +
-              ")",
-          ],
+          key,
+          entity.type +
+            entity.lvl +
+            " (hp: " +
+            entity.hp +
+            " exp: " +
+            entity.currentExp +
+            "/" +
+            entity.neededExp +
+            ")",
           style,
         ];
       }
     }
 
-    function projectileCell(projectile, w, h) {
+    function projectileCell(projectile, w, h, key) {
       if (
         activeEntities.current.find((entity) =>
           comparePosition(entity.position, projectile.position)
         ) === undefined
       ) {
         let style = {};
-        return [w + "x" + h, [projectile.symbol], style];
+        return [key, projectile.symbol, style];
       }
     }
   }
@@ -1510,7 +1525,7 @@ export default function engineOutput() {
               <tr className="boardRow" key={row[0][0].split("x")[1]}>
                 {row.map((position) => {
                   return (
-                    <td key={position[0]}>
+                    <td key={position[0]} id={position[0] + "xtd"}>
                       <input
                         className="boardCell"
                         type="text"
