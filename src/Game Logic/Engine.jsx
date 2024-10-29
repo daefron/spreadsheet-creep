@@ -98,7 +98,6 @@ export default function engineOutput() {
   function engine(paused, newRound) {
     //tells entities what to do on their turn
     function entityTurn(currentEntity) {
-      updateCell(currentEntity);
       entityCharge(currentEntity);
       if (entityBoundaryHandler(currentEntity)) {
         return;
@@ -476,7 +475,6 @@ export default function engineOutput() {
 
     //checks to see if entity dies
     function healthChecker(entity, currentEntity) {
-      updateCell(entity);
       if (entity.hp <= 0) {
         if (entity.enemy && !currentEntity.enemy) {
           setBank(bank + entity.value);
@@ -565,7 +563,6 @@ export default function engineOutput() {
 
     //tells the projectile what to do on its turn
     function projectileTurn(projectile) {
-      updateCell(projectile);
       projectile.speedCharge++;
       if (projectileCanMove(projectile)) {
         projectileMovement(projectile);
@@ -656,7 +653,6 @@ export default function engineOutput() {
 
       //makes ground fall
       function groundFall(ground) {
-        updateCell(ground);
         if (ground.fallCharge < ground.fallSpeed) {
           ground.fallCharge++;
         } else {
@@ -961,8 +957,13 @@ export default function engineOutput() {
         } else parsedLvl = parsedLvl.concat(input[i]);
       }
       friendlySpawner(parsedType, position, parsedLvl);
+      updateCell(position);
     }
-    e.target.value = "";
+    if (cellTyping.current) {
+      updateCell(position);
+      e.target.value = "";
+      return;
+    }
   }
 
   //runs friendly through checks before spawning
@@ -1006,7 +1007,6 @@ export default function engineOutput() {
     let entityID = entityType.type + friendlyCount.current;
     entityID = new Entity(entityType, entitylvl, entityPosition, entityID);
     activeEntities.current.push(entityID);
-    updateCell(activeEntities.current[activeEntities.current.length - 1]);
     updateGameboardEntities();
   }
 
@@ -1095,8 +1095,8 @@ export default function engineOutput() {
     engine(true, false);
   }
 
-  function updateCell(entity) {
-    cellsToUpdate.current.push(entity.position);
+  function updateCell(position) {
+    cellsToUpdate.current.push(position);
   }
 
   //handles making a usable array for the grid renderer
@@ -1119,7 +1119,7 @@ export default function engineOutput() {
       );
       let key = w + "x" + h;
       if (keyPosition !== undefined) {
-        key = key + keyCount.current;
+        key += keyCount.current;
         keyCount.current++;
       }
       if (w === 0) {
