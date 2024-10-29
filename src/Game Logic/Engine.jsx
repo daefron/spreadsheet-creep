@@ -4,6 +4,7 @@ import ProjectileList from "./ProjectileList.jsx";
 import GroundList from "./GroundList.jsx";
 export default function engineOutput() {
   const [gameboardEntities, setGameboardEntities] = useState([]);
+  const cellsToUpdate = useRef([]);
   const activeEntities = useRef([]);
   const activeProjectiles = useRef([]);
   const activeGround = useRef([]);
@@ -17,7 +18,7 @@ export default function engineOutput() {
   const lastFriendlySpawnTime = useRef(0);
   const timer = useRef();
   const gameboardWidth = useRef(11);
-  const gameboardHeight = useRef(20);
+  const gameboardHeight = useRef(25);
   const groundLevel = useRef(7);
   const groundRoughness = useRef(5);
   const renderSpeed = useRef(1);
@@ -1224,40 +1225,6 @@ export default function engineOutput() {
     }
   }
 
-  // pushes the entities from updateGameboardEntities to the DOM
-  function GameboardRender() {
-    return (
-      <table id="gameboard">
-        <tbody>
-          {gameboardEntities.map((row) => {
-            return (
-              <tr className="boardRow" key={row[0][0].split("x")[1]}>
-                {row.map((position) => {
-                  return (
-                    <td key={position[0]}>
-                      <input
-                        className="boardCell"
-                        type="text"
-                        style={position[2]}
-                        id={position[0]}
-                        defaultValue={position[1]}
-                        onClick={cellClick}
-                        onFocus={pause}
-                        onBlur={friendlyInput}
-                        onKeyDown={keyboardSelect}
-                        readOnly={true}
-                      ></input>
-                    </td>
-                  );
-                })}
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    );
-  }
-
   //incrementor on click for user input
   function cellClick(e) {
     if (!cellTyping.current) {
@@ -1552,7 +1519,34 @@ export default function engineOutput() {
 
   return (
     <>
-      <GameboardRender></GameboardRender>
+      <table id="gameboard">
+        <tbody>
+          {gameboardEntities.map((row) => {
+            return (
+              <tr className="boardRow" key={row[0][0].split("x")[1]}>
+                {row.map((position) => {
+                  return (
+                    <td key={position[0]}>
+                      <input
+                        className="boardCell"
+                        type="text"
+                        style={position[2]}
+                        id={position[0]}
+                        defaultValue={position[1]}
+                        onClick={cellClick}
+                        onFocus={pause}
+                        onBlur={friendlyInput}
+                        onKeyDown={keyboardSelect}
+                        readOnly={true}
+                      ></input>
+                    </td>
+                  );
+                })}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
       <div id="below">
         <Purchasables></Purchasables>
         <Stats></Stats>
@@ -1581,7 +1575,7 @@ export default function engineOutput() {
                 className="settingSlider"
                 type="range"
                 min="2"
-                max="30"
+                max="80"
                 value={gameboardWidth.current}
                 onChange={updateGameboardWidth}
               ></input>
@@ -1596,7 +1590,7 @@ export default function engineOutput() {
                 className="settingSlider"
                 type="range"
                 min="1"
-                max="25"
+                max="50"
                 value={gameboardHeight.current}
                 onChange={updateGameboardHeight}
               ></input>
