@@ -17,8 +17,8 @@ export default function engineOutput() {
   const lastEnemySpawnTime = useRef(0);
   const lastFriendlySpawnTime = useRef(0);
   const timer = useRef();
-  const gameboardWidth = useRef(11);
-  const gameboardHeight = useRef(25);
+  const gameboardWidth = useRef(12);
+  const gameboardHeight = useRef(31);
   const groundLevel = useRef(7);
   const groundRoughness = useRef(5);
   const renderSpeed = useRef(1);
@@ -721,9 +721,10 @@ export default function engineOutput() {
       function turnCycler() {
         if (gameMode.current === "king") {
           spawnChecker(true);
-          if (gameMode.current === "battle") {
-            spawnChecker(false);
-          }
+        }
+        if (gameMode.current === "battle") {
+          spawnChecker(true);
+          spawnChecker(false);
         }
         nextTurn();
         if (gameMode.current !== "sandbox") {

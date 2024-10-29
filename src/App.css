@@ -8,17 +8,15 @@ body {
   justify-content: start;
 }
 #root {
-  overflow-anchor: auto;
-  /* height:87%; */
-  padding: 10px;
+  height:100%;
+  width:100%;
   padding-bottom: 5px;
-  margin: 60px;
   background-color: white;
   border-radius: 5px;
   display: flex;
   flex-direction: column;
   align-self: flex-end;
-  overflow: scroll;
+  /* overflow: scroll; */
 }
 #gameboard,
 #purchasables,
