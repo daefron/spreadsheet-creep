@@ -906,11 +906,8 @@ export default function engineOutput() {
         friendlySpawner("king", [1, -groundLevel.current], 1);
       }
       updateGameboardEntities();
-      amountOfTurns(false, 1);
     }
-    if (paused) {
-      amountOfTurns(false);
-    }
+    amountOfTurns(false);
   }
 
   //checks if two arrays share both same values
@@ -936,8 +933,37 @@ export default function engineOutput() {
     return width;
   }
 
+  //parses user input into usable data
+  function friendlyInput(e) {
+    cellSelect.current = 0;
+    e.target.readOnly = true;
+    let input = e.target.value;
+    let position = e.target.id.split("x");
+    position[0] = parseInt(position[0]);
+    position[1] = parseInt(position[1]);
+    let entityInPosition = activeEntities.current.find((entity) =>
+      comparePosition(entity.position, position)
+    );
+    if (entityInPosition === undefined) {
+      entityInPosition = activeGround.current.find((ground) =>
+        comparePosition(ground.position, position)
+      );
+    }
+    if (entityInPosition === undefined) {
+      let parsedType = "";
+      let parsedLvl = "";
+      let hitNumber = false;
+      for (let i = 0; i < input.length; i++) {
+        if (isNaN(input[i]) && !hitNumber) {
+          parsedType = parsedType.concat(input[i]);
+        } else parsedLvl = parsedLvl.concat(input[i]);
+      }
+      friendlySpawner(parsedType, position, parsedLvl, e);
+    }
+  }
+
   //runs friendly through checks before spawning
-  function friendlySpawner(friendlyType, friendlyPosition, friendlyLvl) {
+  function friendlySpawner(friendlyType, friendlyPosition, friendlyLvl, e) {
     if (validFriendly(friendlyType, friendlyLvl)) {
       let friendlyCost =
         entityList[friendlyType].lvls["lvl" + friendlyLvl].value;
@@ -978,36 +1004,6 @@ export default function engineOutput() {
     entityID = new Entity(entityType, entitylvl, entityPosition, entityID);
     activeEntities.current.push(entityID);
     updateGameboardEntities();
-  }
-
-  //parses user input into usable data
-  function friendlyInput(e) {
-    cellSelect.current = 0;
-    e.target.readOnly = true;
-    let input = e.target.value;
-    let position = e.target.id.split("x");
-    position[0] = parseInt(position[0]);
-    position[1] = parseInt(position[1]);
-    let entityInPosition = activeEntities.current.find((entity) =>
-      comparePosition(entity.position, position)
-    );
-    if (entityInPosition === undefined) {
-      entityInPosition = activeGround.current.find((ground) =>
-        comparePosition(ground.position, position)
-      );
-    }
-    if (entityInPosition === undefined) {
-      let parsedType = "";
-      let parsedLvl = "";
-      let hitNumber = false;
-      for (let i = 0; i < input.length; i++) {
-        if (isNaN(input[i]) && !hitNumber) {
-          parsedType = parsedType.concat(input[i]);
-        } else parsedLvl = parsedLvl.concat(input[i]);
-      }
-      friendlySpawner(parsedType, position, parsedLvl);
-    }
-    resume();
   }
 
   //gives the ground entities a thicker outline if groundline
@@ -1446,19 +1442,6 @@ export default function engineOutput() {
     );
   }
 
-  function StartButton() {
-    return (
-      <button
-        id="newButton"
-        onClick={newButton}
-        onFocus={pause}
-        onBlur={resume}
-      >
-        New Round
-      </button>
-    );
-  }
-
   function newButton() {
     clearInterval(timer.current);
     enemyGraveyard.current = [];
@@ -1535,7 +1518,6 @@ export default function engineOutput() {
                         id={position[0]}
                         defaultValue={position[1]}
                         onClick={cellClick}
-                        onFocus={pause}
                         onBlur={friendlyInput}
                         onKeyDown={keyboardSelect}
                         readOnly={true}
@@ -1719,7 +1701,9 @@ export default function engineOutput() {
           </div>
         </div>
       </div>
-      <StartButton></StartButton>
+      <button id="newButton" onClick={newButton}>
+        New Round
+      </button>
     </>
   );
 }
