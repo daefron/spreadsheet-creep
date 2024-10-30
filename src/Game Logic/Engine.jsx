@@ -18,10 +18,10 @@ export default function engineOutput() {
   const timer = useRef();
   const gameboardWidth = useRef(11);
   const gameboardHeight = useRef(33);
-  const groundLevel = useRef(7);
+  const groundLevel = useRef(20);
   const groundRoughness = useRef(5);
-  const renderSpeed = useRef(1);
-  const gameSpeed = useRef(1 * renderSpeed.current);
+  const renderSpeed = useRef(5);
+  const gameSpeed = useRef(1);
   const totalSpawns = useRef(30);
   const spawnSpeed = useRef(1);
   const kingHP = useRef(20);
@@ -53,12 +53,6 @@ export default function engineOutput() {
     this.speedCharge = 0;
     this.enemy = type.enemy;
     this.value = lvl.value;
-    if (!this.enemy) {
-      this.currentExp = 0;
-      this.neededExp = lvl.neededExp;
-    } else {
-      this.exp = lvl.exp;
-    }
     this.fallSpeed = type.fallSpeed / gameSpeed.current;
     this.fallCharge = 0;
     this.climber = type.climber;
@@ -155,9 +149,11 @@ export default function engineOutput() {
 
     //holds functions for entity falling
     function entityFallHolder(currentEntity) {
-      if (entityCanFall(currentEntity.position, currentEntity)) {
-        entityFall(currentEntity);
-        return true;
+      for (let i = gameSpeed.current; i > 0; i--) {
+        if (entityCanFall(currentEntity.position, currentEntity)) {
+          entityFall(currentEntity);
+          // return true;
+        }
       }
 
       //function to determine if there is anything under the current entity
@@ -478,48 +474,9 @@ export default function engineOutput() {
       if (entity.hp <= 0) {
         if (entity.enemy && !currentEntity.enemy) {
           setBank(bank + entity.value);
-          expTracker(entity, currentEntity);
         }
         entityKiller(entity);
       }
-    }
-    //adds and checks exp on kill
-    function expTracker(entity, currentEntity) {
-      currentEntity.currentExp += entity.exp;
-      if (
-        currentEntity.currentExp >= currentEntity.neededExp &&
-        entityList[currentEntity.type].lvls["lvl" + (currentEntity.lvl + 1)] !==
-          undefined
-      ) {
-        levelUp(currentEntity);
-      }
-    }
-
-    //applies level up for friendly entity
-    function levelUp(currentEntity) {
-      let oldProperties = Object.entries(currentEntity);
-      let oldHP =
-        entityList[currentEntity.type].lvls["lvl" + currentEntity.lvl].hp;
-      currentEntity.lvl++;
-      let newlvl = currentEntity.lvl;
-      let newProperties = Object.entries(
-        entityList[currentEntity.type].lvls["lvl" + newlvl]
-      );
-      oldProperties.forEach((oldProperty) => {
-        newProperties.forEach((newProperty) => {
-          if (
-            oldProperty[0] === newProperty[0] &&
-            oldProperty[1] !== newProperty[1]
-          ) {
-            if (oldProperty[0] === "hp") {
-              let adjustedHP = newProperty[1] - oldHP;
-              currentEntity[oldProperty[0]] = currentEntity.hp + adjustedHP;
-            } else {
-              currentEntity[oldProperty[0]] = newProperty[1];
-            }
-          }
-        });
-      });
     }
 
     //determines which graveyard entities get sent to
@@ -618,15 +575,16 @@ export default function engineOutput() {
 
     //initiates ground turn
     function groundTurn(ground) {
-      if (groundCanFall(ground.position, ground)) {
-        groundIsFalling.current = true;
-        ground.falling = true;
-        groundFall(ground);
-      } else {
-        ground.falling = false;
-        groundIsFalling.current = true;
+      for (let i = gameSpeed.current; i > 0; i--) {
+        if (groundCanFall(ground.position, ground)) {
+          groundIsFalling.current = true;
+          ground.falling = true;
+          groundFall(ground);
+        } else if (i !== 0) {
+          ground.falling = false;
+          groundIsFalling.current = true;
+        }
       }
-
       //checks if ground can fall
       function groundCanFall(position, ground) {
         if (position[1] !== gameboardHeight.current) {
@@ -714,7 +672,7 @@ export default function engineOutput() {
       if (!gameFinished) {
         timer.current = setInterval(() => {
           turnCycler();
-        }, renderSpeed.current * 20);
+        }, renderSpeed.current * 4);
       }
 
       //runs through turn actions
@@ -792,8 +750,11 @@ export default function engineOutput() {
 
       //sets how long until next unit spawns
       function spawnTime() {
-        let baseline = 80 / gameSpeed.current;
-        let actual = (baseline + 80 * Math.random()) / spawnSpeed.current;
+        let baseline = 80;
+        let actual =
+          (baseline + 80 * Math.random()) /
+          spawnSpeed.current /
+          gameSpeed.current;
         return actual;
       }
 
@@ -1509,32 +1470,33 @@ export default function engineOutput() {
   return (
     <>
       <div id="above">
-      <div id="stats">
-        <p className="statTitle" id="firstStat"></p>
-        <p className="statTitle">Money:</p>
-        <p className="stat">{bank}</p>
+        <div id="stats">
+          <p className="statTitle" id="firstStat"></p>
+          <p className="statTitle">Money:</p>
+          <p className="stat">{bank}</p>
 
-        <p className="statTitle">Friendly deaths: </p>
-        <p className="stat">{friendlyGraveyard.current.length}</p>
+          <p className="statTitle">Friendly deaths: </p>
+          <p className="stat">{friendlyGraveyard.current.length}</p>
 
-        <p className="statTitle">Enemy deaths: </p>
-        <p className="stat">{enemyGraveyard.current.length}</p>
+          <p className="statTitle">Enemy deaths: </p>
+          <p className="stat">{enemyGraveyard.current.length}</p>
 
-        <p className="statTitle">Terrain destroyed: </p>
-        <p className="stat">{groundGraveyard.current.length}</p>
+          <p className="statTitle">Terrain destroyed: </p>
+          <p className="stat">{groundGraveyard.current.length}</p>
 
-        <p className="statTitle">Enemies remaining: </p>
-        <p className="stat">
-          {totalSpawns.current - enemySpawnCount.current}/{totalSpawns.current}
-        </p>
-        <button
-          className="statTitle"
-          id="settingsButton"
-          onClick={toggleSettings}
-        >
-          Settings/Entities
-        </button>
-      </div>
+          <p className="statTitle">Enemies remaining: </p>
+          <p className="stat">
+            {totalSpawns.current - enemySpawnCount.current}/
+            {totalSpawns.current}
+          </p>
+          <button
+            className="statTitle"
+            id="settingsButton"
+            onClick={toggleSettings}
+          >
+            Settings/Entities &nbsp;
+          </button>
+        </div>
         <table id="gameboard">
           <tbody>
             {gameboardEntities.map((row) => {
@@ -1647,7 +1609,7 @@ export default function engineOutput() {
                 className="settingSlider"
                 type="range"
                 min="1"
-                max="10000"
+                max="100"
                 value={gameSpeed.current}
                 onChange={updateGameSpeed}
               ></input>

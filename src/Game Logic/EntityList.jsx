@@ -3,7 +3,7 @@ export default {
     type: "goblin",
     enemy: true,
     projectile: false,
-    fallSpeed: 2,
+    fallSpeed: 0,
     climber: true,
     style: {},
     lvls: {
@@ -15,7 +15,6 @@ export default {
         rate: 15,
         speed: 15,
         value: 1,
-        exp: 1,
         chance: 15,
       },
       lvl2: {
@@ -26,7 +25,6 @@ export default {
         rate: 13,
         speed: 13,
         value: 3,
-        exp: 2,
         chance: 10,
       },
     },
@@ -35,7 +33,7 @@ export default {
     type: "skeleton",
     enemy: true,
     projectile: "arrow",
-    fallSpeed: 2,
+    fallSpeed: 0,
     climber: true,
     style: {},
     lvls: {
@@ -47,7 +45,6 @@ export default {
         rate: 15,
         speed: 23,
         value: 1,
-        exp: 1,
         chance: 5,
       },
       lvl2: {
@@ -58,7 +55,6 @@ export default {
         rate: 13,
         speed: 15,
         value: 3,
-        exp: 2,
         chance: 3,
       },
     },
@@ -67,7 +63,7 @@ export default {
     type: "bow",
     enemy: false,
     projectile: "arrow",
-    fallSpeed: 1,
+    fallSpeed: 0,
     climber: false,
     style: {},
     lvls: {
@@ -79,7 +75,6 @@ export default {
         rate: 30,
         speed: 0,
         value: 5,
-        neededExp: 3,
       },
       lvl2: {
         lvl: 2,
@@ -89,7 +84,6 @@ export default {
         rate: 27,
         speed: 0,
         value: 10,
-        neededExp: 6,
       },
       lvl3: {
         lvl: 3,
@@ -99,7 +93,6 @@ export default {
         rate: 25,
         speed: 0,
         value: 15,
-        neededExp: 30,
       },
     },
   },
@@ -107,7 +100,7 @@ export default {
     type: "wall",
     enemy: false,
     projectile: false,
-    fallSpeed: 1,
+    fallSpeed: 0,
     climber: false,
     style: {},
     lvls: {
@@ -119,7 +112,6 @@ export default {
         rate: 0,
         speed: 0,
         value: 2,
-        neededExp: 100,
       },
       lvl2: {
         lvl: 2,
@@ -129,7 +121,6 @@ export default {
         rate: 0,
         speed: 0,
         value: 2,
-        neededExp: 100,
       },
       lvl3: {
         lvl: 3,
@@ -139,7 +130,6 @@ export default {
         rate: 0,
         speed: 0,
         value: 2,
-        neededExp: 100,
       },
     },
   },
@@ -147,7 +137,7 @@ export default {
     type: "friendGoblin",
     enemy: false,
     projectile: false,
-    fallSpeed: 2,
+    fallSpeed: 0,
     climber: true,
     style: {},
     lvls: {
@@ -159,7 +149,6 @@ export default {
         rate: 15,
         speed: 15,
         value: 1,
-        exp: 1,
         chance: 15,
       },
       lvl2: {
@@ -170,7 +159,6 @@ export default {
         rate: 13,
         speed: 13,
         value: 3,
-        exp: 2,
         chance: 10,
       },
     },
@@ -179,7 +167,7 @@ export default {
     type: "friendSkeleton",
     enemy: false,
     projectile: "arrow",
-    fallSpeed: 2,
+    fallSpeed: 0,
     climber: true,
     style: {},
     lvls: {
@@ -191,7 +179,6 @@ export default {
         rate: 15,
         speed: 23,
         value: 1,
-        exp: 1,
         chance: 5,
       },
       lvl2: {
@@ -202,7 +189,6 @@ export default {
         rate: 13,
         speed: 15,
         value: 3,
-        exp: 2,
         chance: 3,
       },
     },
@@ -223,7 +209,6 @@ export default {
         rate: 12,
         speed: 0,
         value: 0,
-        neededExp: 100,
       },
     },
   },
