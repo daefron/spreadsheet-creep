@@ -18,10 +18,10 @@ export default function engineOutput() {
   const timer = useRef();
   const gameboardWidth = useRef(11);
   const gameboardHeight = useRef(33);
-  const groundLevel = useRef(20);
+  const groundLevel = useRef(15);
   const groundRoughness = useRef(5);
   const renderSpeed = useRef(5);
-  const gameSpeed = useRef(1);
+  const gameSpeed = useRef(0.5);
   const totalSpawns = useRef(30);
   const spawnSpeed = useRef(1);
   const kingHP = useRef(20);
@@ -580,14 +580,17 @@ export default function engineOutput() {
           groundIsFalling.current = true;
           ground.falling = true;
           groundFall(ground);
-        } else if (i !== 0) {
+        } else {
           ground.falling = false;
           groundIsFalling.current = true;
         }
       }
+
       //checks if ground can fall
       function groundCanFall(position, ground) {
-        if (position[1] !== gameboardHeight.current) {
+        if (
+          position[1] < gameboardHeight.current
+        ) {
           let spaceBelow = true;
           let positionBelow = [position[0], position[1] + 1];
           let entityBelow = activeEntities.current.find((entity) =>
@@ -712,6 +715,7 @@ export default function engineOutput() {
           let kingAlive =
             activeEntities.current.find((entity) => entity.type === "king") !==
             undefined;
+            console.log(kingAlive);
           if (kingAlive) {
             return true;
           }
@@ -1431,7 +1435,7 @@ export default function engineOutput() {
     updateGameboardEntities();
   }
   function updateGameSpeed(e) {
-    gameSpeed.current = parseFloat(e.target.value * renderSpeed.current);
+    gameSpeed.current = parseFloat(e.target.value);
     updateGameboardEntities();
   }
   function updateRenderSpeed(e) {

@@ -3,7 +3,7 @@ export default {
     type: "goblin",
     enemy: true,
     projectile: false,
-    fallSpeed: 0,
+    fallSpeed: 1,
     climber: true,
     style: {},
     lvls: {
@@ -33,7 +33,7 @@ export default {
     type: "skeleton",
     enemy: true,
     projectile: "arrow",
-    fallSpeed: 0,
+    fallSpeed: 1,
     climber: true,
     style: {},
     lvls: {
@@ -63,7 +63,7 @@ export default {
     type: "bow",
     enemy: false,
     projectile: "arrow",
-    fallSpeed: 0,
+    fallSpeed: 1,
     climber: false,
     style: {},
     lvls: {
@@ -100,7 +100,7 @@ export default {
     type: "wall",
     enemy: false,
     projectile: false,
-    fallSpeed: 0,
+    fallSpeed: 1,
     climber: false,
     style: {},
     lvls: {
@@ -137,7 +137,7 @@ export default {
     type: "friendGoblin",
     enemy: false,
     projectile: false,
-    fallSpeed: 0,
+    fallSpeed: 1,
     climber: true,
     style: {},
     lvls: {
@@ -167,7 +167,7 @@ export default {
     type: "friendSkeleton",
     enemy: false,
     projectile: "arrow",
-    fallSpeed: 0,
+    fallSpeed: 1,
     climber: true,
     style: {},
     lvls: {
@@ -197,7 +197,7 @@ export default {
     type: "king",
     enemy: false,
     projectile: false,
-    fallSpeed: 0,
+    fallSpeed: 1,
     climber: false,
     style: {},
     lvls: {
