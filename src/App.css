@@ -16,7 +16,6 @@ body {
   display: flex;
   flex-direction: column;
   align-self: flex-end;
-  /* overflow: scroll; */
 }
 #gameboard,
 #purchasables,
@@ -58,9 +57,9 @@ select,
 }
 .boardCell:focus {
   outline: none;
-  box-sizing: content-box;
   width: 148px;
-  height: 18px;
+  height: 17px;
+  padding-top:1px;
   border: solid;
   border-width: 2px;
   border-color: rgb(0, 128, 32);
