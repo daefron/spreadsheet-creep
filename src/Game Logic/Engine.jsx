@@ -16,8 +16,8 @@ export default function engineOutput() {
   const lastEnemySpawnTime = useRef(0);
   const lastFriendlySpawnTime = useRef(0);
   const timer = useRef();
-  const gameboardWidth = useRef(12);
-  const gameboardHeight = useRef(31);
+  const gameboardWidth = useRef(11);
+  const gameboardHeight = useRef(33);
   const groundLevel = useRef(7);
   const groundRoughness = useRef(5);
   const renderSpeed = useRef(1);
@@ -33,6 +33,7 @@ export default function engineOutput() {
   const cellTyping = useRef(false);
   const currentInput = useRef("");
   const [gameboardEntities, setGameboardEntities] = useState([]);
+  const [settingsState, setSettingsState] = useState("none");
   let entityList = EntityList;
   let projectileList = ProjectileList;
   let groundList = GroundList;
@@ -1440,48 +1441,6 @@ export default function engineOutput() {
     );
   }
 
-  function Stats() {
-    return (
-      <div id="stats">
-        <div className="statHolder">
-          <p
-            className="statTitle"
-            style={{ boxShadow: "inset 0px -2px 0px 0px black" }}
-          >
-            Stats:
-          </p>
-          <p
-            className="stat"
-            style={{ boxShadow: "inset 0px -2px 0px 0px black" }}
-          ></p>
-        </div>
-        <div className="statHolder">
-          <p className="statTitle">Money:</p>
-          <p className="stat">{bank}</p>
-        </div>
-        <div className="statHolder">
-          <p className="statTitle">Friendly deaths: </p>
-          <p className="stat">{friendlyGraveyard.current.length}</p>
-        </div>
-        <div className="statHolder">
-          <p className="statTitle">Enemy deaths: </p>
-          <p className="stat">{enemyGraveyard.current.length}</p>
-        </div>
-        <div className="statHolder">
-          <p className="statTitle">Terrain destroyed: </p>
-          <p className="stat">{groundGraveyard.current.length}</p>
-        </div>
-        <div className="statHolder">
-          <p className="statTitle">Enemies remaining: </p>
-          <p className="stat">
-            {totalSpawns.current - enemySpawnCount.current}/
-            {totalSpawns.current}
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   function newButton() {
     clearInterval(timer.current);
     enemyGraveyard.current = [];
@@ -1536,6 +1495,12 @@ export default function engineOutput() {
     updateGameboardEntities();
   }
 
+  function toggleSettings() {
+    if (settingsState === "flex") {
+      setSettingsState("none");
+    } else setSettingsState("flex");
+  }
+
   //renders the gameboard once on page load
   useEffect(() => {
     updateGameboardEntities();
@@ -1543,33 +1508,60 @@ export default function engineOutput() {
 
   return (
     <>
-      <table id="gameboard">
-        <tbody>
-          {gameboardEntities.map((row) => {
-            return (
-              <tr className="boardRow" key={row[0][0].split("x")[1]}>
-                {row.map((position) => {
-                  return (
-                    <td key={position[0]} id={position[1] + "xtd"}>
-                      <input
-                        className="boardCell"
-                        type="text"
-                        style={position[3]}
-                        id={position[1]}
-                        value={position[2]}
-                        readOnly={true}
-                      ></input>
-                    </td>
-                  );
-                })}
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-      <div id="below">
+      <div id="above">
+      <div id="stats">
+        <p className="statTitle" id="firstStat"></p>
+        <p className="statTitle">Money:</p>
+        <p className="stat">{bank}</p>
+
+        <p className="statTitle">Friendly deaths: </p>
+        <p className="stat">{friendlyGraveyard.current.length}</p>
+
+        <p className="statTitle">Enemy deaths: </p>
+        <p className="stat">{enemyGraveyard.current.length}</p>
+
+        <p className="statTitle">Terrain destroyed: </p>
+        <p className="stat">{groundGraveyard.current.length}</p>
+
+        <p className="statTitle">Enemies remaining: </p>
+        <p className="stat">
+          {totalSpawns.current - enemySpawnCount.current}/{totalSpawns.current}
+        </p>
+        <button
+          className="statTitle"
+          id="settingsButton"
+          onClick={toggleSettings}
+        >
+          Settings/Entities
+        </button>
+      </div>
+        <table id="gameboard">
+          <tbody>
+            {gameboardEntities.map((row) => {
+              return (
+                <tr className="boardRow" key={row[0][0].split("x")[1]}>
+                  {row.map((position) => {
+                    return (
+                      <td key={position[0]} id={position[1] + "xtd"}>
+                        <input
+                          className="boardCell"
+                          type="text"
+                          style={position[3]}
+                          id={position[1]}
+                          value={position[2]}
+                          readOnly={true}
+                        ></input>
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <div id="below" style={{ display: settingsState }}>
         <Purchasables></Purchasables>
-        <Stats></Stats>
         <div id="settings">
           <div
             className="settingHolder"

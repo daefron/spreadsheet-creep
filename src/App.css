@@ -1,26 +1,59 @@
 body {
   width: 100vw;
-  height:100vh;
+  height: 90vh;
   background-color: #cacaca;
   margin: 20px;
   display: flex;
-  align-items: end;
-  justify-content: start;
+  justify-content: center;
 }
 #root {
-  height:100%;
-  width:100%;
-  padding-bottom: 5px;
+  height: 80.6%;
+  width: 93.1%;
+  padding: 5px;
   background-color: white;
   border-radius: 5px;
   display: flex;
   flex-direction: column;
-  align-self: flex-end;
+  align-self: center;
 }
-#gameboard,
-#purchasables,
-#settings,
+#above {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+#below {
+  height: 55%;
+}
+#above,
+#below {
+  overflow: scroll;
+}
+
 #stats {
+  display: flex;
+}
+#gameboard {
+  display: flex;
+}
+.statTitle {
+  overflow: hidden;
+}
+#firstStat {
+  width: 50px;
+}
+#settingsButton {
+  border-radius: 0px;
+  height: 23px;
+  width: 157px;
+}
+#settingsButton:hover {
+  border-color: black;
+}
+#settingsButton:focus {
+  outline-color: black;
+}
+#purchasables,
+#settings {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -51,7 +84,6 @@ select,
   border-width: 1px;
   border-color: grey;
   border-style: solid;
-  border-radius: 0px;
   background-color: white;
   position: sticky;
 }
@@ -59,7 +91,7 @@ select,
   outline: none;
   width: 148px;
   height: 17px;
-  padding-top:1px;
+  padding-top: 1px;
   border: solid;
   border-width: 2px;
   border-color: rgb(0, 128, 32);
@@ -68,8 +100,7 @@ select,
 .purchasableCell:focus {
   outline: none;
 }
-.settingHolder,
-.statHolder {
+.settingHolder {
   display: flex;
   align-items: center;
   height: 21px;
@@ -86,12 +117,10 @@ select {
 }
 
 #below {
-  margin-top: 1px;
   display: flex;
   justify-content: start;
   align-items: start;
   border-top-style: solid;
-  border-top-width: 4px;
   border-top-color: #404040;
 }
 button {
