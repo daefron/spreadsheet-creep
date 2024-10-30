@@ -31,8 +31,8 @@ export default function engineOutput() {
   const projectileCount = useRef(0);
   const selectedCell = useRef();
   const cellTyping = useRef(false);
+  const currentInput = useRef("");
   const [gameboardEntities, setGameboardEntities] = useState([]);
-  const keyCount = useRef(0);
   let entityList = EntityList;
   let projectileList = ProjectileList;
   let groundList = GroundList;
@@ -933,6 +933,7 @@ export default function engineOutput() {
     return letters[position];
   }
 
+  //checks to see if user input is in space of other entity
   function typingChecker(position) {
     let entityInPosition = activeEntities.current.find((entity) =>
       comparePosition(entity.position, position)
@@ -950,7 +951,7 @@ export default function engineOutput() {
 
   //parses user input into usable data
   function friendlyInput(position) {
-    let input = selectedCell.current.value;
+    let input = currentInput.current;
     let parsedType = "";
     let parsedLvl = "";
     let hitNumber = false;
@@ -1092,10 +1093,6 @@ export default function engineOutput() {
     engine(true, false);
   }
 
-  function updateCell(position) {
-    cellsToUpdate.current.push(position);
-  }
-
   //handles making a usable array for the grid renderer
   function updateGameboardEntities() {
     let grid = [];
@@ -1111,14 +1108,15 @@ export default function engineOutput() {
 
     //determines what type function to call
     function cellType(w, h) {
-      let keyPosition = cellsToUpdate.current.find((position) =>
-        comparePosition(position, [w, h])
-      );
       let id = w + "x" + h;
       let key = id;
-      if (keyPosition !== undefined) {
-        key += keyCount.current;
-        keyCount.current++;
+      if (selectedCell.current !== undefined && currentInput.current !== "") {
+        let inputPosition = selectedCell.current.id.split("x");
+        inputPosition[0] = parseInt(inputPosition[0]);
+        inputPosition[1] = parseInt(inputPosition[1]);
+        if (comparePosition(inputPosition, [w, h])) {
+          return [key, id, currentInput.current];
+        }
       }
       if (w === 0) {
         return firstColumnCell(h, id, key);
@@ -1199,30 +1197,13 @@ export default function engineOutput() {
       let style = {
         boxShadow: entity.style.boxShadow,
       };
+      let cellContents = entity.type + entity.lvl + " (hp: " + entity.hp + ")";
       if (entity.enemy === true) {
         style.color = "darkRed";
-        return [
-          key,
-          id,
-          entity.type + entity.lvl + " (hp: " + entity.hp + ")",
-          style,
-        ];
+        return [key, id, cellContents, style];
       } else {
         style.color = "darkGreen";
-        return [
-          key,
-          id,
-          entity.type +
-            entity.lvl +
-            " (hp: " +
-            entity.hp +
-            " exp: " +
-            entity.currentExp +
-            "/" +
-            entity.neededExp +
-            ")",
-          style,
-        ];
+        return [key, id, cellContents, style];
       }
     }
 
@@ -1262,6 +1243,7 @@ export default function engineOutput() {
         selectedCell.current.readOnly = true;
       }
       selectedCell.current = e.target;
+      currentInput.current = "";
     }
   }
   //gives the user input a spreadsheet like experience
@@ -1270,7 +1252,6 @@ export default function engineOutput() {
     position[0] = parseInt(position[0]);
     position[1] = parseInt(position[1]);
     let newPosition = keyPosition(e.key, position, e);
-    console.log(newPosition);
     function keyPosition(keyPressed, position, e) {
       if (keyPressed === "ArrowUp") {
         if (cellTyping.current) {
@@ -1308,7 +1289,7 @@ export default function engineOutput() {
         if (cellTyping.current) {
           cellTyping.current = false;
           friendlyInput(position);
-          updateCell(position);
+          currentInput.current = "";
           return [position[0], position[1] + 1];
         }
         if (typingChecker(position)) {
@@ -1322,14 +1303,23 @@ export default function engineOutput() {
         e.preventDefault();
         cellTyping.current = false;
         friendlyInput(position);
-        updateCell(position);
+        currentInput.current = "";
         return [position[0] + 1, position[1]];
       }
       if (keyPressed.length === 1 || keyPressed === "space") {
         if (typingChecker(position)) {
           cellTyping.current = true;
           selectedCell.current.readOnly = false;
+          if (keyPressed === "space") {
+            currentInput.current += " ";
+          }
+          currentInput.current += keyPressed;
+          updateGameboardEntities();
         } else e.preventDefault();
+      }
+      if (keyPressed === "Backspace") {
+        currentInput.current = currentInput.current.slice(0, -1);
+        updateGameboardEntities();
       }
     }
     if (
@@ -1566,7 +1556,7 @@ export default function engineOutput() {
                         type="text"
                         style={position[3]}
                         id={position[1]}
-                        defaultValue={position[2]}
+                        value={position[2]}
                         readOnly={true}
                       ></input>
                     </td>
