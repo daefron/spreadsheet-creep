@@ -1185,17 +1185,33 @@ export default function engineOutput() {
         fluid.style.boxShadow = "inset 0px 1px 0px blue";
         made = true;
       }
-      if (cellLeft.fluid === undefined && !made) {
+      if (
+        cellLeft.fluid === undefined &&
+        cellLeft.ground === undefined &&
+        !made
+      ) {
         fluid.style.boxShadow = "inset 1px 0px 0px blue";
         made = true;
-      } else if (cellLeft.fluid === undefined && made) {
+      } else if (
+        cellLeft.fluid === undefined &&
+        cellLeft.ground === undefined &&
+        made
+      ) {
         fluid.style.boxShadow =
           fluid.style.boxShadow + ",inset 1px 0px 0px blue";
       }
-      if (cellRight.fluid === undefined && !made) {
+      if (
+        cellRight.fluid === undefined &&
+        cellRight.ground === undefined &&
+        !made
+      ) {
         fluid.style.boxShadow = "inset -1px 0px 0px blue";
         made = true;
-      } else if (cellRight.fluid === undefined && made) {
+      } else if (
+        cellRight.fluid === undefined &&
+        cellRight.ground === undefined &&
+        made
+      ) {
         fluid.style.boxShadow =
           fluid.style.boxShadow + ",inset -1px 0px 0px blue";
       }
@@ -1355,10 +1371,10 @@ export default function engineOutput() {
         if (cellAbove.fluid === undefined) {
           style.boxShadow = style.boxShadow + ",inset 0px 1px 0px blue";
         }
-        if (cellLeft.fluid === undefined) {
+        if (cellLeft.fluid === undefined && cellLeft.ground === undefined) {
           style.boxShadow = style.boxShadow + ",inset 1px 0px 0px blue";
         }
-        if (cellRight.fluid === undefined) {
+        if (cellRight.fluid === undefined && cellRight.ground === undefined) {
           style.boxShadow = style.boxShadow + ",inset -1px 0px 0px blue";
         }
       } else {
