@@ -2,14 +2,17 @@ import { useState, useEffect, useRef } from "react";
 import EntityList from "./EntityList.jsx";
 import ProjectileList from "./ProjectileList.jsx";
 import GroundList from "./GroundList.jsx";
+import FluidList from "./FluidList.jsx";
 export default function engineOutput() {
   const cellsToUpdate = useRef([]);
   const activeEntities = useRef([]);
   const activeProjectiles = useRef([]);
   const activeGround = useRef([]);
+  const activeFluid = useRef([]);
   const friendlyGraveyard = useRef([]);
   const enemyGraveyard = useRef([]);
   const groundGraveyard = useRef([]);
+  const fluidGraveyard = useRef([]);
   const [bank, setBank] = useState(10000);
   const enemySpawnCount = useRef(0);
   const friendlySpawnCount = useRef(0);
@@ -38,6 +41,7 @@ export default function engineOutput() {
   let entityList = EntityList;
   let projectileList = ProjectileList;
   let groundList = GroundList;
+  let fluidList = FluidList;
 
   //function that creates new active entities
   function Entity(type, lvl, position, name) {
@@ -91,9 +95,18 @@ export default function engineOutput() {
     this.fallCharge = 0;
     this.style = groundList[type].style;
     this.fluid = groundList[type].fluid;
-    this.speed = groundList[type].speed / gameSpeed.current;
+  }
+
+  function Fluid(type, position, ID) {
+    this.type = fluidList[type].type;
+    this.position = position;
+    this.name = ID;
+    this.fallSpeed = fluidList[type].fallSpeed / gameSpeed.current;
+    this.fallCharge = 0;
+    this.style = fluidList[type].style;
+    this.speed = fluidList[type].speed / gameSpeed.current;
     this.speedCharge = 0;
-    if (groundList[type].speed !== undefined) {
+    if (fluidList[type].speed !== undefined) {
       let directionDecider = Math.random() * 10;
       if (directionDecider > 5) {
         this.direction = "left";
@@ -173,11 +186,11 @@ export default function engineOutput() {
     }
 
     function liquidChecker(currentEntity) {
-      let liquidInPosition = activeGround.current.find((ground) =>
-        comparePosition(ground.position, currentEntity.position)
+      let liquidInPosition = activeFluid.current.find((fluid) =>
+        comparePosition(fluid.position, currentEntity.position)
       );
       if (liquidInPosition !== undefined) {
-        if (liquidInPosition.fluid && !currentEntity.inLiquid) {
+        if (!currentEntity.inLiquid) {
           currentEntity.inLiquid = true;
           currentEntity.speed *= 2;
           currentEntity.rate *= 2;
@@ -213,7 +226,7 @@ export default function engineOutput() {
           let groundBelow = activeGround.current.find((ground) =>
             comparePosition(ground.position, positionBelow)
           );
-          if (groundBelow !== undefined && !groundBelow.fluid) {
+          if (groundBelow !== undefined) {
             return false;
           }
           if (
@@ -391,10 +404,7 @@ export default function engineOutput() {
             ) {
               return climbSpotFree(positionNextTo);
             }
-            if (
-              groundInPositionNextTo !== undefined &&
-              !groundInPositionNextTo.fluid
-            ) {
+            if (groundInPositionNextTo !== undefined) {
               return climbSpotFree(positionNextTo);
             }
             return false;
@@ -402,17 +412,16 @@ export default function engineOutput() {
             //checks if position to climb into is free
             function climbSpotFree(positionNextTo) {
               let positionAbove = [positionNextTo[0], positionNextTo[1] - 1];
-              if (
-                activeEntities.current.find((entity) =>
-                  comparePosition(entity.position, positionAbove)
-                ) !== undefined
-              ) {
+              let entityAbove = activeEntities.current.find((entity) =>
+                comparePosition(entity.position, positionAbove)
+              );
+              if (entityAbove !== undefined) {
                 return false;
               }
               let groundAbove = activeGround.current.find((ground) =>
                 comparePosition(ground.position, positionAbove)
               );
-              if (groundAbove !== undefined && !groundAbove.fluid) {
+              if (groundAbove !== undefined) {
                 return false;
               }
               return true;
@@ -449,13 +458,6 @@ export default function engineOutput() {
               groundInPosition === undefined
             ) {
               return true;
-            } else if (
-              groundInPosition !== undefined &&
-              entityInPosition === undefined
-            ) {
-              if (groundInPosition.fluid) {
-                return true;
-              }
             }
           }
 
@@ -508,7 +510,7 @@ export default function engineOutput() {
               currentEntity.position[1],
             ])
           );
-          if (targetGround !== undefined && !targetGround.fluid) {
+          if (targetGround !== undefined) {
             return true;
           }
         }
@@ -543,6 +545,11 @@ export default function engineOutput() {
     //determines which graveyard entities get sent to
     function entityKiller(entity) {
       if (entity.ghost === undefined) {
+        if (entity.type === "water") {
+          fluidGraveyard.current.push(
+            activeFluid.current.splice(activeFluid.current.indexOf(entity), 1)
+          );
+        }
         if (entity.enemy === undefined) {
           groundGraveyard.current.push(
             activeGround.current.splice(activeGround.current.indexOf(entity), 1)
@@ -638,52 +645,12 @@ export default function engineOutput() {
     function groundTurn(ground) {
       for (let i = gameSpeed.current; i > 0; i--) {
         if (groundCanFall(ground.position, ground)) {
-          if (ground.fluid) {
-            ground.speed = 5;
-          }
           groundIsFalling.current = true;
           ground.falling = true;
           groundFall(ground);
         } else {
           ground.falling = false;
           groundIsFalling.current = true;
-        }
-      }
-      if (ground.fluid && !ground.falling) {
-        fluidMovement(ground);
-      }
-
-      function fluidMovement(ground) {
-        if (ground.speedCharge < ground.speed) {
-          ground.speedCharge++;
-        } else {
-          let targetPosition;
-          if (ground.direction === "left") {
-            targetPosition = [ground.position[0] - 1, ground.position[1]];
-          } else if (ground.direction === "right") {
-            targetPosition = [ground.position[0] + 1, ground.position[1]];
-          }
-          if (
-            targetPosition[0] === 0 ||
-            targetPosition[0] === gameboardWidth.current + 1
-          ) {
-            entityKiller(ground);
-          }
-          let targetGround = activeGround.current.find((ground) =>
-            comparePosition(ground.position, targetPosition)
-          );
-          if (targetGround === undefined) {
-            ground.position = targetPosition;
-            ground.speedCharge = 0;
-            ground.speed *= 1.3;
-          } else {
-            if (ground.direction === "left") {
-              ground.direction = "right";
-            } else ground.direction = "left";
-          }
-        }
-        if (ground.speed > 50) {
-          ground.speed = Infinity;
         }
       }
 
@@ -695,7 +662,7 @@ export default function engineOutput() {
           let entityBelow = activeEntities.current.find((entity) =>
             comparePosition(entity.position, positionBelow)
           );
-          if (entityBelow && !ground.fluid) {
+          if (entityBelow) {
             groundAttack(ground, entityBelow);
           }
           if (
@@ -730,8 +697,93 @@ export default function engineOutput() {
       }
     }
 
+    function fluidTurn(fluid) {
+      for (let i = gameSpeed.current; i > 0; i--) {
+        if (fluidCanFall(fluid.position, fluid)) {
+          fluid.speed = 5;
+          fluid.falling = true;
+          fluidFall(fluid);
+        } else {
+          fluid.falling = false;
+        }
+      }
+      if (!fluid.falling) {
+        fluidMovement(fluid);
+      }
+
+      function fluidCanFall(position, fluid) {
+        if (position[1] < gameboardHeight.current) {
+          let spaceBelow = true;
+          let positionBelow = [position[0], position[1] + 1];
+          let groundBelow = activeGround.current.find((ground) =>
+            comparePosition(ground.position, positionBelow)
+          );
+          if (groundBelow !== undefined) {
+            spaceBelow = false;
+          }
+          let fluidBelow = activeFluid.current.find((fluid) =>
+            comparePosition(fluid.position, positionBelow)
+          );
+          if (fluidBelow !== undefined) {
+            spaceBelow = false;
+          }
+          return spaceBelow;
+        }
+        if (fluid.ghost) {
+          entityKiller(fluid);
+        }
+      }
+
+      function fluidFall(fluid) {
+        if (fluid.fallCharge < fluid.fallSpeed) {
+          fluid.fallCharge++;
+        } else {
+          fluid.fallCharge = 0;
+          let newPosition = [fluid.position[0], fluid.position[1] + 1];
+          fluid.position = newPosition;
+        }
+      }
+
+      function fluidMovement(fluid) {
+        if (fluid.speedCharge < fluid.speed) {
+          fluid.speedCharge++;
+        } else {
+          let targetPosition;
+          if (fluid.direction === "left") {
+            targetPosition = [fluid.position[0] - 1, fluid.position[1]];
+          } else if (fluid.direction === "right") {
+            targetPosition = [fluid.position[0] + 1, fluid.position[1]];
+          }
+          if (
+            targetPosition[0] === 0 ||
+            targetPosition[0] === gameboardWidth.current + 1
+          ) {
+            entityKiller(fluid);
+          }
+          let targetGround = activeGround.current.find((ground) =>
+            comparePosition(ground.position, targetPosition)
+          );
+          let targetFluid = activeFluid.current.find((fluid) =>
+            comparePosition(fluid.position, targetPosition)
+          );
+          if (targetGround === undefined && targetFluid === undefined) {
+            fluid.position = targetPosition;
+            fluid.speedCharge = 0;
+            fluid.speed *= 1.3;
+          } else {
+            if (fluid.direction === "left") {
+              fluid.direction = "right";
+            } else fluid.direction = "left";
+          }
+        }
+        if (fluid.speed > 50) {
+          fluid.speed = Infinity;
+        }
+      }
+    }
+
     //creates ground based on groundHeight and type
-    function groundMaker() {
+    function terrainMaker() {
       for (
         let h = gameboardHeight.current;
         h > gameboardHeight.current - groundLevel.current;
@@ -775,8 +827,8 @@ export default function engineOutput() {
         for (let w = 2; w <= gameboardWidth.current; w++) {
           let position = [w, h];
           let waterID = "water" + position[0] + position[1];
-          waterID = new Ground("water", position, waterID);
-          activeGround.current.push(waterID);
+          waterID = new Fluid("water", position, waterID);
+          activeFluid.current.push(waterID);
         }
       }
     }
@@ -818,6 +870,9 @@ export default function engineOutput() {
         });
         activeGround.current.forEach((ground) => {
           groundTurn(ground);
+        });
+        activeFluid.current.forEach((fluid) => {
+          fluidTurn(fluid);
         });
       }
 
@@ -979,7 +1034,7 @@ export default function engineOutput() {
 
     if (newRound) {
       ghoster();
-      groundMaker();
+      terrainMaker();
       if (gameMode.current === "king") {
         friendlySpawner("king", [1, -groundLevel.current], 1);
       }
@@ -1088,100 +1143,105 @@ export default function engineOutput() {
   //gives the ground entities a thicker outline if groundline
   function groundLine(ground) {
     if (!ground.falling) {
-      if (!ground.fluid) {
-        if (ground.fallSpeed > ground.fallCharge) {
-          return;
-        }
-        ground.style.boxShadow = "";
-        let made = false;
-        let groundAbove = activeGround.current.find((targetGround) =>
-          comparePosition(
-            [ground.position[0], ground.position[1] - 1],
-            targetGround.position
-          )
-        );
-        if (groundAbove === undefined || groundAbove.fluid) {
-          ground.style.boxShadow = "inset 0px 2px 0px grey";
-          made = true;
-        }
-        let groundLeft = activeGround.current.find((targetGround) =>
-          comparePosition(
-            [ground.position[0] - 1, ground.position[1]],
-            targetGround.position
-          )
-        );
-        if (
-          (groundLeft === undefined || groundLeft.fluid) &&
-          ground.position[0] - 1 !== 0 &&
-          !made
-        ) {
-          ground.style.boxShadow = "inset 2px 0px 0px grey";
-          made = true;
-        } else if (
-          (groundLeft === undefined || groundLeft.fluid) &&
-          ground.position[0] - 1 !== 0 &&
-          made
-        ) {
-          ground.style.boxShadow =
-            ground.style.boxShadow + ",inset 2px 0px 0px grey";
-        }
-        let groundRight = activeGround.current.find((targetGround) =>
-          comparePosition(
-            [ground.position[0] + 1, ground.position[1]],
-            targetGround.position
-          )
-        );
-        if (
-          (groundRight === undefined || groundRight.fluid) &&
-          ground.position[0] < gameboardWidth.current &&
-          !made
-        ) {
-          ground.style.boxShadow = "inset -2px 0px 0px grey";
-          made = true;
-        } else if (
-          (groundRight === undefined || groundRight.fluid) &&
-          ground.position[0] < gameboardWidth.current &&
-          made
-        ) {
-          ground.style.boxShadow =
-            ground.style.boxShadow + ",inset -2px 0px 0px grey";
-        }
-      } else if (ground.fluid) {
-        ground.style.boxShadow = "";
-        let made = false;
-        let positionAbove = [ground.position[0], ground.position[1] - 1];
-        let groundAbove = activeGround.current.find((ground) =>
-          comparePosition(ground.position, positionAbove)
-        );
-        if (groundAbove === undefined) {
-          ground.style.boxShadow = "inset 0px 1px 0px blue";
-          made = true;
-        }
-        let positionLeft = [ground.position[0] - 1, ground.position[1]];
-        let groundLeft = activeGround.current.find((ground) =>
-          comparePosition(ground.position, positionLeft)
-        );
-        if (groundLeft === undefined && !made) {
-          ground.style.boxShadow = "inset 1px 0px 0px blue";
-          made = true;
-        } else if (groundLeft === undefined && made) {
-          ground.style.boxShadow =
-            ground.style.boxShadow + ",inset 1px 0px 0px blue";
-        }
-        let positionRight = [ground.position[0] + 1, ground.position[1]];
-        let groundRight = activeGround.current.find((ground) =>
-          comparePosition(ground.position, positionRight)
-        );
-        if (groundRight === undefined && !made) {
-          ground.style.boxShadow = "inset -1px 0px 0px blue";
-          made = true;
-        } else if (groundRight === undefined && made) {
-          ground.style.boxShadow =
-            ground.style.boxShadow + ",inset -1px 0px 0px blue";
-        }
+      if (ground.fallSpeed > ground.fallCharge) {
+        return;
+      }
+      ground.style.boxShadow = "";
+      let made = false;
+      let groundAbove = activeGround.current.find((targetGround) =>
+        comparePosition(
+          [ground.position[0], ground.position[1] - 1],
+          targetGround.position
+        )
+      );
+      if (groundAbove === undefined || groundAbove.fluid) {
+        ground.style.boxShadow = "inset 0px 2px 0px grey";
+        made = true;
+      }
+      let groundLeft = activeGround.current.find((targetGround) =>
+        comparePosition(
+          [ground.position[0] - 1, ground.position[1]],
+          targetGround.position
+        )
+      );
+      if (
+        (groundLeft === undefined || groundLeft.fluid) &&
+        ground.position[0] - 1 !== 0 &&
+        !made
+      ) {
+        ground.style.boxShadow = "inset 2px 0px 0px grey";
+        made = true;
+      } else if (
+        (groundLeft === undefined || groundLeft.fluid) &&
+        ground.position[0] - 1 !== 0 &&
+        made
+      ) {
+        ground.style.boxShadow =
+          ground.style.boxShadow + ",inset 2px 0px 0px grey";
+      }
+      let groundRight = activeGround.current.find((targetGround) =>
+        comparePosition(
+          [ground.position[0] + 1, ground.position[1]],
+          targetGround.position
+        )
+      );
+      if (
+        (groundRight === undefined || groundRight.fluid) &&
+        ground.position[0] < gameboardWidth.current &&
+        !made
+      ) {
+        ground.style.boxShadow = "inset -2px 0px 0px grey";
+        made = true;
+      } else if (
+        (groundRight === undefined || groundRight.fluid) &&
+        ground.position[0] < gameboardWidth.current &&
+        made
+      ) {
+        ground.style.boxShadow =
+          ground.style.boxShadow + ",inset -2px 0px 0px grey";
       }
     } else {
       ground.style.boxShadow = false;
+    }
+  }
+
+  function fluidLine(fluid) {
+    if (!fluid.falling) {
+      if (fluid.fallSpeed > fluid.fallCharge) {
+        return;
+      }
+      fluid.style.boxShadow = "";
+      let made = false;
+      let positionAbove = [fluid.position[0], fluid.position[1] - 1];
+      let fluidAbove = activeFluid.current.find((fluid) =>
+        comparePosition(fluid.position, positionAbove)
+      );
+      if (fluidAbove === undefined) {
+        fluid.style.boxShadow = "inset 0px 1px 0px blue";
+        made = true;
+      }
+      let positionLeft = [fluid.position[0] - 1, fluid.position[1]];
+      let fluidLeft = activeFluid.current.find((fluid) =>
+        comparePosition(fluid.position, positionLeft)
+      );
+      if (fluidLeft === undefined && !made) {
+        fluid.style.boxShadow = "inset 1px 0px 0px blue";
+        made = true;
+      } else if (fluidLeft === undefined && made) {
+        fluid.style.boxShadow =
+          fluid.style.boxShadow + ",inset 1px 0px 0px blue";
+      }
+      let positionRight = [fluid.position[0] + 1, fluid.position[1]];
+      let fluidRight = activeFluid.current.find((fluid) =>
+        comparePosition(fluid.position, positionRight)
+      );
+      if (fluidRight === undefined && !made) {
+        fluid.style.boxShadow = "inset -1px 0px 0px blue";
+        made = true;
+      } else if (fluidRight === undefined && made) {
+        fluid.style.boxShadow =
+          fluid.style.boxShadow + ",inset -1px 0px 0px blue";
+      }
     }
   }
 
@@ -1254,6 +1314,12 @@ export default function engineOutput() {
       if (groundInPosition !== undefined) {
         return groundCell(groundInPosition, w, h, id, key);
       }
+      let fluidInPosition = activeFluid.current.find((fluid) =>
+        comparePosition(fluid.position, [w, h])
+      );
+      if (fluidInPosition !== undefined) {
+        return fluidCell(fluidInPosition, w, h, id, key);
+      }
       if (activeProjectiles.current.length > 0) {
         let projectileInPosition = activeProjectiles.current.find(
           (projectile) => comparePosition(projectile.position, [w, h])
@@ -1303,14 +1369,16 @@ export default function engineOutput() {
       let style = {
         boxShadow: ground.style.boxShadow,
       };
-      if (comparePosition(ground.position, [w, h])) {
-        if (!ground.fluid) {
-          return [key, id, ground.type + "(hp: " + ground.hp + ")", style];
-        } else {
-          style.fontStyle = "italic";
-          return [key, id, ground.type, style];
-        }
-      }
+      return [key, id, ground.type + "(hp: " + ground.hp + ")", style];
+    }
+
+    function fluidCell(fluid, w, h, id, key) {
+      fluidLine(fluid);
+      let style = {
+        boxShadow: fluid.style.boxShadow,
+      };
+      style.fontStyle = "italic";
+      return [key, id, fluid.type, style];
     }
 
     function entityCell(entity, id, key) {
@@ -1326,31 +1394,31 @@ export default function engineOutput() {
       }
       if (entity.inLiquid) {
         style.fontStyle = "italic";
-        let groundAbove = activeGround.current.find((ground) =>
-          comparePosition(ground.position, [
+        let fluidAbove = activeFluid.current.find((fluid) =>
+          comparePosition(fluid.position, [
             entity.position[0],
             entity.position[1] - 1,
           ])
         );
-        let groundLeft = activeGround.current.find((ground) =>
-          comparePosition(ground.position, [
+        let fluidLeft = activeFluid.current.find((fluid) =>
+          comparePosition(fluid.position, [
             entity.position[0] - 1,
             entity.position[1],
           ])
         );
-        let groundRight = activeGround.current.find((ground) =>
-          comparePosition(ground.position, [
+        let fluidRight = activeFluid.current.find((fluid) =>
+          comparePosition(fluid.position, [
             entity.position[0] + 1,
             entity.position[1],
           ])
         );
-        if (groundAbove === undefined) {
+        if (fluidAbove === undefined) {
           style.boxShadow = style.boxShadow + ",inset 0px 1px 0px blue";
         }
-        if (groundLeft === undefined) {
+        if (fluidLeft === undefined) {
           style.boxShadow = style.boxShadow + ",inset 1px 0px 0px blue";
         }
-        if (groundRight === undefined) {
+        if (fluidRight === undefined) {
           style.boxShadow = style.boxShadow + ",inset -1px 0px 0px blue";
         }
       } else {
