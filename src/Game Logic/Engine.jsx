@@ -20,6 +20,7 @@ export default function engineOutput() {
   const gameboardHeight = useRef(33);
   const groundLevel = useRef(15);
   const groundRoughness = useRef(5);
+  const waterLevel = useRef(1);
   const renderSpeed = useRef(5);
   const gameSpeed = useRef(0.5);
   const totalSpawns = useRef(30);
@@ -57,6 +58,7 @@ export default function engineOutput() {
     this.fallCharge = 0;
     this.climber = type.climber;
     this.projectile = type.projectile;
+    this.inLiquid = false;
     this.style = type.style;
   }
 
@@ -87,12 +89,24 @@ export default function engineOutput() {
     this.fallSpeed = groundList[type].fallSpeed / gameSpeed.current;
     this.fallCharge = 0;
     this.style = groundList[type].style;
+    this.fluid = groundList[type].fluid;
+    this.speed = groundList[type].speed / gameSpeed.current;
+    this.speedCharge = 0;
+    if (groundList[type].fluid) {
+      let directionDecider = Math.random() * 10;
+      if (directionDecider > 5) {
+        this.direction = "left";
+      } else {
+        this.direction = "right";
+      }
+    }
   }
 
   function engine(paused, newRound) {
     //tells entities what to do on their turn
     function entityTurn(currentEntity) {
       entityCharge(currentEntity);
+      liquidChecker(currentEntity);
       if (entityBoundaryHandler(currentEntity)) {
         return;
       }
@@ -147,12 +161,33 @@ export default function engineOutput() {
       }
     }
 
+    function liquidChecker(currentEntity) {
+      let liquidInPosition = activeGround.current.find((ground) =>
+        comparePosition(ground.position, currentEntity.position)
+      );
+      if (liquidInPosition !== undefined) {
+        if (liquidInPosition.fluid && !currentEntity.inLiquid) {
+          currentEntity.inLiquid = true;
+          currentEntity.speed *= 2;
+          currentEntity.rate *= 2;
+          currentEntity.rateCharge *= 2;
+          currentEntity.fallSpeed *= 4;
+        }
+      } else if (currentEntity.inLiquid) {
+        currentEntity.inLiquid = false;
+        currentEntity.speed /= 2;
+        currentEntity.rate /= 2;
+        currentEntity.rateCharge /= 2;
+        currentEntity.fallSpeed /= 4;
+      }
+    }
+
     //holds functions for entity falling
     function entityFallHolder(currentEntity) {
       for (let i = gameSpeed.current; i > 0; i--) {
         if (entityCanFall(currentEntity.position, currentEntity)) {
           entityFall(currentEntity);
-          // return true;
+          return true;
         }
       }
 
@@ -160,11 +195,10 @@ export default function engineOutput() {
       function entityCanFall(position, currentEntity) {
         if (position[1] !== gameboardHeight.current) {
           let positionBelow = [position[0], position[1] + 1];
-          if (
-            activeGround.current.find((ground) =>
-              comparePosition(ground.position, positionBelow)
-            ) !== undefined
-          ) {
+          let groundBelow = activeGround.current.find((ground) =>
+            comparePosition(ground.position, positionBelow)
+          );
+          if (groundBelow !== undefined && !groundBelow.fluid) {
             return false;
           }
           if (
@@ -342,7 +376,10 @@ export default function engineOutput() {
             ) {
               return climbSpotFree(positionNextTo);
             }
-            if (groundInPositionNextTo !== undefined) {
+            if (
+              groundInPositionNextTo !== undefined &&
+              !groundInPositionNextTo.fluid
+            ) {
               return climbSpotFree(positionNextTo);
             }
             return false;
@@ -357,11 +394,10 @@ export default function engineOutput() {
               ) {
                 return false;
               }
-              if (
-                activeGround.current.find((ground) =>
-                  comparePosition(ground.position, positionAbove)
-                ) !== undefined
-              ) {
+              let groundAbove = activeGround.current.find((ground) =>
+                comparePosition(ground.position, positionAbove)
+              );
+              if (groundAbove !== undefined && !groundAbove.fluid) {
                 return false;
               }
               return true;
@@ -386,15 +422,25 @@ export default function engineOutput() {
 
           //checks if entity can walk
           function walkChecker(newPosition) {
+            let entityInPosition = activeEntities.current.find((entity) =>
+              comparePosition(entity.position, newPosition)
+            );
+            let groundInPosition = activeGround.current.find((ground) =>
+              comparePosition(ground.position, newPosition)
+            );
+
             if (
-              !activeEntities.current.find((entity) =>
-                comparePosition(entity.position, newPosition)
-              ) &&
-              !activeGround.current.find((ground) =>
-                comparePosition(ground.position, newPosition)
-              )
+              entityInPosition === undefined &&
+              groundInPosition === undefined
             ) {
               return true;
+            } else if (
+              groundInPosition !== undefined &&
+              entityInPosition === undefined
+            ) {
+              if (groundInPosition.fluid) {
+                return true;
+              }
             }
           }
 
@@ -447,7 +493,7 @@ export default function engineOutput() {
               currentEntity.position[1],
             ])
           );
-          if (targetGround !== undefined) {
+          if (targetGround !== undefined && !targetGround.fluid) {
             return true;
           }
         }
@@ -577,6 +623,9 @@ export default function engineOutput() {
     function groundTurn(ground) {
       for (let i = gameSpeed.current; i > 0; i--) {
         if (groundCanFall(ground.position, ground)) {
+          if (ground.fluid) {
+            ground.speed = 5;
+          }
           groundIsFalling.current = true;
           ground.falling = true;
           groundFall(ground);
@@ -585,18 +634,57 @@ export default function engineOutput() {
           groundIsFalling.current = true;
         }
       }
+      if (ground.fluid && !ground.falling) {
+        fluidMovement(ground);
+      }
+
+      function fluidMovement(fluid) {
+        if (fluid.speedCharge < fluid.speed) {
+          fluid.speedCharge++;
+        } else {
+          if (fluid.direction === "left") {
+            let positionToLeft = [fluid.position[0] - 1, fluid.position[1]];
+            if (positionToLeft[0] === 0) {
+              entityKiller(fluid);
+            }
+            let groundToLeft = activeGround.current.find((ground) =>
+              comparePosition(ground.position, positionToLeft)
+            );
+            if (groundToLeft === undefined) {
+              fluid.position = positionToLeft;
+              fluid.speedCharge = 0;
+              fluid.speed *= 1.3;
+            } else fluid.direction = "right";
+          }
+          if (fluid.direction === "right") {
+            let positionToRight = [fluid.position[0] + 1, fluid.position[1]];
+            if (positionToRight[0] === gameboardWidth.current + 1) {
+              entityKiller(fluid);
+            }
+            let groundToRight = activeGround.current.find((ground) =>
+              comparePosition(ground.position, positionToRight)
+            );
+            if (groundToRight === undefined) {
+              fluid.position = positionToRight;
+              fluid.speedCharge = 0;
+              fluid.speed *= 1.3;
+            } else fluid.direction = "left";
+          }
+        }
+        if (fluid.speed > 50) {
+          fluid.speed = Infinity;
+        }
+      }
 
       //checks if ground can fall
       function groundCanFall(position, ground) {
-        if (
-          position[1] < gameboardHeight.current
-        ) {
+        if (position[1] < gameboardHeight.current) {
           let spaceBelow = true;
           let positionBelow = [position[0], position[1] + 1];
           let entityBelow = activeEntities.current.find((entity) =>
             comparePosition(entity.position, positionBelow)
           );
-          if (entityBelow) {
+          if (entityBelow && !ground.fluid) {
             groundAttack(ground, entityBelow);
           }
           if (
@@ -667,6 +755,18 @@ export default function engineOutput() {
           }
         }
       }
+      for (
+        let h = -groundLevel.current;
+        h > -groundLevel.current - waterLevel.current;
+        h--
+      ) {
+        for (let w = 2; w <= gameboardWidth.current; w++) {
+          let position = [w, h];
+          let waterID = "water" + position[0] + position[1];
+          waterID = new Ground("water", position, waterID);
+          activeGround.current.push(waterID);
+        }
+      }
     }
 
     //sets amount of turns to play
@@ -715,7 +815,6 @@ export default function engineOutput() {
           let kingAlive =
             activeEntities.current.find((entity) => entity.type === "king") !==
             undefined;
-            console.log(kingAlive);
           if (kingAlive) {
             return true;
           }
@@ -977,58 +1076,97 @@ export default function engineOutput() {
   //gives the ground entities a thicker outline if groundline
   function groundLine(ground) {
     if (!ground.falling) {
-      if (ground.fallSpeed > ground.fallCharge) {
-        return;
-      }
-      ground.style.boxShadow = "";
-      let made = false;
-      let groundAbove = activeGround.current.find((targetGround) =>
-        comparePosition(
-          [ground.position[0], ground.position[1] - 1],
-          targetGround.position
-        )
-      );
-      if (groundAbove === undefined) {
-        ground.style.boxShadow = "inset 0px 2px 0px grey";
-        made = true;
-      }
-      let groundLeft = activeGround.current.find((targetGround) =>
-        comparePosition(
-          [ground.position[0] - 1, ground.position[1]],
-          targetGround.position
-        )
-      );
-      if (groundLeft === undefined && ground.position[0] - 1 !== 0 && !made) {
-        ground.style.boxShadow = "inset 2px 0px 0px grey";
-        made = true;
-      } else if (
-        groundLeft === undefined &&
-        ground.position[0] - 1 !== 0 &&
-        made
-      ) {
-        ground.style.boxShadow =
-          ground.style.boxShadow + ",inset 2px 0px 0px grey";
-      }
-      let groundRight = activeGround.current.find((targetGround) =>
-        comparePosition(
-          [ground.position[0] + 1, ground.position[1]],
-          targetGround.position
-        )
-      );
-      if (
-        groundRight === undefined &&
-        ground.position[0] < gameboardWidth.current &&
-        !made
-      ) {
-        ground.style.boxShadow = "inset -2px 0px 0px grey";
-        made = true;
-      } else if (
-        groundRight === undefined &&
-        ground.position[0] < gameboardWidth.current &&
-        made
-      ) {
-        ground.style.boxShadow =
-          ground.style.boxShadow + ",inset -2px 0px 0px grey";
+      if (!ground.fluid) {
+        if (ground.fallSpeed > ground.fallCharge) {
+          return;
+        }
+        ground.style.boxShadow = "";
+        let made = false;
+        let groundAbove = activeGround.current.find((targetGround) =>
+          comparePosition(
+            [ground.position[0], ground.position[1] - 1],
+            targetGround.position
+          )
+        );
+        if (groundAbove === undefined || groundAbove.fluid) {
+          ground.style.boxShadow = "inset 0px 2px 0px grey";
+          made = true;
+        }
+        let groundLeft = activeGround.current.find((targetGround) =>
+          comparePosition(
+            [ground.position[0] - 1, ground.position[1]],
+            targetGround.position
+          )
+        );
+        if (
+          (groundLeft === undefined || groundLeft.fluid) &&
+          ground.position[0] - 1 !== 0 &&
+          !made
+        ) {
+          ground.style.boxShadow = "inset 2px 0px 0px grey";
+          made = true;
+        } else if (
+          (groundLeft === undefined || groundLeft.fluid) &&
+          ground.position[0] - 1 !== 0 &&
+          made
+        ) {
+          ground.style.boxShadow =
+            ground.style.boxShadow + ",inset 2px 0px 0px grey";
+        }
+        let groundRight = activeGround.current.find((targetGround) =>
+          comparePosition(
+            [ground.position[0] + 1, ground.position[1]],
+            targetGround.position
+          )
+        );
+        if (
+          (groundRight === undefined || groundRight.fluid) &&
+          ground.position[0] < gameboardWidth.current &&
+          !made
+        ) {
+          ground.style.boxShadow = "inset -2px 0px 0px grey";
+          made = true;
+        } else if (
+          (groundRight === undefined || groundRight.fluid) &&
+          ground.position[0] < gameboardWidth.current &&
+          made
+        ) {
+          ground.style.boxShadow =
+            ground.style.boxShadow + ",inset -2px 0px 0px grey";
+        }
+      } else if (ground.fluid) {
+        ground.style.boxShadow = "";
+        let made = false;
+        let positionAbove = [ground.position[0], ground.position[1] - 1];
+        let groundAbove = activeGround.current.find((ground) =>
+          comparePosition(ground.position, positionAbove)
+        );
+        if (groundAbove === undefined) {
+          ground.style.boxShadow = "inset 0px 1px 0px blue";
+          made = true;
+        }
+        let positionLeft = [ground.position[0] - 1, ground.position[1]];
+        let groundLeft = activeGround.current.find((ground) =>
+          comparePosition(ground.position, positionLeft)
+        );
+        if (groundLeft === undefined && !made) {
+          ground.style.boxShadow = "inset 1px 0px 0px blue";
+          made = true;
+        } else if (groundLeft === undefined && made) {
+          ground.style.boxShadow =
+            ground.style.boxShadow + ",inset 1px 0px 0px blue";
+        }
+        let positionRight = [ground.position[0] + 1, ground.position[1]];
+        let groundRight = activeGround.current.find((ground) =>
+          comparePosition(ground.position, positionRight)
+        );
+        if (groundRight === undefined && !made) {
+          ground.style.boxShadow = "inset -1px 0px 0px blue";
+          made = true;
+        } else if (groundRight === undefined && made) {
+          ground.style.boxShadow =
+            ground.style.boxShadow + ",inset -1px 0px 0px blue";
+        }
       }
     } else {
       ground.style.boxShadow = false;
@@ -1154,7 +1292,12 @@ export default function engineOutput() {
         boxShadow: ground.style.boxShadow,
       };
       if (comparePosition(ground.position, [w, h])) {
-        return [key, id, ground.type + "(hp: " + ground.hp + ")", style];
+        if (!ground.fluid) {
+          return [key, id, ground.type + "(hp: " + ground.hp + ")", style];
+        } else {
+          style.fontStyle = "italic";
+          return [key, id, ground.type, style];
+        }
       }
     }
 
@@ -1166,11 +1309,24 @@ export default function engineOutput() {
       let cellContents = entity.type + entity.lvl + " (hp: " + entity.hp + ")";
       if (entity.enemy === true) {
         style.color = "darkRed";
-        return [key, id, cellContents, style];
       } else {
         style.color = "darkGreen";
-        return [key, id, cellContents, style];
       }
+      if (entity.inLiquid) {
+        style.fontStyle = "italic";
+        let groundAbove = activeGround.current.find((ground) =>
+          comparePosition(ground.position, [
+            entity.position[0],
+            entity.position[1] - 1,
+          ])
+        );
+        if (groundAbove === undefined) {
+          style.boxShadow = style.boxShadow + ",inset 0px 1px 0px blue";
+        }
+      } else {
+        style.fontStyle = "normal";
+      }
+      return [key, id, cellContents, style];
     }
 
     function projectileCell(projectile, id, key) {

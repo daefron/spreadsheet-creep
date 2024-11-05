@@ -197,7 +197,7 @@ export default {
     type: "king",
     enemy: false,
     projectile: false,
-    fallSpeed: 1,
+    fallSpeed: 0,
     climber: false,
     style: {},
     lvls: {

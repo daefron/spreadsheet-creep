@@ -13,4 +13,12 @@ export default {
     style: {},
     falling: false,
   },
+  water: {
+    type: "water",
+    fluid : true,
+    fallSpeed: 0,
+    speed: 5,
+    style: {},
+    falling: false,
+  },
 };
