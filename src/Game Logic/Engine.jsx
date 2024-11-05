@@ -544,12 +544,13 @@ export default function engineOutput() {
 
     //determines which graveyard entities get sent to
     function entityKiller(entity) {
+      if (entity.type === "water") {
+        fluidGraveyard.current.push(
+          activeFluid.current.splice(activeFluid.current.indexOf(entity), 1)
+        );
+        return;
+      }
       if (entity.ghost === undefined) {
-        if (entity.type === "water") {
-          fluidGraveyard.current.push(
-            activeFluid.current.splice(activeFluid.current.indexOf(entity), 1)
-          );
-        }
         if (entity.enemy === undefined) {
           groundGraveyard.current.push(
             activeGround.current.splice(activeGround.current.indexOf(entity), 1)
@@ -713,23 +714,21 @@ export default function engineOutput() {
 
       function fluidCanFall(position, fluid) {
         if (position[1] < gameboardHeight.current) {
-          let spaceBelow = true;
           let positionBelow = [position[0], position[1] + 1];
           let groundBelow = activeGround.current.find((ground) =>
             comparePosition(ground.position, positionBelow)
           );
           if (groundBelow !== undefined) {
-            spaceBelow = false;
+            return false;
           }
           let fluidBelow = activeFluid.current.find((fluid) =>
             comparePosition(fluid.position, positionBelow)
           );
           if (fluidBelow !== undefined) {
-            spaceBelow = false;
+            return false;
           }
-          return spaceBelow;
-        }
-        if (fluid.ghost) {
+          return true;
+        } else if (fluid.ghost) {
           entityKiller(fluid);
         }
       }
@@ -1023,6 +1022,9 @@ export default function engineOutput() {
       activeGround.current.forEach((ground) => {
         ground.fallSpeed = 0;
         ground.ghost = true;
+      });
+      activeFluid.current.forEach((fluid) => {
+        fluid.ghost = true;
       });
       activeProjectiles.current.forEach((projectile) => {
         activeProjectiles.current.splice(
