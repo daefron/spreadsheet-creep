@@ -223,16 +223,10 @@ export default function engineOutput() {
       function entityCanFall(position, currentEntity) {
         if (position[1] !== gameboardHeight.current) {
           let positionBelow = [position[0], position[1] + 1];
-          let groundBelow = activeGround.current.find((ground) =>
-            comparePosition(ground.position, positionBelow)
-          );
-          if (groundBelow !== undefined) {
-            return false;
-          }
+          let cellBelow = cellContents(positionBelow);
           if (
-            activeEntities.current.find((entity) =>
-              comparePosition(entity.position, positionBelow)
-            ) !== undefined
+            cellBelow.ground !== undefined ||
+            cellBelow.entity !== undefined
           ) {
             return false;
           }
@@ -392,19 +386,14 @@ export default function engineOutput() {
 
           //checks if entity wants to climb
           function climbChecker(currentEntity, positionNextTo) {
-            let entityInPositionNextTo = activeEntities.current.find((entity) =>
-              comparePosition(entity.position, positionNextTo)
-            );
-            let groundInPositionNextTo = activeGround.current.find((ground) =>
-              comparePosition(ground.position, positionNextTo)
-            );
+            let cellNextTo = cellContents(positionNextTo);
             if (
-              entityInPositionNextTo !== undefined &&
-              entityInPositionNextTo.enemy === currentEntity.enemy
+              cellNextTo.entity !== undefined &&
+              cellNextTo.entity.enemy === currentEntity.enemy
             ) {
               return climbSpotFree(positionNextTo);
             }
-            if (groundInPositionNextTo !== undefined) {
+            if (cellNextTo.ground !== undefined) {
               return climbSpotFree(positionNextTo);
             }
             return false;
@@ -412,16 +401,11 @@ export default function engineOutput() {
             //checks if position to climb into is free
             function climbSpotFree(positionNextTo) {
               let positionAbove = [positionNextTo[0], positionNextTo[1] - 1];
-              let entityAbove = activeEntities.current.find((entity) =>
-                comparePosition(entity.position, positionAbove)
-              );
-              if (entityAbove !== undefined) {
-                return false;
-              }
-              let groundAbove = activeGround.current.find((ground) =>
-                comparePosition(ground.position, positionAbove)
-              );
-              if (groundAbove !== undefined) {
+              let cellAbove = cellContents(positionAbove);
+              if (
+                cellAbove.entity !== undefined ||
+                cellAbove.ground !== undefined
+              ) {
                 return false;
               }
               return true;
@@ -446,16 +430,10 @@ export default function engineOutput() {
 
           //checks if entity can walk
           function walkChecker(newPosition) {
-            let entityInPosition = activeEntities.current.find((entity) =>
-              comparePosition(entity.position, newPosition)
-            );
-            let groundInPosition = activeGround.current.find((ground) =>
-              comparePosition(ground.position, newPosition)
-            );
-
+            let cellNewPosition = cellContents(newPosition);
             if (
-              entityInPosition === undefined &&
-              groundInPosition === undefined
+              cellNewPosition.entity === undefined &&
+              cellNewPosition.ground === undefined
             ) {
               return true;
             }
@@ -471,20 +449,17 @@ export default function engineOutput() {
 
         //checks if entity walked/climbed into projectile and applies damage if so
         function projectileChecker(currentEntity) {
-          let projectileInPosition = activeProjectiles.current.find(
-            (projectile) =>
-              comparePosition(projectile.position, currentEntity.position)
-          );
+          let cellInPosition = cellContents(currentEntity.position);
           if (
-            projectileInPosition !== undefined &&
-            projectileInPosition.enemy !== currentEntity.enemy
+            cellInPosition.projectile !== undefined &&
+            cellInPosition.projectile.enemy !== currentEntity.enemy
           ) {
-            currentEntity.hp -= projectileInPosition.dmg;
+            currentEntity.hp -= cellInPosition.projectile.dmg;
             activeProjectiles.current.splice(
-              activeProjectiles.current.indexOf(projectileInPosition),
+              activeProjectiles.current.indexOf(cellInPosition.projectile),
               1
             );
-            healthChecker(currentEntity, projectileInPosition.parent);
+            healthChecker(currentEntity, cellInPosition.projectile.parent);
           }
         }
       }
@@ -504,13 +479,11 @@ export default function engineOutput() {
           currentEntity.speedCharge >= currentEntity.speed &&
           currentEntity.rate !== 0
         ) {
-          let targetGround = activeGround.current.find((ground) =>
-            comparePosition(ground.position, [
-              direction(currentEntity),
-              currentEntity.position[1],
-            ])
-          );
-          if (targetGround !== undefined) {
+          let targetCell = cellContents([
+            direction(currentEntity),
+            currentEntity.position[1],
+          ]);
+          if (targetCell.ground !== undefined) {
             return true;
           }
         }
@@ -519,14 +492,12 @@ export default function engineOutput() {
 
       //makes entity attack adjacent ground
       function entityAttackGround(currentEntity) {
-        let targetGround = activeGround.current.find((ground) =>
-          comparePosition(ground.position, [
-            direction(currentEntity),
-            currentEntity.position[1],
-          ])
-        );
-        targetGround.hp -= currentEntity.dmg;
-        healthChecker(targetGround, currentEntity);
+        let targetCell = cellContents([
+          direction(currentEntity),
+          currentEntity.position[1],
+        ]);
+        targetCell.ground.hp -= currentEntity.dmg;
+        healthChecker(targetCell.ground, currentEntity);
         currentEntity.rateCharge = 0;
         currentEntity.speedCharge = 0;
       }
@@ -611,29 +582,24 @@ export default function engineOutput() {
       //checks to see if projectile will move or attack enemy
       function projectileMovement(projectile) {
         let newPosition = [direction(projectile), projectile.position[1]];
-        let entityAtPosition = activeEntities.current.find((entity) =>
-          comparePosition(entity.position, newPosition)
-        );
-        let groundAtPosition = activeGround.current.find((ground) =>
-          comparePosition(ground.position, newPosition)
-        );
+        let cellAtPosition = cellContents(newPosition);
         if (
-          entityAtPosition !== undefined &&
-          entityAtPosition.enemy !== projectile.enemy
+          cellAtPosition.entity !== undefined &&
+          cellAtPosition.entity.enemy !== projectile.enemy
         ) {
-          entityAtPosition.hp -= projectile.dmg;
+          cellAtPosition.entity.hp -= projectile.dmg;
           activeProjectiles.current.splice(
             activeProjectiles.current.indexOf(projectile),
             1
           );
-          healthChecker(entityAtPosition, projectile.parent);
-        } else if (groundAtPosition !== undefined) {
-          groundAtPosition.hp -= projectile.dmg;
+          healthChecker(cellAtPosition.entity, projectile.parent);
+        } else if (cellAtPosition.ground !== undefined) {
+          cellAtPosition.ground.hp -= projectile.dmg;
           activeProjectiles.current.splice(
             activeProjectiles.current.indexOf(projectile),
             1
           );
-          healthChecker(groundAtPosition, projectile.parent);
+          healthChecker(cellAtPosition.ground, projectile.parent);
         } else {
           projectile.speedCharge = 0;
           projectile.position = newPosition;
@@ -660,17 +626,11 @@ export default function engineOutput() {
         if (position[1] < gameboardHeight.current) {
           let spaceBelow = true;
           let positionBelow = [position[0], position[1] + 1];
-          let entityBelow = activeEntities.current.find((entity) =>
-            comparePosition(entity.position, positionBelow)
-          );
-          if (entityBelow) {
-            groundAttack(ground, entityBelow);
+          let cellBelow = cellContents(positionBelow);
+          if (cellBelow.entity !== undefined) {
+            groundAttack(ground, cellBelow.entity);
           }
-          if (
-            activeGround.current.find((ground) =>
-              comparePosition(ground.position, positionBelow)
-            ) !== undefined
-          ) {
+          if (cellBelow.ground !== undefined) {
             spaceBelow = false;
           }
           return spaceBelow;
@@ -717,16 +677,8 @@ export default function engineOutput() {
       function fluidCanFall(position, fluid) {
         if (position[1] < gameboardHeight.current) {
           let positionBelow = [position[0], position[1] + 1];
-          let groundBelow = activeGround.current.find((ground) =>
-            comparePosition(ground.position, positionBelow)
-          );
-          if (groundBelow !== undefined) {
-            return false;
-          }
-          let fluidBelow = activeFluid.current.find((fluid) =>
-            comparePosition(fluid.position, positionBelow)
-          );
-          if (fluidBelow !== undefined) {
+          let cellBelow = cellContents(positionBelow);
+          if (cellBelow.ground !== undefined || cellBelow.fluid !== undefined) {
             return false;
           }
           return true;
@@ -761,29 +713,26 @@ export default function engineOutput() {
           ) {
             entityKiller(fluid);
           }
-          let targetGround = activeGround.current.find((ground) =>
-            comparePosition(ground.position, targetPosition)
-          );
-          let targetFluid = activeFluid.current.find((fluid) =>
-            comparePosition(fluid.position, targetPosition)
-          );
-          if (targetGround === undefined && targetFluid === undefined) {
+          let targetCell = cellContents(targetPosition);
+          if (
+            targetCell.ground === undefined &&
+            targetCell.fluid === undefined
+          ) {
             fluid.position = targetPosition;
             fluid.speedCharge = 0;
             fluid.speed *= 1.3;
+            return;
           } else {
             if (fluid.direction === "left") {
               fluid.direction = "right";
             } else fluid.direction = "left";
           }
         }
-        let fluidBelow = activeFluid.current.find((targetFluid) =>
-          comparePosition(targetFluid.position, [
-            fluid.position[0],
-            fluid.position[1] + 1,
-          ])
-        );
-        if (fluid.speed > 50 && fluidBelow !== undefined) {
+        let cellBelow = cellContents([
+          fluid.position[0],
+          fluid.position[1] + 1,
+        ]);
+        if (fluid.speed > 50 && cellBelow.fluid !== undefined) {
           fluid.speed = Infinity;
         }
       }
@@ -831,7 +780,7 @@ export default function engineOutput() {
         h > -groundLevel.current - waterLevel.current;
         h--
       ) {
-        for (let w = 2; w <= gameboardWidth.current; w++) {
+        for (let w = 1; w <= gameboardWidth.current; w++) {
           let position = [w, h];
           let waterID = "water" + position[0] + position[1];
           waterID = new Fluid("water", position, waterID);
@@ -1062,6 +1011,29 @@ export default function engineOutput() {
     return false;
   }
 
+  //returns an object of what is currently in selected position
+  function cellContents(position) {
+    let entityInCell = activeEntities.current.find((entity) =>
+      comparePosition(entity.position, position)
+    );
+    let groundInCell = activeGround.current.find((ground) =>
+      comparePosition(ground.position, position)
+    );
+    let fluidInCell = activeFluid.current.find((fluid) =>
+      comparePosition(fluid.position, position)
+    );
+    let projectileInCell = activeProjectiles.current.find((projectile) =>
+      comparePosition(projectile.position, position)
+    );
+    let inCell = {
+      entity: entityInCell,
+      ground: groundInCell,
+      fluid: fluidInCell,
+      projectile: projectileInCell,
+    };
+    return inCell;
+  }
+
   //adds or subtracts on the x axis depending on enemy type
   function direction(currentEntity) {
     if (currentEntity.enemy) {
@@ -1078,18 +1050,10 @@ export default function engineOutput() {
 
   //checks to see if user input is in space of other entity
   function typingChecker(position) {
-    let entityInPosition = activeEntities.current.find((entity) =>
-      comparePosition(entity.position, position)
-    );
-    if (entityInPosition === undefined) {
-      entityInPosition = activeGround.current.find((ground) =>
-        comparePosition(ground.position, position)
-      );
-    }
-    if (entityInPosition === undefined) {
+    let targetCell = cellContents(position);
+    if (targetCell.ground === undefined && targetCell.entity === undefined) {
       return true;
     }
-    return false;
   }
 
   //parses user input into usable data
@@ -1159,52 +1123,43 @@ export default function engineOutput() {
       }
       ground.style.boxShadow = "";
       let made = false;
-      let groundAbove = activeGround.current.find((targetGround) =>
-        comparePosition(
-          [ground.position[0], ground.position[1] - 1],
-          targetGround.position
-        )
-      );
-      if (groundAbove === undefined || groundAbove.fluid) {
+      let cellAbove = cellContents([
+        ground.position[0],
+        ground.position[1] - 1,
+      ]);
+      let cellLeft = cellContents([ground.position[0] - 1, ground.position[1]]);
+      let cellRight = cellContents([
+        ground.position[0] + 1,
+        ground.position[1],
+      ]);
+      if (cellAbove.ground === undefined) {
         ground.style.boxShadow = "inset 0px 2px 0px grey";
         made = true;
       }
-      let groundLeft = activeGround.current.find((targetGround) =>
-        comparePosition(
-          [ground.position[0] - 1, ground.position[1]],
-          targetGround.position
-        )
-      );
       if (
-        (groundLeft === undefined || groundLeft.fluid) &&
+        cellLeft.ground === undefined &&
         ground.position[0] - 1 !== 0 &&
         !made
       ) {
         ground.style.boxShadow = "inset 2px 0px 0px grey";
         made = true;
       } else if (
-        (groundLeft === undefined || groundLeft.fluid) &&
+        cellLeft.ground === undefined &&
         ground.position[0] - 1 !== 0 &&
         made
       ) {
         ground.style.boxShadow =
           ground.style.boxShadow + ",inset 2px 0px 0px grey";
       }
-      let groundRight = activeGround.current.find((targetGround) =>
-        comparePosition(
-          [ground.position[0] + 1, ground.position[1]],
-          targetGround.position
-        )
-      );
       if (
-        (groundRight === undefined || groundRight.fluid) &&
+        cellRight.ground === undefined &&
         ground.position[0] < gameboardWidth.current &&
         !made
       ) {
         ground.style.boxShadow = "inset -2px 0px 0px grey";
         made = true;
       } else if (
-        (groundRight === undefined || groundRight.fluid) &&
+        cellRight.ground === undefined &&
         ground.position[0] < gameboardWidth.current &&
         made
       ) {
@@ -1223,33 +1178,24 @@ export default function engineOutput() {
       }
       fluid.style.boxShadow = "";
       let made = false;
-      let positionAbove = [fluid.position[0], fluid.position[1] - 1];
-      let fluidAbove = activeFluid.current.find((fluid) =>
-        comparePosition(fluid.position, positionAbove)
-      );
-      if (fluidAbove === undefined) {
+      let cellAbove = cellContents([fluid.position[0], fluid.position[1] - 1]);
+      let cellLeft = cellContents([fluid.position[0] - 1, fluid.position[1]]);
+      let cellRight = cellContents([fluid.position[0] + 1, fluid.position[1]]);
+      if (cellAbove.fluid === undefined) {
         fluid.style.boxShadow = "inset 0px 1px 0px blue";
         made = true;
       }
-      let positionLeft = [fluid.position[0] - 1, fluid.position[1]];
-      let fluidLeft = activeFluid.current.find((fluid) =>
-        comparePosition(fluid.position, positionLeft)
-      );
-      if (fluidLeft === undefined && !made) {
+      if (cellLeft.fluid === undefined && !made) {
         fluid.style.boxShadow = "inset 1px 0px 0px blue";
         made = true;
-      } else if (fluidLeft === undefined && made) {
+      } else if (cellLeft.fluid === undefined && made) {
         fluid.style.boxShadow =
           fluid.style.boxShadow + ",inset 1px 0px 0px blue";
       }
-      let positionRight = [fluid.position[0] + 1, fluid.position[1]];
-      let fluidRight = activeFluid.current.find((fluid) =>
-        comparePosition(fluid.position, positionRight)
-      );
-      if (fluidRight === undefined && !made) {
+      if (cellRight.fluid === undefined && !made) {
         fluid.style.boxShadow = "inset -1px 0px 0px blue";
         made = true;
-      } else if (fluidRight === undefined && made) {
+      } else if (cellRight.fluid === undefined && made) {
         fluid.style.boxShadow =
           fluid.style.boxShadow + ",inset -1px 0px 0px blue";
       }
@@ -1298,6 +1244,7 @@ export default function engineOutput() {
     //determines what type function to call
     function cellType(w, h) {
       let id = w + "x" + h;
+      let cell = cellContents([w, h]);
       let key = id;
       if (selectedCell.current !== undefined && currentInput.current !== "") {
         let inputPosition = selectedCell.current.id.split("x");
@@ -1313,33 +1260,17 @@ export default function engineOutput() {
       if (h === 0) {
         return firstRowCell(w, id, key);
       }
-      if (activeEntities.current.length > 0) {
-        let entityInPosition = activeEntities.current.find((entity) =>
-          comparePosition(entity.position, [w, h])
-        );
-        if (entityInPosition !== undefined) {
-          return entityCell(entityInPosition, id, key);
-        }
+      if (cell.entity !== undefined) {
+        return entityCell(cell.entity, id, key);
       }
-      let groundInPosition = activeGround.current.find((ground) =>
-        comparePosition(ground.position, [w, h])
-      );
-      if (groundInPosition !== undefined) {
-        return groundCell(groundInPosition, w, h, id, key);
+      if (cell.ground !== undefined) {
+        return groundCell(cell.ground, id, key);
       }
-      let fluidInPosition = activeFluid.current.find((fluid) =>
-        comparePosition(fluid.position, [w, h])
-      );
-      if (fluidInPosition !== undefined) {
-        return fluidCell(fluidInPosition, w, h, id, key);
+      if (cell.fluid !== undefined) {
+        return fluidCell(cell.fluid, id, key);
       }
-      if (activeProjectiles.current.length > 0) {
-        let projectileInPosition = activeProjectiles.current.find(
-          (projectile) => comparePosition(projectile.position, [w, h])
-        );
-        if (projectileInPosition !== undefined) {
-          return projectileCell(projectileInPosition, id, key);
-        }
+      if (cell.projectile !== undefined) {
+        return projectileCell(cell.projectile, id, key);
       }
       let style = {};
       return [key, id, "", style];
@@ -1375,7 +1306,7 @@ export default function engineOutput() {
       return [key, id, toLetter(w - 1) + " ", style];
     }
 
-    function groundCell(ground, w, h, id, key) {
+    function groundCell(ground, id, key) {
       if (terrainIsFalling.current) {
         groundLine(ground);
       }
@@ -1385,7 +1316,7 @@ export default function engineOutput() {
       return [key, id, ground.type + "(hp: " + ground.hp + ")", style];
     }
 
-    function fluidCell(fluid, w, h, id, key) {
+    function fluidCell(fluid, id, key) {
       if (terrainIsFalling.current) {
         fluidLine(fluid);
       }
@@ -1401,7 +1332,7 @@ export default function engineOutput() {
       let style = {
         boxShadow: entity.style.boxShadow,
       };
-      let cellContents = entity.type + entity.lvl + " (hp: " + entity.hp + ")";
+      let cellText = entity.type + entity.lvl + " (hp: " + entity.hp + ")";
       if (entity.enemy === true) {
         style.color = "darkRed";
       } else {
@@ -1409,37 +1340,31 @@ export default function engineOutput() {
       }
       if (entity.inLiquid) {
         style.fontStyle = "italic";
-        let fluidAbove = activeFluid.current.find((fluid) =>
-          comparePosition(fluid.position, [
-            entity.position[0],
-            entity.position[1] - 1,
-          ])
-        );
-        let fluidLeft = activeFluid.current.find((fluid) =>
-          comparePosition(fluid.position, [
-            entity.position[0] - 1,
-            entity.position[1],
-          ])
-        );
-        let fluidRight = activeFluid.current.find((fluid) =>
-          comparePosition(fluid.position, [
-            entity.position[0] + 1,
-            entity.position[1],
-          ])
-        );
-        if (fluidAbove === undefined) {
+        let cellAbove = cellContents([
+          entity.position[0],
+          entity.position[1] - 1,
+        ]);
+        let cellLeft = cellContents([
+          entity.position[0] - 1,
+          entity.position[1],
+        ]);
+        let cellRight = cellContents([
+          entity.position[0] + 1,
+          entity.position[1],
+        ]);
+        if (cellAbove.fluid === undefined) {
           style.boxShadow = style.boxShadow + ",inset 0px 1px 0px blue";
         }
-        if (fluidLeft === undefined) {
+        if (cellLeft.fluid === undefined) {
           style.boxShadow = style.boxShadow + ",inset 1px 0px 0px blue";
         }
-        if (fluidRight === undefined) {
+        if (cellRight.fluid === undefined) {
           style.boxShadow = style.boxShadow + ",inset -1px 0px 0px blue";
         }
       } else {
         style.fontStyle = "normal";
       }
-      return [key, id, cellContents, style];
+      return [key, id, cellText, style];
     }
 
     function projectileCell(projectile, id, key) {
