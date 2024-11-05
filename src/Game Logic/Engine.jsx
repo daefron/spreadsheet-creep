@@ -777,7 +777,13 @@ export default function engineOutput() {
             } else fluid.direction = "left";
           }
         }
-        if (fluid.speed > 50) {
+        let fluidBelow = activeFluid.current.find((targetFluid) =>
+          comparePosition(targetFluid.position, [
+            fluid.position[0],
+            fluid.position[1] + 1,
+          ])
+        );
+        if (fluid.speed > 50 && fluidBelow !== undefined) {
           fluid.speed = Infinity;
         }
       }
@@ -1380,7 +1386,7 @@ export default function engineOutput() {
     }
 
     function fluidCell(fluid, w, h, id, key) {
-      if(terrainIsFalling.current) {
+      if (terrainIsFalling.current) {
         fluidLine(fluid);
       }
       let style = {
