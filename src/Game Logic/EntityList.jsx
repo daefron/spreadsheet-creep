@@ -5,6 +5,7 @@ export default {
     projectile: false,
     fallSpeed: 1,
     climber: true,
+    breathes: true,
     style: {},
     lvls: {
       lvl1: {
@@ -35,6 +36,7 @@ export default {
     projectile: "arrow",
     fallSpeed: 1,
     climber: true,
+    breathes: false,
     style: {},
     lvls: {
       lvl1: {
@@ -65,6 +67,7 @@ export default {
     projectile: "arrow",
     fallSpeed: 1,
     climber: false,
+    breathes: true,
     style: {},
     lvls: {
       lvl1: {
@@ -102,6 +105,7 @@ export default {
     projectile: false,
     fallSpeed: 1,
     climber: false,
+    breathes: false,
     style: {},
     lvls: {
       lvl1: {
@@ -139,6 +143,7 @@ export default {
     projectile: false,
     fallSpeed: 1,
     climber: true,
+    breathes: true,
     style: {},
     lvls: {
       lvl1: {
@@ -169,6 +174,7 @@ export default {
     projectile: "arrow",
     fallSpeed: 1,
     climber: true,
+    breathes: false,
     style: {},
     lvls: {
       lvl1: {
@@ -199,6 +205,7 @@ export default {
     projectile: false,
     fallSpeed: 0,
     climber: false,
+    breathes: true,
     style: {},
     lvls: {
       lvl1: {

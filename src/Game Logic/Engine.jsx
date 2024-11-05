@@ -57,6 +57,7 @@ export default function engineOutput() {
     this.fallSpeed = type.fallSpeed / gameSpeed.current;
     this.fallCharge = 0;
     this.climber = type.climber;
+    this.breathes = type.breathes;
     this.projectile = type.projectile;
     this.inLiquid = false;
     this.style = type.style;
@@ -129,6 +130,16 @@ export default function engineOutput() {
           currentEntity.rateCharge++;
         }
         currentEntity.speedCharge++;
+        if (currentEntity.oxygen !== undefined) {
+          currentEntity.oxygen--;
+          if (currentEntity.oxygen === 0) {
+            currentEntity.hp--;
+            if (currentEntity.hp === 0) {
+              entityKiller(currentEntity);
+            }
+            currentEntity.oxygen = 50;
+          }
+        }
       }
 
       //determines what happens to entity if hits boundary wall
@@ -172,6 +183,9 @@ export default function engineOutput() {
           currentEntity.rate *= 2;
           currentEntity.rateCharge *= 2;
           currentEntity.fallSpeed *= 4;
+          if (currentEntity.breathes) {
+            currentEntity.oxygen = 300;
+          }
         }
       } else if (currentEntity.inLiquid) {
         currentEntity.inLiquid = false;
@@ -179,6 +193,7 @@ export default function engineOutput() {
         currentEntity.rate /= 2;
         currentEntity.rateCharge /= 2;
         currentEntity.fallSpeed /= 4;
+        currentEntity.oxygen = undefined;
       }
     }
 
