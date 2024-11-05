@@ -1320,8 +1320,26 @@ export default function engineOutput() {
             entity.position[1] - 1,
           ])
         );
+        let groundLeft = activeGround.current.find((ground) =>
+          comparePosition(ground.position, [
+            entity.position[0] - 1,
+            entity.position[1],
+          ])
+        );
+        let groundRight = activeGround.current.find((ground) =>
+          comparePosition(ground.position, [
+            entity.position[0] + 1,
+            entity.position[1],
+          ])
+        );
         if (groundAbove === undefined) {
           style.boxShadow = style.boxShadow + ",inset 0px 1px 0px blue";
+        }
+        if (groundLeft === undefined) {
+          style.boxShadow = style.boxShadow + ",inset 1px 0px 0px blue";
+        }
+        if (groundRight === undefined) {
+          style.boxShadow = style.boxShadow + ",inset -1px 0px 0px blue";
         }
       } else {
         style.fontStyle = "normal";

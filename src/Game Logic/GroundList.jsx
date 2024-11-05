@@ -1,6 +1,7 @@
 export default {
   dirt: {
     type: "dirt",
+    fluid: false,
     hp: 20,
     fallSpeed: 0,
     style: {},
@@ -8,6 +9,7 @@ export default {
   },
   stone: {
     type: "stone",
+    fluid: false,
     hp: 80,
     fallSpeed: 0,
     style: {},
