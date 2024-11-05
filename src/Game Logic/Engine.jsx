@@ -92,7 +92,7 @@ export default function engineOutput() {
     this.fluid = groundList[type].fluid;
     this.speed = groundList[type].speed / gameSpeed.current;
     this.speedCharge = 0;
-    if (groundList[type].fluid) {
+    if (groundList[type].speed !== undefined) {
       let directionDecider = Math.random() * 10;
       if (directionDecider > 5) {
         this.direction = "left";
@@ -638,41 +638,37 @@ export default function engineOutput() {
         fluidMovement(ground);
       }
 
-      function fluidMovement(fluid) {
-        if (fluid.speedCharge < fluid.speed) {
-          fluid.speedCharge++;
+      function fluidMovement(ground) {
+        if (ground.speedCharge < ground.speed) {
+          ground.speedCharge++;
         } else {
-          if (fluid.direction === "left") {
-            let positionToLeft = [fluid.position[0] - 1, fluid.position[1]];
-            if (positionToLeft[0] === 0) {
-              entityKiller(fluid);
-            }
-            let groundToLeft = activeGround.current.find((ground) =>
-              comparePosition(ground.position, positionToLeft)
-            );
-            if (groundToLeft === undefined) {
-              fluid.position = positionToLeft;
-              fluid.speedCharge = 0;
-              fluid.speed *= 1.3;
-            } else fluid.direction = "right";
+          let targetPosition;
+          if (ground.direction === "left") {
+            targetPosition = [ground.position[0] - 1, ground.position[1]];
+          } else if (ground.direction === "right") {
+            targetPosition = [ground.position[0] + 1, ground.position[1]];
           }
-          if (fluid.direction === "right") {
-            let positionToRight = [fluid.position[0] + 1, fluid.position[1]];
-            if (positionToRight[0] === gameboardWidth.current + 1) {
-              entityKiller(fluid);
-            }
-            let groundToRight = activeGround.current.find((ground) =>
-              comparePosition(ground.position, positionToRight)
-            );
-            if (groundToRight === undefined) {
-              fluid.position = positionToRight;
-              fluid.speedCharge = 0;
-              fluid.speed *= 1.3;
-            } else fluid.direction = "left";
+          if (
+            targetPosition[0] === 0 ||
+            targetPosition[0] === gameboardWidth.current + 1
+          ) {
+            entityKiller(ground);
+          }
+          let targetGround = activeGround.current.find((ground) =>
+            comparePosition(ground.position, targetPosition)
+          );
+          if (targetGround === undefined) {
+            ground.position = targetPosition;
+            ground.speedCharge = 0;
+            ground.speed *= 1.3;
+          } else {
+            if (ground.direction === "left") {
+              ground.direction = "right";
+            } else ground.direction = "left";
           }
         }
-        if (fluid.speed > 50) {
-          fluid.speed = Infinity;
+        if (ground.speed > 50) {
+          ground.speed = Infinity;
         }
       }
 
@@ -742,6 +738,7 @@ export default function engineOutput() {
           if (spawnChance > groundRoughness.current) {
             let stoneChance;
             let type = "dirt";
+
             if (h > gameboardHeight.current - groundLevel.current / 3) {
               stoneChance = 40;
               if (Math.random() * 100 < stoneChance) {
@@ -1604,6 +1601,10 @@ export default function engineOutput() {
     groundLevel.current = parseInt(e.target.value);
     updateGameboardEntities();
   }
+  function updateWaterLevel(e) {
+    waterLevel.current = parseInt(e.target.value);
+    updateGameboardEntities();
+  }
   function updateGroundRoughness(e) {
     groundRoughness.current = parseFloat(e.target.value);
     updateGameboardEntities();
@@ -1760,6 +1761,21 @@ export default function engineOutput() {
                 max={gameboardHeight.current}
                 value={groundLevel.current}
                 onChange={updateGroundHeight}
+              ></input>
+            </div>
+          </div>{" "}
+          <div className="settingHolder">
+            <p className="settingTitle">Water level:</p>
+            <div>
+              <p>{waterLevel.current}</p>
+              <input
+                id="waterLevel.current"
+                className="settingSlider"
+                type="range"
+                min="0"
+                max={gameboardHeight.current}
+                value={waterLevel.current}
+                onChange={updateWaterLevel}
               ></input>
             </div>
           </div>
