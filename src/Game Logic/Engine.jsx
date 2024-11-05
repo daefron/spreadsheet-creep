@@ -31,7 +31,7 @@ export default function engineOutput() {
   const kingHP = useRef(20);
   const gameMode = useRef("king");
   const friendlyCount = useRef(1);
-  const groundIsFalling = useRef(false);
+  const terrainIsFalling = useRef(false);
   const projectileCount = useRef(0);
   const selectedCell = useRef();
   const cellTyping = useRef(false);
@@ -646,12 +646,12 @@ export default function engineOutput() {
     function groundTurn(ground) {
       for (let i = gameSpeed.current; i > 0; i--) {
         if (groundCanFall(ground.position, ground)) {
-          groundIsFalling.current = true;
+          terrainIsFalling.current = true;
           ground.falling = true;
           groundFall(ground);
         } else {
           ground.falling = false;
-          groundIsFalling.current = true;
+          terrainIsFalling.current = true;
         }
       }
 
@@ -701,11 +701,13 @@ export default function engineOutput() {
     function fluidTurn(fluid) {
       for (let i = gameSpeed.current; i > 0; i--) {
         if (fluidCanFall(fluid.position, fluid)) {
+          terrainIsFalling.current = true;
           fluid.speed = 5;
           fluid.falling = true;
           fluidFall(fluid);
         } else {
           fluid.falling = false;
+          terrainIsFalling.current = true;
         }
       }
       if (!fluid.falling) {
@@ -867,6 +869,7 @@ export default function engineOutput() {
         activeProjectiles.current.forEach((projectile) => {
           projectileTurn(projectile);
         });
+        terrainIsFalling.current = false;
         activeGround.current.forEach((ground) => {
           groundTurn(ground);
         });
@@ -1244,6 +1247,8 @@ export default function engineOutput() {
         fluid.style.boxShadow =
           fluid.style.boxShadow + ",inset -1px 0px 0px blue";
       }
+    } else {
+      fluid.style.boxShadow = false;
     }
   }
 
@@ -1365,7 +1370,7 @@ export default function engineOutput() {
     }
 
     function groundCell(ground, w, h, id, key) {
-      if (groundIsFalling.current) {
+      if (terrainIsFalling.current) {
         groundLine(ground);
       }
       let style = {
@@ -1375,7 +1380,9 @@ export default function engineOutput() {
     }
 
     function fluidCell(fluid, w, h, id, key) {
-      fluidLine(fluid);
+      if(terrainIsFalling.current) {
+        fluidLine(fluid);
+      }
       let style = {
         boxShadow: fluid.style.boxShadow,
       };
