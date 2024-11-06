@@ -65,6 +65,8 @@ export default function engineOutput() {
       this.breathes = type.breathes;
       this.projectile = type.projectile;
       this.style = type.style;
+      this.explosionDmg = lvl.explosionDmg;
+      this.explosionRange = lvl.explosionRange;
       this.explodes = type.explodes;
     }
 
@@ -75,13 +77,13 @@ export default function engineOutput() {
     }
 
     explode() {
-      let w = this.range;
-      let initialw = w;
-      let h = this.range;
-      let initialh = h;
+      let w = this.explosionRange;
+      let h = this.explosionRange;
+      let initialW = w;
+      let initialH = h;
       let targets = [];
-      while (w >= -initialw) {
-        while (h >= -initialh) {
+      while (w >= -initialW) {
+        while (h >= -initialH) {
           let inCell = cellContents([
             this.position[0] + w,
             this.position[1] + h,
@@ -94,13 +96,12 @@ export default function engineOutput() {
           }
           h--;
         }
-        h = initialh;
+        h = initialH;
         w--;
       }
       targets.forEach((target) => {
         if (target !== this) {
-          target.hp -= this.dmg;
-          healthChecker(target, this);
+          target.hp -= this.explosionDmg;
         }
       });
       return;
@@ -162,9 +163,9 @@ export default function engineOutput() {
   }
 
   //checks to see if entity dies
-  function healthChecker(entity, currentEntity) {
+  function healthChecker(entity) {
     if (entity.hp <= 0) {
-      if (entity.enemy && !currentEntity.enemy) {
+      if (entity.enemy) {
         setBank(bank + entity.value);
       }
       entityKiller(entity);
@@ -220,6 +221,7 @@ export default function engineOutput() {
   function engine(paused, newRound) {
     //tells entities what to do on their turn
     function entityTurn(currentEntity) {
+      healthChecker(currentEntity);
       entityCharge(currentEntity);
       liquidChecker(currentEntity);
       if (entityBoundaryHandler(currentEntity)) {
@@ -261,8 +263,6 @@ export default function engineOutput() {
             );
             king.hp -= currentEntity.dmg * 2;
             currentEntity.hp = 0;
-            healthChecker(king, currentEntity);
-            healthChecker(currentEntity, king);
             return true;
           } else if (gameMode.current === "battle") {
             if (currentEntity.enemy) {
@@ -437,7 +437,6 @@ export default function engineOutput() {
       //function to execute attack if can
       function entityAttack(currentEntity, targetEntity) {
         targetEntity.hp -= currentEntity.dmg;
-        healthChecker(targetEntity, currentEntity);
         currentEntity.rateCharge = 0;
         currentEntity.speedCharge = 0;
       }
@@ -557,7 +556,6 @@ export default function engineOutput() {
               activeProjectiles.current.indexOf(cellInPosition.projectile),
               1
             );
-            healthChecker(currentEntity, cellInPosition.projectile.parent);
           }
         }
       }
@@ -595,7 +593,6 @@ export default function engineOutput() {
           currentEntity.position[1],
         ]);
         targetCell.ground.hp -= currentEntity.dmg;
-        healthChecker(targetCell.ground, currentEntity);
         currentEntity.rateCharge = 0;
         currentEntity.speedCharge = 0;
       }
@@ -635,14 +632,12 @@ export default function engineOutput() {
             activeProjectiles.current.indexOf(projectile),
             1
           );
-          healthChecker(cellAtPosition.entity, projectile.parent);
         } else if (cellAtPosition.ground !== undefined) {
           cellAtPosition.ground.hp -= projectile.dmg;
           activeProjectiles.current.splice(
             activeProjectiles.current.indexOf(projectile),
             1
           );
-          healthChecker(cellAtPosition.ground, projectile.parent);
         } else {
           projectile.speedCharge = 0;
           projectile.position = newPosition;
@@ -653,6 +648,7 @@ export default function engineOutput() {
 
     //initiates ground turn
     function groundTurn(ground) {
+      healthChecker(ground);
       for (let i = gameSpeed.current; i > 0; i--) {
         if (groundCanFall(ground.position, ground)) {
           terrainIsFalling.current = true;
@@ -697,7 +693,6 @@ export default function engineOutput() {
       //kills entity ground falls onto
       function groundAttack(ground, entityBelow) {
         entityBelow.hp = 0;
-        healthChecker(entityBelow, ground);
       }
     }
 
