@@ -59,13 +59,13 @@ export default {
       },
     },
   },
-  bombholder: {
-    type: "bombholder",
+  bombBoy: {
+    type: "bombBoy",
     enemy: true,
     fallSpeed: 1,
     climber: true,
     breathes: true,
-    explodes: true,
+    death: "explodes",
     style: {},
     lvls: {
       lvl1: {
@@ -79,6 +79,28 @@ export default {
         speed: 25,
         value: 1,
         chance: 5,
+      },
+    },
+  },
+  spawner: {
+    type: "spawner",
+    enemy: true,
+    fallSpeed: 1,
+    climber: true,
+    breaths: true,
+    death: "spawn",
+    spawnType: "goblin",
+    style: {},
+    lvls: {
+      lvl1: {
+        lvl: 1,
+        hp: 5,
+        dmg: 4,
+        range: 1,
+        rate: 15,
+        speed: 20,
+        value: 5,
+        chance: 50000,
       },
     },
   },
@@ -190,7 +212,7 @@ export default {
   bomb: {
     type: "bomb",
     fallSpeed: 1,
-    explodes: true,
+    death: "explodes",
     style: {},
     lvls: {
       lvl1: {

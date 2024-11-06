@@ -70,12 +70,16 @@ export default function engineOutput() {
       this.style = type.style;
       this.explosionDmg = lvl.explosionDmg;
       this.explosionRange = lvl.explosionRange;
-      this.explodes = type.explodes;
+      this.death = type.death;
+      this.spawnType = type.spawnType;
     }
 
-    get canExplode() {
-      if (this.explodes) {
-        return this.explode();
+    get onDeath() {
+      if (this.death === "explodes") {
+        this.explode();
+      }
+      if (this.death === "spawn") {
+        this.spawn();
       }
     }
 
@@ -116,6 +120,14 @@ export default function engineOutput() {
         h = initialH;
         w--;
       }
+    }
+
+    spawn() {
+      let entityID = this.name;
+      let entityType = entityList[this.spawnType];
+      let entityLvl = entityType.lvls["lvl" + this.lvl];
+      entityID = new Entity(entityType, entityLvl, this.position, entityID);
+      activeEntities.current.push(entityID);
     }
   }
 
@@ -198,7 +210,7 @@ export default function engineOutput() {
 
   //determines which graveyard entities get sent to
   function entityKiller(entity) {
-    entity.canExplode;
+    entity.onDeath;
     let isEntity = activeEntities.current.find(
       (targetEntity) => entity === targetEntity
     );
