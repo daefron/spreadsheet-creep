@@ -44,74 +44,175 @@ export default function engineOutput() {
   let fluidList = FluidList;
 
   //function that creates new active entities
-  function Entity(type, lvl, position, name) {
-    this.name = name;
-    this.type = type.type;
-    this.position = position;
-    this.lvl = lvl.lvl;
-    this.hp = lvl.hp;
-    this.dmg = lvl.dmg;
-    this.range = lvl.range;
-    this.rate = lvl.rate / gameSpeed.current;
-    this.rateCharge = this.rate;
-    this.speed = lvl.speed / gameSpeed.current;
-    this.speedCharge = 0;
-    this.enemy = type.enemy;
-    this.value = lvl.value;
-    this.fallSpeed = type.fallSpeed / gameSpeed.current;
-    this.fallCharge = 0;
-    this.climber = type.climber;
-    this.breathes = type.breathes;
-    this.projectile = type.projectile;
-    this.inLiquid = false;
-    this.style = type.style;
+  class Entity {
+    constructor(type, lvl, position, ID) {
+      this.name = ID;
+      this.type = type.type;
+      this.position = position;
+      this.lvl = lvl.lvl;
+      this.hp = lvl.hp;
+      this.enemy = type.enemy;
+      this.value = lvl.value;
+      this.dmg = lvl.dmg;
+      this.range = lvl.range;
+      this.rate = lvl.rate / gameSpeed.current;
+      this.rateCharge = this.rate;
+      this.speed = lvl.speed / gameSpeed.current;
+      this.speedCharge = 0;
+      this.fallSpeed = type.fallSpeed / gameSpeed.current;
+      this.fallCharge = 0;
+      this.climber = type.climber;
+      this.breathes = type.breathes;
+      this.projectile = type.projectile;
+      this.style = type.style;
+      this.explodes = type.explodes;
+    }
+
+    get canExplode() {
+      if (this.explodes) {
+        return this.explode();
+      }
+    }
+
+    explode() {
+      let w = this.range;
+      let initialw = w;
+      let h = this.range;
+      let initialh = h;
+      let targets = [];
+      while (w >= -initialw) {
+        while (h >= -initialh) {
+          let inCell = cellContents([
+            this.position[0] + w,
+            this.position[1] + h,
+          ]);
+          if (inCell.entity !== undefined) {
+            targets.push(inCell.entity);
+          }
+          if (inCell.ground !== undefined) {
+            targets.push(inCell.ground);
+          }
+          h--;
+        }
+        h = initialh;
+        w--;
+      }
+      targets.forEach((target) => {
+        if (target !== this) {
+          target.hp -= this.dmg;
+          healthChecker(target, this);
+        }
+      });
+      return;
+    }
   }
 
   //function that creates new active projectiles
-  function Projectile(parent, name, type) {
-    this.type = type.type;
-    this.parent = parent;
-    this.dmg = parent.dmg;
-    this.speed = type.speed / gameSpeed.current;
-    this.speedCharge = 0;
-    this.fallSpeed = type.fallSpeed / gameSpeed.current;
-    this.fallCharge = 0;
-    this.enemy = parent.enemy;
-    this.position = [direction(parent), parent.position[1]];
-    this.distance = parent.range;
-    if (this.enemy) {
-      this.symbol = type.enemySymbol;
-    } else this.symbol = type.friendlySymbol;
-    this.name = name;
+  class Projectile {
+    constructor(parent, name, type) {
+      this.type = type.type;
+      this.parent = parent;
+      this.enemy = parent.enemy;
+      this.dmg = parent.dmg;
+      this.speed = type.speed / gameSpeed.current;
+      this.speedCharge = 0;
+      this.fallSpeed = type.fallSpeed / gameSpeed.current;
+      this.fallCharge = 0;
+      this.position = [direction(parent), parent.position[1]];
+      this.distance = parent.range;
+      if (this.enemy) {
+        this.symbol = type.enemySymbol;
+      } else this.symbol = type.friendlySymbol;
+      this.name = name;
+    }
   }
 
   //function that creates new active ground entities
-  function Ground(type, position, ID) {
-    this.type = groundList[type].type;
-    this.position = position;
-    this.name = ID;
-    this.hp = groundList[type].hp;
-    this.fallSpeed = groundList[type].fallSpeed / gameSpeed.current;
-    this.fallCharge = 0;
-    this.style = groundList[type].style;
-    this.fluid = groundList[type].fluid;
+  class Ground {
+    constructor(type, position, ID) {
+      this.name = ID;
+      this.type = type.type;
+      this.position = position;
+      this.hp = type.hp;
+      this.fallSpeed = type.fallSpeed / gameSpeed.current;
+      this.fallCharge = 0;
+      this.style = type.style;
+    }
   }
 
-  function Fluid(type, position, ID) {
-    this.type = fluidList[type].type;
-    this.position = position;
-    this.name = ID;
-    this.fallSpeed = fluidList[type].fallSpeed / gameSpeed.current;
-    this.fallCharge = 0;
-    this.style = fluidList[type].style;
-    this.speed = fluidList[type].speed / gameSpeed.current;
-    this.speedCharge = 0;
-    if (fluidList[type].speed !== undefined) {
-      let directionDecider = Math.random() * 10;
-      if (directionDecider > 5) {
-        this.direction = "left";
-      } else {
-        this.direction = "right";
+  class Fluid {
+    constructor(type, position, ID) {
+      this.name = ID;
+      this.type = type.type;
+      this.position = position;
+      this.fallSpeed = type.fallSpeed / gameSpeed.current;
+      this.fallCharge = 0;
+      this.speed = type.speed / gameSpeed.current;
+      this.speedCharge = 0;
+      if (type.speed !== undefined) {
+        let directionDecider = Math.random() * 10;
+        if (directionDecider > 5) {
+          this.direction = "left";
+        } else {
+          this.direction = "right";
+        }
+      }
+      this.style = type.style;
+    }
+  }
+
+  //checks to see if entity dies
+  function healthChecker(entity, currentEntity) {
+    if (entity.hp <= 0) {
+      if (entity.enemy && !currentEntity.enemy) {
+        setBank(bank + entity.value);
+      }
+      entityKiller(entity);
+    }
+  }
+
+  //determines which graveyard entities get sent to
+  function entityKiller(entity) {
+    entity.canExplode;
+    if (entity.type === "water") {
+      fluidGraveyard.current.push(
+        activeFluid.current.splice(activeFluid.current.indexOf(entity), 1)
+      );
+      return;
+    }
+    if (entity.ghost === undefined) {
+      if (entity.enemy === undefined) {
+        groundGraveyard.current.push(
+          activeGround.current.splice(activeGround.current.indexOf(entity), 1)
+        );
+      } else if (entity.enemy) {
+        enemyGraveyard.current.push(
+          activeEntities.current.splice(
+            activeEntities.current.indexOf(entity),
+            1
+          )
+        );
+      } else if (!entity.enemy) {
+        friendlyGraveyard.current.push(
+          activeEntities.current.splice(
+            activeEntities.current.indexOf(entity),
+            1
+          )
+        );
+      }
+    } else {
+      if (entity.enemy === undefined) {
+        activeGround.current.splice(activeGround.current.indexOf(entity), 1);
+      } else if (entity.enemy) {
+        activeEntities.current.splice(
+          activeEntities.current.indexOf(entity),
+          1
+        );
+      } else if (!entity.enemy) {
+        activeEntities.current.splice(
+          activeEntities.current.indexOf(entity),
+          1
+        );
       }
     }
   }
@@ -143,16 +244,6 @@ export default function engineOutput() {
           currentEntity.rateCharge++;
         }
         currentEntity.speedCharge++;
-        if (currentEntity.oxygen !== undefined) {
-          currentEntity.oxygen--;
-          if (currentEntity.oxygen === 0) {
-            currentEntity.hp--;
-            if (currentEntity.hp === 0) {
-              entityKiller(currentEntity);
-            }
-            currentEntity.oxygen = 50;
-          }
-        }
       }
 
       //determines what happens to entity if hits boundary wall
@@ -198,6 +289,15 @@ export default function engineOutput() {
           currentEntity.fallSpeed *= 4;
           if (currentEntity.breathes) {
             currentEntity.oxygen = 300;
+          }
+        } else {
+          currentEntity.oxygen--;
+          if (currentEntity.oxygen === 0) {
+            currentEntity.hp--;
+            if (currentEntity.hp === 0) {
+              entityKiller(currentEntity);
+            }
+            currentEntity.oxygen = 50;
           }
         }
       } else if (currentEntity.inLiquid) {
@@ -296,14 +396,12 @@ export default function engineOutput() {
       function attackTargetter(currentEntity, rangeCells) {
         let target;
         rangeCells.forEach((cell) => {
-          let targetEntity = activeEntities.current.find((entity) =>
-            comparePosition(entity.position, cell)
-          );
+          let targetCell = cellContents(cell);
           if (
-            targetEntity !== undefined &&
-            targetEntity.enemy !== currentEntity.enemy
+            targetCell.entity !== undefined &&
+            targetCell.entity.enemy !== currentEntity.enemy
           ) {
-            return (target = targetEntity);
+            return (target = targetCell.entity);
           }
         });
         return target;
@@ -500,61 +598,6 @@ export default function engineOutput() {
         healthChecker(targetCell.ground, currentEntity);
         currentEntity.rateCharge = 0;
         currentEntity.speedCharge = 0;
-      }
-    }
-
-    //checks to see if entity dies
-    function healthChecker(entity, currentEntity) {
-      if (entity.hp <= 0) {
-        if (entity.enemy && !currentEntity.enemy) {
-          setBank(bank + entity.value);
-        }
-        entityKiller(entity);
-      }
-    }
-
-    //determines which graveyard entities get sent to
-    function entityKiller(entity) {
-      if (entity.type === "water") {
-        fluidGraveyard.current.push(
-          activeFluid.current.splice(activeFluid.current.indexOf(entity), 1)
-        );
-        return;
-      }
-      if (entity.ghost === undefined) {
-        if (entity.enemy === undefined) {
-          groundGraveyard.current.push(
-            activeGround.current.splice(activeGround.current.indexOf(entity), 1)
-          );
-        } else if (entity.enemy) {
-          enemyGraveyard.current.push(
-            activeEntities.current.splice(
-              activeEntities.current.indexOf(entity),
-              1
-            )
-          );
-        } else if (!entity.enemy) {
-          friendlyGraveyard.current.push(
-            activeEntities.current.splice(
-              activeEntities.current.indexOf(entity),
-              1
-            )
-          );
-        }
-      } else {
-        if (entity.enemy === undefined) {
-          activeGround.current.splice(activeGround.current.indexOf(entity), 1);
-        } else if (entity.enemy) {
-          activeEntities.current.splice(
-            activeEntities.current.indexOf(entity),
-            1
-          );
-        } else if (!entity.enemy) {
-          activeEntities.current.splice(
-            activeEntities.current.indexOf(entity),
-            1
-          );
-        }
       }
     }
 
@@ -761,7 +804,6 @@ export default function engineOutput() {
           if (spawnChance > groundRoughness.current) {
             let stoneChance;
             let type = "dirt";
-
             if (h > gameboardHeight.current - groundLevel.current / 3) {
               stoneChance = 40;
               if (Math.random() * 100 < stoneChance) {
@@ -770,7 +812,7 @@ export default function engineOutput() {
             }
             let position = [w, h - gameboardHeight.current];
             let groundID = type + position[0] + position[1];
-            groundID = new Ground(type, position, groundID);
+            groundID = new Ground(groundList[type], position, groundID);
             activeGround.current.push(groundID);
           }
         }
@@ -783,7 +825,7 @@ export default function engineOutput() {
         for (let w = 1; w <= gameboardWidth.current; w++) {
           let position = [w, h];
           let waterID = "water" + position[0] + position[1];
-          waterID = new Fluid("water", position, waterID);
+          waterID = new Fluid(fluidList["water"], position, waterID);
           activeFluid.current.push(waterID);
         }
       }
@@ -1329,7 +1371,7 @@ export default function engineOutput() {
       let style = {
         boxShadow: ground.style.boxShadow,
       };
-      return [key, id, ground.type + "(hp: " + ground.hp + ")", style];
+      return [key, id, ground.type + " (hp: " + ground.hp + ")", style];
     }
 
     function fluidCell(fluid, id, key) {
