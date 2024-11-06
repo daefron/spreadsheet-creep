@@ -897,7 +897,7 @@ export default function engineOutput() {
           if (enemySpawnCount.current <= totalSpawns.current) {
             lastEnemySpawnTime.current++;
             if (lastEnemySpawnTime.current > spawnTime()) {
-              entitySpawner(spawnType(enemy), enemy);
+              entitySpawner(spawnType(), enemy);
               enemySpawnCount.current++;
               lastEnemySpawnTime.current = 0;
             }
@@ -905,7 +905,7 @@ export default function engineOutput() {
         } else if (!enemy) {
           lastFriendlySpawnTime.current++;
           if (lastFriendlySpawnTime.current > spawnTime()) {
-            entitySpawner(spawnType(enemy), enemy);
+            entitySpawner(spawnType(), enemy);
             friendlySpawnCount.current++;
             lastFriendlySpawnTime.current = 0;
           }
@@ -923,17 +923,10 @@ export default function engineOutput() {
       }
 
       //determines what entity will spawn based on weighted chance
-      function spawnType(enemy) {
-        let entitiesEnemy;
-        if (enemy) {
-          entitiesEnemy = Object.entries(entityList)
-            .filter((entity) => entity[1].enemy)
-            .map((entity) => entity[1]);
-        } else if (!enemy) {
-          entitiesEnemy = Object.entries(entityList)
-            .filter((entity) => !entity[1].enemy)
-            .map((entity) => entity[1]);
-        }
+      function spawnType() {
+        let entitiesEnemy = Object.entries(entityList)
+          .filter((entity) => entity[1].enemy)
+          .map((entity) => entity[1]);
         let parsedEntities = [];
         entitiesEnemy.forEach((entity) => {
           Object.entries(entity.lvls).forEach((level) => {
@@ -961,6 +954,7 @@ export default function engineOutput() {
             chosenEntity = entity;
           }
         });
+        console.log(chosenEntity);
         return chosenEntity;
       }
 
@@ -974,6 +968,9 @@ export default function engineOutput() {
           entityID += enemySpawnCount;
         } else entityID += friendlySpawnCount;
         entityID = new Entity(entityType, entityLvl, position, entityID);
+        if (!enemy) {
+          entityID.enemy = false;
+        }
         activeEntities.current.push(entityID);
       }
 
