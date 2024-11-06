@@ -1657,10 +1657,29 @@ export default function engineOutput() {
   }
   //gives the user input a spreadsheet like experience
   function keyboardSelect(e) {
+    if (selectedCell.current === undefined) {
+      return;
+    }
     let position = selectedCell.current.id.split("x");
     position[0] = parseInt(position[0]);
     position[1] = parseInt(position[1]);
     let newPosition = keyPosition(e.key, position, e);
+    if (!newPosition) {
+      return;
+    }
+    if (
+      newPosition === undefined ||
+      newPosition[0] === 0 ||
+      newPosition[0] > gameboardWidth.current ||
+      newPosition[1] === 0 ||
+      newPosition[1] > gameboardHeight.current
+    ) {
+      return;
+    }
+    selectedCell.current.readOnly = true;
+    let newID = newPosition[0] + "x" + newPosition[1];
+    selectedCell.current = document.getElementById(newID);
+    selectedCell.current.focus();
     function keyPosition(keyPressed, position, e) {
       if (keyPressed === "ArrowUp") {
         if (cellTyping.current) {
@@ -1729,21 +1748,8 @@ export default function engineOutput() {
       if (keyPressed === "Backspace") {
         currentInput.current = currentInput.current.slice(0, -1);
         updateGameboardEntities();
-      }
+      } else return false;
     }
-    if (
-      newPosition === undefined ||
-      newPosition[0] === 0 ||
-      newPosition[0] > gameboardWidth.current ||
-      newPosition[1] === 0 ||
-      newPosition[1] > gameboardHeight.current
-    ) {
-      return;
-    }
-    selectedCell.current.readOnly = true;
-    let newID = newPosition[0] + "x" + newPosition[1];
-    selectedCell.current = document.getElementById(newID);
-    selectedCell.current.focus();
   }
 
   //makes a list of purchasble entities
