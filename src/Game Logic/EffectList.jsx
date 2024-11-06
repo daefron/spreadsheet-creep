@@ -2,9 +2,10 @@ export default {
   explosion: {
     type: "explosion",
     symbol: "BOOM",
-    duration: 10,
+    duration: 8,
     style: {
-      backgroundColor: "red",
+      backgroundColor: "darkOrange",
+      color: "white",
     },
   },
 };

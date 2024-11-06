@@ -791,6 +791,13 @@ export default function engineOutput() {
       }
     }
 
+    function effectTurn(effect) {
+      if (effect.durationCharge < effect.duration) {
+        effect.durationCharge++;
+      } else {
+        activeEffects.current.splice(activeEffects.current.indexOf(effect), 1);
+      }
+    }
     //creates ground based on groundHeight and type
     function terrainMaker() {
       for (
@@ -882,6 +889,9 @@ export default function engineOutput() {
         });
         activeFluid.current.forEach((fluid) => {
           fluidTurn(fluid);
+        });
+        activeEffects.current.forEach((effect) => {
+          effectTurn(effect);
         });
       }
 
@@ -1073,11 +1083,15 @@ export default function engineOutput() {
     let projectileInCell = activeProjectiles.current.find((projectile) =>
       comparePosition(projectile.position, position)
     );
+    let effectInCell = activeEffects.current.find((effect) =>
+      comparePosition(effect.position, position)
+    );
     let inCell = {
       entity: entityInCell,
       ground: groundInCell,
       fluid: fluidInCell,
       projectile: projectileInCell,
+      effect: effectInCell,
     };
     return inCell;
   }
@@ -1324,6 +1338,9 @@ export default function engineOutput() {
       if (h === 0) {
         return firstRowCell(w, id, key);
       }
+      if (cell.effect !== undefined) {
+        return effectCell(cell.effect, id, key);
+      }
       if (cell.entity !== undefined) {
         return entityCell(cell.entity, id, key);
       }
@@ -1389,6 +1406,14 @@ export default function engineOutput() {
       };
       style.fontStyle = "italic";
       return [key, id, fluid.type, style];
+    }
+
+    function effectCell(effect, id, key) {
+      let style = {
+        backgroundColor: effect.style.backgroundColor,
+        color: effect.style.color,
+      };
+      return [key, id, effect.symbol, style];
     }
 
     function entityCell(entity, id, key) {
