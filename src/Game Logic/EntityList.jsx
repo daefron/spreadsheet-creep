@@ -76,7 +76,7 @@ export default {
         hp: 9,
         dmg: 3,
         range: 1,
-        explosionDmg: 20,
+        explosionDmg: 22,
         explosionRange: 1,
         rate: 25,
         speed: 25,
@@ -210,7 +210,7 @@ export default {
       lvl1: {
         lvl: 1,
         hp: 20,
-        explosionDmg: 20,
+        explosionDmg: 22,
         explosionRange: 1,
         rate: 0,
         speed: 0,

@@ -81,21 +81,26 @@ export default function engineOutput() {
       let h = this.explosionRange;
       let initialW = w;
       let initialH = h;
-      let targets = [];
       while (w >= -initialW) {
         while (h >= -initialH) {
           let inCell = cellContents([
             this.position[0] + w,
             this.position[1] + h,
           ]);
+          let dmg = parseInt(
+            this.explosionDmg - (Math.random() * this.explosionDmg) / 4
+          );
           if (inCell.entity !== undefined) {
-            inCell.entity.hp -= this.explosionDmg;
+            inCell.entity.hp -= dmg;
           }
           if (inCell.ground !== undefined) {
-            inCell.ground.hp -= this.explosionDmg;
+            inCell.ground.hp -= dmg;
           }
           if (inCell.fluid !== undefined) {
-            entityKiller(inCell.fluid);
+            let deathChance = Math.random() * 10;
+            if (deathChance > 5) {
+              entityKiller(inCell.fluid);
+            }
           }
           h--;
         }
@@ -951,7 +956,6 @@ export default function engineOutput() {
             chosenEntity = entity;
           }
         });
-        console.log(chosenEntity);
         return chosenEntity;
       }
 
