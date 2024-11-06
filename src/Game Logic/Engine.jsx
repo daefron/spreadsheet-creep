@@ -64,7 +64,7 @@ export default function engineOutput() {
       this.speedCharge = 0;
       this.fallSpeed = type.fallSpeed / gameSpeed.current;
       this.fallCharge = 0;
-      this.climber = type.climber;
+      this.movement = type.movement;
       this.breathes = type.breathes;
       this.projectile = type.projectile;
       this.style = type.style;
@@ -249,7 +249,6 @@ export default function engineOutput() {
     //tells entities what to do on their turn
     function entityTurn(currentEntity) {
       healthChecker(currentEntity);
-      entityCharge(currentEntity);
       liquidChecker(currentEntity);
       if (entityBoundaryHandler(currentEntity)) {
         return;
@@ -265,14 +264,6 @@ export default function engineOutput() {
       }
       if (entityAttackGroundHandler(currentEntity)) {
         return;
-      }
-
-      //charges current entities movement and range
-      function entityCharge(currentEntity) {
-        if (currentEntity.rateCharge <= currentEntity.rate) {
-          currentEntity.rateCharge++;
-        }
-        currentEntity.speedCharge++;
       }
 
       //determines what happens to entity if hits boundary wall
@@ -349,15 +340,17 @@ export default function engineOutput() {
       //function to determine if there is anything under the current entity
       function entityCanFall(position, currentEntity) {
         if (position[1] !== gameboardHeight.current) {
-          let positionBelow = [position[0], position[1] + 1];
-          let cellBelow = cellContents(positionBelow);
-          if (
-            cellBelow.ground !== undefined ||
-            cellBelow.entity !== undefined
-          ) {
-            return false;
+          if (!currentEntity.climbing) {
+            let positionBelow = [position[0], position[1] + 1];
+            let cellBelow = cellContents(positionBelow);
+            if (
+              cellBelow.ground !== undefined ||
+              cellBelow.entity !== undefined
+            ) {
+              return false;
+            }
+            return true;
           }
-          return true;
         } else if (currentEntity.ghost) {
           entityKiller(currentEntity);
         }
@@ -377,6 +370,7 @@ export default function engineOutput() {
 
     //holds functions for entity attacks
     function entityAttackHolder(currentEntity) {
+      currentEntity.rateCharge++;
       let rangeCells = rangeGetter(currentEntity);
       let targetEntity = attackTargetter(currentEntity, rangeCells);
       if (entityCanAttack(currentEntity, targetEntity)) {
@@ -389,6 +383,9 @@ export default function engineOutput() {
         ) {
           rangedAttack(currentEntity);
         } else entityAttack(currentEntity, targetEntity);
+        return true;
+      }
+      if (targetEntity !== undefined) {
         return true;
       }
 
@@ -471,12 +468,16 @@ export default function engineOutput() {
 
     //holds functions for entity movement
     function entityMovementHolder(currentEntity) {
+      currentEntity.speedCharge++;
       if (entityCanMove(currentEntity)) {
         return entityMovementType(currentEntity);
       }
 
       //function to determine if entity can move this turn
       function entityCanMove(currentEntity) {
+        if (currentEntity.movement === undefined) {
+          return false;
+        }
         if (
           currentEntity.speedCharge >= currentEntity.speed &&
           currentEntity.speed !== 0
@@ -488,11 +489,21 @@ export default function engineOutput() {
       //function to determine how entity moves if it can
       function entityMovementType(currentEntity) {
         let newPosition = [direction(currentEntity), currentEntity.position[1]];
-        if (climbHolder(currentEntity)) {
-          return true;
+        if (currentEntity.movement === "walker") {
+          if (climbHolder(currentEntity)) {
+            return true;
+          }
+          if (walkHolder(currentEntity, newPosition)) {
+            return true;
+          }
         }
-        if (walkHolder(currentEntity, newPosition)) {
-          return true;
+        if (currentEntity.movement === "scaler") {
+          if (scaleHolder(currentEntity, newPosition)) {
+            return true;
+          }
+          if (walkHolder(currentEntity, newPosition)) {
+            return true;
+          }
         }
         return false;
 
@@ -506,7 +517,6 @@ export default function engineOutput() {
             climbMovement(currentEntity, positionNextTo);
             return true;
           }
-          return false;
 
           //checks if entity wants to climb
           function climbChecker(currentEntity, positionNextTo) {
@@ -568,6 +578,54 @@ export default function engineOutput() {
             currentEntity.speedCharge = 0;
             currentEntity.position = newPosition;
             projectileChecker(currentEntity);
+          }
+        }
+
+        function scaleHolder(currentEntity, newPosition) {
+          let cellInPositionNextTo = cellContents(newPosition);
+          if (
+            cellInPositionNextTo.entity === undefined &&
+            cellInPositionNextTo.ground === undefined
+          ) {
+            return false;
+          }
+          if (currentEntity.speedCharge < currentEntity.speed) {
+            return false;
+          }
+          let positionAboveNextTo = [newPosition[0], newPosition[1] - 1];
+          let cellInPositionAboveNextTo = cellContents(positionAboveNextTo);
+          let canScale = false;
+          if (
+            cellInPositionNextTo.ground !== undefined ||
+            cellInPositionNextTo.entity !== undefined
+          ) {
+            if (
+              cellInPositionAboveNextTo.ground !== undefined ||
+              cellInPositionAboveNextTo.entity !== undefined
+            ) {
+              canScale = true;
+            }
+          }
+          if (canScale) {
+            currentEntity.climbing = true;
+            let cellAbove = [
+              currentEntity.position[0],
+              currentEntity.position[1] - 1,
+            ];
+            let cellInAbove = cellContents(cellAbove);
+            if (
+              cellInAbove.entity === undefined &&
+              cellInAbove.ground === undefined
+            ) {
+              currentEntity.position = cellAbove;
+              currentEntity.speedCharge = 0;
+            }
+            return true;
+          } else {
+            currentEntity.climbing = false;
+            currentEntity.position = positionAboveNextTo;
+            currentEntity.speedCharge = 0;
+            return false;
           }
         }
 
