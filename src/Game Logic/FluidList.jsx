@@ -3,7 +3,14 @@ export default {
     type: "water",
     fallSpeed: 0,
     speed: 5,
+    weight: 3,
     style: {},
-    falling: false,
+  },
+  blood: {
+    type: "blood",
+    fallSpeed: 0,
+    weight: 2,
+    speed: 5,
+    style: {},
   },
 };

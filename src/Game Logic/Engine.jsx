@@ -3,12 +3,14 @@ import EntityList from "./EntityList.jsx";
 import ProjectileList from "./ProjectileList.jsx";
 import GroundList from "./GroundList.jsx";
 import FluidList from "./FluidList.jsx";
+import EffectList from "./EffectList.jsx";
 export default function engineOutput() {
   const cellsToUpdate = useRef([]);
   const activeEntities = useRef([]);
   const activeProjectiles = useRef([]);
   const activeGround = useRef([]);
   const activeFluid = useRef([]);
+  const activeEffects = useRef([]);
   const friendlyGraveyard = useRef([]);
   const enemyGraveyard = useRef([]);
   const groundGraveyard = useRef([]);
@@ -42,6 +44,7 @@ export default function engineOutput() {
   let projectileList = ProjectileList;
   let groundList = GroundList;
   let fluidList = FluidList;
+  let effectList = EffectList;
 
   //function that creates new active entities
   class Entity {
@@ -102,6 +105,12 @@ export default function engineOutput() {
               entityKiller(inCell.fluid);
             }
           }
+          let effectType = effectList["explosion"];
+          let effectPosition = [this.position[0] + w, this.position[1] + h];
+          let effectID =
+            "explosion" + this.position[0] + w + this.position[1] + h;
+          effectID = new Effect(effectType, effectPosition, effectID);
+          activeEffects.current.push(effectID);
           h--;
         }
         h = initialH;
@@ -160,6 +169,19 @@ export default function engineOutput() {
           this.direction = "right";
         }
       }
+      this.weight = type.weight;
+      this.style = type.style;
+    }
+  }
+
+  class Effect {
+    constructor(type, position, ID) {
+      this.name = ID;
+      this.type = type.type;
+      this.position = position;
+      this.symbol = type.symbol;
+      this.duration = type.duration;
+      this.durationCharge = 0;
       this.style = type.style;
     }
   }
@@ -177,25 +199,24 @@ export default function engineOutput() {
   //determines which graveyard entities get sent to
   function entityKiller(entity) {
     entity.canExplode;
-    if (entity.type === "water") {
-      fluidGraveyard.current.push(
-        activeFluid.current.splice(activeFluid.current.indexOf(entity), 1)
-      );
-      return;
-    }
-    if (entity.ghost === undefined) {
-      if (entity.enemy === undefined) {
-        groundGraveyard.current.push(
-          activeGround.current.splice(activeGround.current.indexOf(entity), 1)
-        );
-      } else if (entity.enemy) {
+    let isEntity = activeEntities.current.find(
+      (targetEntity) => entity === targetEntity
+    );
+    let isGround = activeGround.current.find(
+      (targetGround) => entity === targetGround
+    );
+    let isFluid = activeFluid.current.find(
+      (targetFluid) => entity === targetFluid
+    );
+    if (isEntity !== undefined) {
+      if (isEntity.enemy) {
         enemyGraveyard.current.push(
           activeEntities.current.splice(
             activeEntities.current.indexOf(entity),
             1
           )
         );
-      } else if (!entity.enemy) {
+      } else {
         friendlyGraveyard.current.push(
           activeEntities.current.splice(
             activeEntities.current.indexOf(entity),
@@ -203,20 +224,12 @@ export default function engineOutput() {
           )
         );
       }
-    } else {
-      if (entity.enemy === undefined) {
-        activeGround.current.splice(activeGround.current.indexOf(entity), 1);
-      } else if (entity.enemy) {
-        activeEntities.current.splice(
-          activeEntities.current.indexOf(entity),
-          1
-        );
-      } else if (!entity.enemy) {
-        activeEntities.current.splice(
-          activeEntities.current.indexOf(entity),
-          1
-        );
-      }
+    } else if (isGround !== undefined) {
+      activeGround.current.splice(activeGround.current.indexOf(entity), 1);
+    } else if (isFluid !== undefined) {
+      fluidGraveyard.current.push(
+        activeFluid.current.splice(activeFluid.current.indexOf(entity), 1)
+      );
     }
   }
 

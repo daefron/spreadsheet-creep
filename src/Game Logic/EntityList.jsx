@@ -2,7 +2,6 @@ export default {
   goblin: {
     type: "goblin",
     enemy: true,
-    projectile: false,
     fallSpeed: 1,
     climber: true,
     breathes: true,
@@ -36,7 +35,6 @@ export default {
     projectile: "arrow",
     fallSpeed: 1,
     climber: true,
-    breathes: false,
     style: {},
     lvls: {
       lvl1: {
@@ -64,7 +62,6 @@ export default {
   bombholder: {
     type: "bombholder",
     enemy: true,
-    projectile: false,
     fallSpeed: 1,
     climber: true,
     breathes: true,
@@ -87,10 +84,8 @@ export default {
   },
   bow: {
     type: "bow",
-    enemy: false,
     projectile: "arrow",
     fallSpeed: 1,
-    climber: false,
     breathes: true,
     style: {},
     lvls: {
@@ -125,7 +120,6 @@ export default {
   },
   knight: {
     type: "knight",
-    enemy: false,
     fallSpeed: 1,
     breathes: true,
     style: {},
@@ -161,11 +155,7 @@ export default {
   },
   wall: {
     type: "wall",
-    enemy: false,
-    projectile: false,
     fallSpeed: 1,
-    climber: false,
-    breathes: false,
     style: {},
     lvls: {
       lvl1: {
@@ -199,11 +189,7 @@ export default {
   },
   bomb: {
     type: "bomb",
-    enemy: false,
-    projectile: false,
     fallSpeed: 1,
-    climber: false,
-    breathes: false,
     explodes: true,
     style: {},
     lvls: {
@@ -238,10 +224,7 @@ export default {
   },
   king: {
     type: "king",
-    enemy: false,
-    projectile: false,
     fallSpeed: 0,
-    climber: false,
     breathes: true,
     style: {},
     lvls: {
