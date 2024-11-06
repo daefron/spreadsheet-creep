@@ -75,12 +75,12 @@ export default {
         rate: 12,
         speed: 10,
         value: 6,
-        chance: 5,
+        chance: 8,
       },
     },
   },
-  bombBoy: {
-    type: "bombBoy",
+  bomber: {
+    type: "bomber",
     enemy: true,
     fallSpeed: 1,
     movement: "walker",
@@ -137,7 +137,6 @@ export default {
         dmg: 3,
         range: 6,
         rate: 30,
-        speed: 0,
         value: 5,
       },
       lvl2: {
@@ -146,7 +145,6 @@ export default {
         dmg: 4,
         range: 6,
         rate: 27,
-        speed: 0,
         value: 10,
       },
       lvl3: {
@@ -155,10 +153,25 @@ export default {
         dmg: 5,
         range: 6,
         rate: 25,
-        speed: 0,
         value: 15,
       },
     },
+  },
+  mage :{
+    type: "mage",
+    fallSpeed:1,
+    breathes: true,
+    projectile: "lightning",
+    style: {},
+    lvls: {
+      lvl1: {
+        lvl: 1,
+        hp: 9,
+        dmg: 4,
+        rate: 30,
+        value: 15,
+      }
+    }
   },
   knight: {
     type: "knight",
@@ -172,7 +185,6 @@ export default {
         dmg: 4,
         range: 1,
         rate: 25,
-        speed: 0,
         value: 5,
       },
       lvl2: {
@@ -181,7 +193,6 @@ export default {
         dmg: 5,
         range: 1,
         rate: 20,
-        speed: 0,
         value: 10,
       },
       lvl3: {
@@ -190,7 +201,6 @@ export default {
         dmg: 6,
         range: 2,
         rate: 15,
-        speed: 0,
         value: 15,
       },
     },
@@ -206,7 +216,6 @@ export default {
         dmg: 0,
         range: 0,
         rate: 0,
-        speed: 0,
         value: 2,
       },
       lvl2: {
@@ -215,7 +224,6 @@ export default {
         dmg: 0,
         range: 0,
         rate: 0,
-        speed: 0,
         value: 2,
       },
       lvl3: {
@@ -224,7 +232,6 @@ export default {
         dmg: 0,
         range: 0,
         rate: 0,
-        speed: 0,
         value: 2,
       },
     },
@@ -241,7 +248,6 @@ export default {
         explosionDmg: 22,
         explosionRange: 1,
         rate: 0,
-        speed: 0,
         value: 5,
       },
       lvl2: {
@@ -250,7 +256,6 @@ export default {
         explosionDmg: 40,
         explosionRange: 2,
         rate: 0,
-        speed: 0,
         value: 5,
       },
       lvl3: {
@@ -259,7 +264,6 @@ export default {
         explosionDmg: 80,
         explosionRange: 5,
         rate: 0,
-        speed: 0,
         value: 5,
       },
     },
@@ -276,7 +280,6 @@ export default {
         dmg: 5,
         range: 1,
         rate: 12,
-        speed: 0,
         value: 0,
       },
     },

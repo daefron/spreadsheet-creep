@@ -127,6 +127,7 @@ export default function engineOutput() {
       let entityType = entityList[this.spawnType];
       let entityLvl = entityType.lvls["lvl" + this.lvl];
       entityID = new Entity(entityType, entityLvl, this.position, entityID);
+      entityID.enemy = this.enemy;
       activeEntities.current.push(entityID);
     }
   }
@@ -135,6 +136,7 @@ export default function engineOutput() {
   class Projectile {
     constructor(parent, name, type) {
       this.type = type.type;
+      this.name = name;
       this.parent = parent;
       this.enemy = parent.enemy;
       this.dmg = parent.dmg;
@@ -142,12 +144,16 @@ export default function engineOutput() {
       this.speedCharge = 0;
       this.fallSpeed = type.fallSpeed / gameSpeed.current;
       this.fallCharge = 0;
-      this.position = [direction(parent), parent.position[1]];
+      this.position = parent.position;
       this.distance = parent.range;
       if (this.enemy) {
         this.symbol = type.enemySymbol;
       } else this.symbol = type.friendlySymbol;
       this.name = name;
+      if (type.type === "lightning") {
+        this.direction = "up";
+        this.symbol = type.upSymbol;
+      }
     }
   }
 
@@ -220,6 +226,9 @@ export default function engineOutput() {
     let isFluid = activeFluid.current.find(
       (targetFluid) => entity === targetFluid
     );
+    let isProjectile = activeProjectiles.current.find(
+      (targetProjetile) => entity === targetProjetile
+    );
     if (isEntity !== undefined) {
       if (isEntity.enemy) {
         enemyGraveyard.current.push(
@@ -241,6 +250,11 @@ export default function engineOutput() {
     } else if (isFluid !== undefined) {
       fluidGraveyard.current.push(
         activeFluid.current.splice(activeFluid.current.indexOf(entity), 1)
+      );
+    } else if (isProjectile !== undefined) {
+      activeProjectiles.current.splice(
+        activeProjectiles.current.indexOf(entity),
+        1
       );
     }
   }
@@ -374,13 +388,7 @@ export default function engineOutput() {
       let rangeCells = rangeGetter(currentEntity);
       let targetEntity = attackTargetter(currentEntity, rangeCells);
       if (entityCanAttack(currentEntity, targetEntity)) {
-        if (
-          currentEntity.projectile &&
-          !comparePosition(targetEntity.position, [
-            direction(currentEntity),
-            currentEntity.position[1],
-          ])
-        ) {
+        if (currentEntity.projectile) {
           rangedAttack(currentEntity);
         } else entityAttack(currentEntity, targetEntity);
         return true;
@@ -439,6 +447,8 @@ export default function engineOutput() {
         ) {
           if (targetEntity !== undefined) {
             return true;
+          } else if (currentEntity.type === "mage") {
+            return true;
           }
         }
       }
@@ -451,9 +461,8 @@ export default function engineOutput() {
           currentEntity.name;
         projectileCount.current++;
         let type = projectileList[currentEntity.projectile];
-        activeProjectiles.current.push(
-          new Projectile(currentEntity, projectileID, type)
-        );
+        projectileID = new Projectile(currentEntity, projectileID, type);
+        activeProjectiles.current.push(projectileID);
         currentEntity.rateCharge = 0;
         currentEntity.speedCharge = 0;
       }
@@ -478,10 +487,7 @@ export default function engineOutput() {
         if (currentEntity.movement === undefined) {
           return false;
         }
-        if (
-          currentEntity.speedCharge >= currentEntity.speed &&
-          currentEntity.speed !== 0
-        ) {
+        if (currentEntity.speedCharge >= currentEntity.speed) {
           return true;
         }
       }
@@ -686,12 +692,96 @@ export default function engineOutput() {
     //tells the projectile what to do on its turn
     function projectileTurn(projectile) {
       projectile.speedCharge++;
-      if (projectileCanMove(projectile)) {
-        projectileMovement(projectile);
+      if (projectile.type === "lightning") {
+        if (lightningCanMove(projectile)) {
+          lightningMovement(projectile);
+        }
+      } else if (projectile.type === "arrow") {
+        if (arrowCanMove(projectile)) {
+          arrowMovement(projectile);
+        }
+      }
+
+      function lightningCanMove(projectile) {
+        if (projectile.speedCharge >= projectile.speed) {
+          return true;
+        }
+      }
+
+      function lightningMovement(projectile) {
+        if (projectile.direction === "up") {
+          if (projectile.position[1] > 1) {
+            let newPosition = [
+              projectile.position[0],
+              projectile.position[1] - 1,
+            ];
+            let cellInPosition = cellContents(newPosition);
+            if (cellInPosition.entity !== undefined) {
+              cellInPosition.entity.hp -= projectile.dmg;
+              entityKiller(projectile);
+              return;
+            }
+            projectile.position = newPosition;
+            projectile.speedCharge = 0;
+          } else {
+            projectile.direction = "right";
+            projectile.speed = 4;
+            projectile.symbol = projectileList[projectile.type].rightSymbol;
+            return;
+          }
+        } else if (projectile.direction === "right") {
+          if (belowTargetter(projectile)) {
+            projectile.direction = "down";
+            projectile.speed = 0;
+            projectile.symbol = projectileList[projectile.type].downSymbol;
+            return;
+          }
+          let newPosition = [
+            projectile.position[0] + 1,
+            projectile.position[1],
+          ];
+          let cellInPosition = cellContents(newPosition);
+          if (cellInPosition.entity !== undefined) {
+            cellInPosition.entity.hp -= projectile.dmg;
+            entityKiller(projectile);
+            return;
+          }
+          projectile.position = newPosition;
+          projectile.speedCharge = 0;
+        } else if (projectile.direction === "down") {
+          let newPosition = [
+            projectile.position[0],
+            projectile.position[1] + 1,
+          ];
+          let cellInPosition = cellContents(newPosition);
+          if (cellInPosition.entity !== undefined) {
+            cellInPosition.entity.hp -= projectile.dmg;
+            entityKiller(projectile);
+            return;
+          }
+          projectile.position = newPosition;
+          projectile.speedCharge = 0;
+        }
+
+        function belowTargetter(projectile) {
+          let targetFound = false;
+          for (let h = gameboardHeight.current; h > 1; h--) {
+            let targetPosition = [projectile.position[0], h];
+            let target = cellContents(targetPosition);
+            if (target.entity !== undefined) {
+              if (target.entity.enemy !== projectile.enemy) {
+                targetFound = true;
+              }
+            }
+          }
+          if (targetFound) {
+            return true;
+          }
+        }
       }
 
       //checks if the projectile can move this turn
-      function projectileCanMove(projectile) {
+      function arrowCanMove(projectile) {
         if (projectile.distance === 0) {
           activeProjectiles.current.splice(
             activeProjectiles.current.indexOf(projectile),
@@ -705,7 +795,7 @@ export default function engineOutput() {
       }
 
       //checks to see if projectile will move or attack enemy
-      function projectileMovement(projectile) {
+      function arrowMovement(projectile) {
         let newPosition = [direction(projectile), projectile.position[1]];
         let cellAtPosition = cellContents(newPosition);
         if (
@@ -1417,11 +1507,11 @@ export default function engineOutput() {
       if (cell.ground !== undefined) {
         return groundCell(cell.ground, id, key);
       }
-      if (cell.fluid !== undefined) {
-        return fluidCell(cell.fluid, id, key);
-      }
       if (cell.projectile !== undefined) {
         return projectileCell(cell.projectile, id, key);
+      }
+      if (cell.fluid !== undefined) {
+        return fluidCell(cell.fluid, id, key);
       }
       let style = {};
       return [key, id, "", style];
