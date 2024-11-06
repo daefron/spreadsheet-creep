@@ -89,22 +89,19 @@ export default function engineOutput() {
             this.position[1] + h,
           ]);
           if (inCell.entity !== undefined) {
-            targets.push(inCell.entity);
+            inCell.entity.hp -= this.explosionDmg;
           }
           if (inCell.ground !== undefined) {
-            targets.push(inCell.ground);
+            inCell.ground.hp -= this.explosionDmg;
+          }
+          if (inCell.fluid !== undefined) {
+            entityKiller(inCell.fluid);
           }
           h--;
         }
         h = initialH;
         w--;
       }
-      targets.forEach((target) => {
-        if (target !== this) {
-          target.hp -= this.explosionDmg;
-        }
-      });
-      return;
     }
   }
 
