@@ -4,6 +4,7 @@ export default {
     enemy: true,
     fallSpeed: 1,
     movement: "walker",
+    attack: "melee",
     breathes: true,
     style: {},
     lvls: {
@@ -32,9 +33,10 @@ export default {
   skeleton: {
     type: "skeleton",
     enemy: true,
+    movement: "walker",
+    attack: "projectile",
     projectile: "arrow",
     fallSpeed: 1,
-    movement: "walker",
     style: {},
     lvls: {
       lvl1: {
@@ -64,6 +66,7 @@ export default {
     enemy: true,
     fallSpeed: 1,
     movement: "scaler",
+    attack: "melee",
     breathes: true,
     style: {},
     lvls: {
@@ -84,6 +87,7 @@ export default {
     enemy: true,
     fallSpeed: 1,
     movement: "walker",
+    attack: "melee",
     breathes: true,
     death: "explodes",
     style: {},
@@ -107,6 +111,7 @@ export default {
     enemy: true,
     fallSpeed: 1,
     movement: "walker",
+    attack: "melee",
     breathes: true,
     death: "spawn",
     spawnType: "goblin",
@@ -126,6 +131,7 @@ export default {
   },
   bow: {
     type: "bow",
+    attack: "projectile",
     projectile: "arrow",
     fallSpeed: 1,
     breathes: true,
@@ -161,6 +167,7 @@ export default {
     type: "mage",
     fallSpeed:1,
     breathes: true,
+    attack: "enemyExists",
     projectile: "lightning",
     style: {},
     lvls: {
@@ -175,6 +182,7 @@ export default {
   },
   knight: {
     type: "knight",
+    attack: "melee",
     fallSpeed: 1,
     breathes: true,
     style: {},
@@ -270,6 +278,7 @@ export default {
   },
   king: {
     type: "king",
+    attack: "melee",
     fallSpeed: 0,
     breathes: true,
     style: {},

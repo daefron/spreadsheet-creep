@@ -65,6 +65,7 @@ export default function engineOutput() {
       this.fallSpeed = type.fallSpeed / gameSpeed.current;
       this.fallCharge = 0;
       this.movement = type.movement;
+      this.attack = type.attack;
       this.breathes = type.breathes;
       this.projectile = type.projectile;
       this.style = type.style;
@@ -384,26 +385,44 @@ export default function engineOutput() {
 
     //holds functions for entity attacks
     function entityAttackHolder(currentEntity) {
-      currentEntity.rateCharge++;
-      let rangeCells = rangeGetter(currentEntity);
-      let targetEntity = attackTargetter(currentEntity, rangeCells);
-      if (entityCanAttack(currentEntity, targetEntity)) {
-        if (currentEntity.projectile) {
-          rangedAttack(currentEntity);
-        } else entityAttack(currentEntity, targetEntity);
-        return true;
+      if (currentEntity.attack !== undefined) {
+        currentEntity.rateCharge++;
       }
-      if (targetEntity !== undefined) {
-        return true;
+      if (currentEntity.attack === "melee") {
+        let rangeCells = meleeRange(currentEntity);
+        let targetEntity = meleeAttackTargetter(currentEntity, rangeCells);
+        if (entityCanAttack(currentEntity, targetEntity)) {
+          meleeAttack(currentEntity, targetEntity);
+          return true;
+        }
+        if (targetEntity !== undefined) {
+          return true;
+        }
+      }
+      if (currentEntity.attack === "projectile") {
+        let target = projectileTargetter(currentEntity);
+        if (target !== undefined) {
+          if (entityCanAttack(currentEntity, target)) {
+            rangedAttack(currentEntity);
+            return true;
+          }
+        }
+      }
+      if (currentEntity.attack === "enemyExists") {
+        if (enemyChecker()) {
+          if (entityCanAttack(currentEntity, true)) {
+            rangedAttack(currentEntity);
+            return true;
+          }
+        }
       }
 
       //function to return array of cells entity can target
-      function rangeGetter(currentEntity) {
+      function meleeRange(currentEntity) {
         let rangeCells = [];
         let rangeLetter = direction(currentEntity);
         for (let i = currentEntity.range; i > 0; i--) {
-          rangeCells.push([rangeLetter, currentEntity.position[1]]);
-          if (!currentEntity.projectile) {
+          if (i === currentEntity.range) {
             rangeCells.push([rangeLetter, currentEntity.position[1] - 1]);
             rangeCells.push([
               currentEntity.position[0],
@@ -415,6 +434,7 @@ export default function engineOutput() {
               currentEntity.position[1] + 1,
             ]);
           }
+          rangeCells.push([rangeLetter, currentEntity.position[1]]);
           if (currentEntity.enemy) {
             rangeLetter--;
           } else {
@@ -425,7 +445,7 @@ export default function engineOutput() {
       }
 
       //function to return entity to attack
-      function attackTargetter(currentEntity, rangeCells) {
+      function meleeAttackTargetter(currentEntity, rangeCells) {
         let target;
         rangeCells.forEach((cell) => {
           let targetCell = cellContents(cell);
@@ -447,31 +467,59 @@ export default function engineOutput() {
         ) {
           if (targetEntity !== undefined) {
             return true;
-          } else if (currentEntity.type === "mage") {
-            return true;
           }
         }
       }
 
-      //function to spawn projectile
-      function rangedAttack(currentEntity) {
-        let projectileID =
-          currentEntity.projectile +
-          projectileCount.current +
-          currentEntity.name;
-        projectileCount.current++;
-        let type = projectileList[currentEntity.projectile];
-        projectileID = new Projectile(currentEntity, projectileID, type);
-        activeProjectiles.current.push(projectileID);
-        currentEntity.rateCharge = 0;
-        currentEntity.speedCharge = 0;
-      }
-
       //function to execute attack if can
-      function entityAttack(currentEntity, targetEntity) {
+      function meleeAttack(currentEntity, targetEntity) {
         targetEntity.hp -= currentEntity.dmg;
         currentEntity.rateCharge = 0;
         currentEntity.speedCharge = 0;
+      }
+    }
+
+    function projectileTargetter(currentEntity) {
+      let target;
+      let rangeLetter = direction(currentEntity);
+      for (let i = currentEntity.range; i > 0; i--) {
+        let targetCell = cellContents([rangeLetter, currentEntity.position[1]]);
+        if (targetCell.ground !== undefined) {
+          i = 0;
+        }
+        if (targetCell.entity !== undefined) {
+          if (targetCell.entity.enemy !== currentEntity.enemy) {
+            target = targetCell.entity;
+          }
+        }
+        if (currentEntity.enemy) {
+          rangeLetter--;
+        } else {
+          rangeLetter++;
+        }
+      }
+      return target;
+    }
+
+    //function to spawn projectile
+    function rangedAttack(currentEntity) {
+      let projectileID =
+        currentEntity.projectile + projectileCount.current + currentEntity.name;
+      projectileCount.current++;
+      let type = projectileList[currentEntity.projectile];
+      projectileID = new Projectile(currentEntity, projectileID, type);
+      activeProjectiles.current.push(projectileID);
+      currentEntity.rateCharge = 0;
+      currentEntity.speedCharge = 0;
+    }
+
+    //checks to see if any enemies exist
+    function enemyChecker() {
+      let enemies = activeEntities.current.filter(
+        (entity) => entity.enemy === true
+      );
+      if (enemies.length > 0) {
+        return true;
       }
     }
 
