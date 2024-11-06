@@ -147,13 +147,18 @@ export default function engineOutput() {
       this.fallCharge = 0;
       this.position = parent.position;
       this.distance = parent.range;
-      if (this.enemy) {
-        this.symbol = type.enemySymbol;
-      } else this.symbol = type.friendlySymbol;
       this.name = name;
-      if (type.type === "lightning") {
+      if (type.type === "arrow") {
+        if (this.enemy) {
+          this.symbol = type.enemySymbol;
+        } else this.symbol = type.friendlySymbol;
+      }
+      if (type.type === "missile") {
         this.direction = "up";
         this.symbol = type.upSymbol;
+      }
+      if (type.type === "barrel") {
+        this.symbol = type.symbol;
       }
     }
   }
@@ -416,6 +421,12 @@ export default function engineOutput() {
           }
         }
       }
+      if (currentEntity.attack === "automatic") {
+        if (entityCanAttack(currentEntity, true)) {
+          rangedAttack(currentEntity);
+          return true;
+        }
+      }
 
       //function to return array of cells entity can target
       function meleeRange(currentEntity) {
@@ -507,8 +518,17 @@ export default function engineOutput() {
         currentEntity.projectile + projectileCount.current + currentEntity.name;
       projectileCount.current++;
       let type = projectileList[currentEntity.projectile];
-      projectileID = new Projectile(currentEntity, projectileID, type);
-      activeProjectiles.current.push(projectileID);
+      if (currentEntity.projectile === "water") {
+        projectileID = new Fluid(
+          fluidList["water"],
+          [currentEntity.position[0], currentEntity.position[1] - 3],
+          projectileID
+        );
+        activeFluid.current.push(projectileID);
+      } else {
+        projectileID = new Projectile(currentEntity, projectileID, type);
+        activeProjectiles.current.push(projectileID);
+      }
       currentEntity.rateCharge = 0;
       currentEntity.speedCharge = 0;
     }
@@ -740,23 +760,134 @@ export default function engineOutput() {
     //tells the projectile what to do on its turn
     function projectileTurn(projectile) {
       projectile.speedCharge++;
-      if (projectile.type === "lightning") {
-        if (lightningCanMove(projectile)) {
-          lightningMovement(projectile);
+      if (projectile.type === "missile") {
+        if (missleCanMove(projectile)) {
+          missileMovement(projectile);
+          return;
         }
-      } else if (projectile.type === "arrow") {
+      }
+      if (projectile.type === "arrow") {
         if (arrowCanMove(projectile)) {
           arrowMovement(projectile);
+          return;
+        }
+      }
+      if (projectile.type === "barrel") {
+        if (barrelCanFall(projectile.position)) {
+          barrelFall(projectile);
+          return;
+        }
+        if (barrelCanMove(projectile)) {
+          barrelMovement(projectile);
+          return;
         }
       }
 
-      function lightningCanMove(projectile) {
+      function barrelCanFall(position) {
+        if (position[1] !== gameboardHeight.current) {
+          let positionBelow = [position[0], position[1] + 1];
+          let cellBelow = cellContents(positionBelow);
+          if (cellBelow.entity !== undefined) {
+            barrelExplosion(projectile);
+            return false;
+          } else if (cellBelow.ground !== undefined) {
+            return false;
+          }
+          return true;
+        }
+      }
+
+      function barrelFall(projectile) {
+        if (projectile.fallCharge < projectile.fallSpeed) {
+          projectile.fallCharge++;
+        } else {
+          projectile.fallCharge = 0;
+          projectile.position = [
+            projectile.position[0],
+            projectile.position[1] + 1,
+          ];
+          projectile.speedCharge = projectile.speed / 2;
+        }
+      }
+
+      function barrelCanMove(projectile) {
         if (projectile.speedCharge >= projectile.speed) {
           return true;
         }
       }
 
-      function lightningMovement(projectile) {
+      function barrelMovement(projectile) {
+        let positionNextTo = [direction(projectile), projectile.position[1]];
+        let inNextTo = cellContents(positionNextTo);
+        if (inNextTo.entity !== undefined) {
+          if (inNextTo.entity.enemy !== projectile.enemy) {
+            barrelExplosion(projectile);
+            entityKiller(projectile);
+          }
+        }
+        if (inNextTo.ground !== undefined) {
+          barrelExplosion(projectile);
+          entityKiller(projectile);
+        }
+        projectile.position = positionNextTo;
+        projectile.speedCharge = 0;
+        return;
+        
+      }
+
+      function barrelExplosion(projectile) {
+        let w = 1;
+        let h = 1;
+        let initialW = w;
+        let initialH = h;
+        while (w >= -initialW) {
+          while (h >= -initialH) {
+            let inCell = cellContents([
+              projectile.position[0] + w,
+              projectile.position[1] + h,
+            ]);
+            let dmg = parseInt(
+              projectile.dmg - (Math.random() * projectile.dmg) / 4
+            );
+            if (inCell.entity !== undefined) {
+              inCell.entity.hp -= dmg;
+            }
+            if (inCell.ground !== undefined) {
+              inCell.ground.hp -= dmg;
+            }
+            if (inCell.fluid !== undefined) {
+              let deathChance = Math.random() * 10;
+              if (deathChance > 5) {
+                entityKiller(inCell.fluid);
+              }
+            }
+            let effectType = effectList["explosion"];
+            let effectPosition = [
+              projectile.position[0] + w,
+              projectile.position[1] + h,
+            ];
+            let effectID =
+              "explosion" +
+              projectile.position[0] +
+              w +
+              projectile.position[1] +
+              h;
+            effectID = new Effect(effectType, effectPosition, effectID);
+            activeEffects.current.push(effectID);
+            h--;
+          }
+          h = initialH;
+          w--;
+        }
+      }
+
+      function missleCanMove(projectile) {
+        if (projectile.speedCharge >= projectile.speed) {
+          return true;
+        }
+      }
+
+      function missileMovement(projectile) {
         if (projectile.direction === "up") {
           if (projectile.position[1] > 1) {
             let newPosition = [
@@ -811,6 +942,7 @@ export default function engineOutput() {
           projectile.speedCharge = 0;
         }
 
+        //checks to see if there is an enemy below projectile
         function belowTargetter(projectile) {
           let targetFound = false;
           for (let h = gameboardHeight.current; h > 1; h--) {

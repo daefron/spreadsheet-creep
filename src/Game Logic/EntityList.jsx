@@ -163,22 +163,53 @@ export default {
       },
     },
   },
-  mage :{
+  mage: {
     type: "mage",
-    fallSpeed:1,
+    fallSpeed: 1,
     breathes: true,
     attack: "enemyExists",
-    projectile: "lightning",
+    projectile: "missile",
     style: {},
     lvls: {
       lvl1: {
         lvl: 1,
         hp: 9,
-        dmg: 4,
+        dmg: 3,
         rate: 30,
         value: 15,
-      }
-    }
+      },
+    },
+  },
+  well: {
+    type: "well",
+    fallSpeed: 1,
+    attack: "automatic",
+    projectile: "water",
+    style: {},
+    lvls: {
+      lvl1: {
+        lvl: 1,
+        hp: 20,
+        rate: 15,
+        value: 20,
+      },
+    },
+  },
+  dropper: {
+    type: "dropper",
+    fallSpeed: 1,
+    attack: "enemyExists",
+    projectile: "barrel",
+    style: {},
+    lvls: {
+      lvl1: {
+        lvl: 1,
+        hp: 20,
+        dmg: 10,
+        rate: 60,
+        value: 30,
+      },
+    },
   },
   knight: {
     type: "knight",
@@ -252,7 +283,7 @@ export default {
     lvls: {
       lvl1: {
         lvl: 1,
-        hp: 20,
+        hp: 10,
         explosionDmg: 22,
         explosionRange: 1,
         rate: 0,
@@ -260,7 +291,7 @@ export default {
       },
       lvl2: {
         lvl: 2,
-        hp: 20,
+        hp: 10,
         explosionDmg: 40,
         explosionRange: 2,
         rate: 0,
@@ -268,7 +299,7 @@ export default {
       },
       lvl3: {
         lvl: 3,
-        hp: 20,
+        hp: 10,
         explosionDmg: 80,
         explosionRange: 5,
         rate: 0,
