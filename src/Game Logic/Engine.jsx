@@ -77,15 +77,11 @@ export default function engineOutput() {
 
     get onDeath() {
       if (this.death === "explodes") {
-        this.explode();
+        explosion(this);
       }
       if (this.death === "spawn") {
         this.spawn();
       }
-    }
-
-    explode() {
-      explosion(this);
     }
 
     spawn() {
@@ -95,56 +91,6 @@ export default function engineOutput() {
       entityID = new Entity(entityType, entityLvl, this.position, entityID);
       entityID.enemy = this.enemy;
       activeEntities.current.push(entityID);
-    }
-  }
-
-  function explosion(currentEntity) {
-    let w = currentEntity.explosionRange;
-    let h = currentEntity.explosionRange;
-    let initialW = w;
-    let initialH = h;
-    while (w >= -initialW) {
-      while (h >= -initialH) {
-        let inCell = cellContents([
-          currentEntity.position[0] + w,
-          currentEntity.position[1] + h,
-        ]);
-        let dmg = parseInt(
-          currentEntity.explosionDmg -
-            (Math.random() * currentEntity.explosionDmg) / 4
-        );
-        if (inCell.entity !== undefined) {
-          inCell.entity.hp -= dmg;
-        }
-        if (inCell.ground !== undefined) {
-          inCell.ground.hp -= dmg;
-        }
-        if (inCell.fluid !== undefined) {
-          let deathChance = Math.random() * 10;
-          if (deathChance > 5) {
-            entityKiller(inCell.fluid);
-          }
-        }
-        if (inCell.projectile !== undefined) {
-          entityKiller(inCell.projectile);
-        }
-        let effectType = effectList["explosion"];
-        let effectPosition = [
-          currentEntity.position[0] + w,
-          currentEntity.position[1] + h,
-        ];
-        let effectID =
-          "explosion" +
-          currentEntity.position[0] +
-          w +
-          currentEntity.position[1] +
-          h;
-        effectID = new Effect(effectType, effectPosition, effectID);
-        activeEffects.current.push(effectID);
-        h--;
-      }
-      h = initialH;
-      w--;
     }
   }
 
@@ -187,12 +133,9 @@ export default function engineOutput() {
       if (this.death === "explodes") {
         if (this.armed) {
           this.armed = false;
-          this.explode();
+          explosion(this);
         }
       }
-    }
-    explode() {
-      explosion(this);
     }
   }
 
@@ -243,6 +186,51 @@ export default function engineOutput() {
     }
   }
 
+  function explosion(currentEntity) {
+    let w = currentEntity.explosionRange;
+    let h = currentEntity.explosionRange;
+    let initialW = w;
+    let initialH = h;
+    while (w >= -initialW) {
+      while (h >= -initialH) {
+        let inCell = cellContents([
+          currentEntity.position[0] + w,
+          currentEntity.position[1] + h,
+        ]);
+        let dmg = parseInt(
+          currentEntity.explosionDmg - (Math.random() * currentEntity.explosionDmg) / 4
+        );
+        if (inCell.entity !== undefined) {
+          inCell.entity.hp -= dmg;
+        }
+        if (inCell.ground !== undefined) {
+          inCell.ground.hp -= dmg;
+        }
+        if (inCell.fluid !== undefined) {
+          let deathChance = Math.random() * 10;
+          if (deathChance > 5) {
+            entityKiller(inCell.fluid);
+          }
+        }
+        if (inCell.projectile !== undefined) {
+          entityKiller(inCell.projectile);
+        }
+        let effectType = effectList["explosion"];
+        let effectPosition = [
+          currentEntity.position[0] + w,
+          currentEntity.position[1] + h,
+        ];
+        let effectID =
+          "explosion" + currentEntity.position[0] + w + currentEntity.position[1] + h;
+        effectID = new Effect(effectType, effectPosition, effectID);
+        activeEffects.current.push(effectID);
+        h--;
+      }
+      h = initialH;
+      w--;
+    }
+  }
+
   //checks to see if entity dies
   function healthChecker(entity) {
     if (entity.hp <= 0) {
@@ -256,32 +244,20 @@ export default function engineOutput() {
   //determines which graveyard entities get sent to
   function entityKiller(entity) {
     entity.onDeath;
-    let isEntity = activeEntities.current.find(
-      (targetEntity) => entity === targetEntity
-    );
-    let isGround = activeGround.current.find(
-      (targetGround) => entity === targetGround
-    );
-    let isFluid = activeFluid.current.find(
-      (targetFluid) => entity === targetFluid
-    );
+    let isEntity = activeEntities.current.find((targetEntity) => entity === targetEntity);
+    let isGround = activeGround.current.find((targetGround) => entity === targetGround);
+    let isFluid = activeFluid.current.find((targetFluid) => entity === targetFluid);
     let isProjectile = activeProjectiles.current.find(
       (targetProjetile) => entity === targetProjetile
     );
     if (isEntity !== undefined) {
       if (isEntity.enemy) {
         enemyGraveyard.current.push(
-          activeEntities.current.splice(
-            activeEntities.current.indexOf(entity),
-            1
-          )
+          activeEntities.current.splice(activeEntities.current.indexOf(entity), 1)
         );
       } else {
         friendlyGraveyard.current.push(
-          activeEntities.current.splice(
-            activeEntities.current.indexOf(entity),
-            1
-          )
+          activeEntities.current.splice(activeEntities.current.indexOf(entity), 1)
         );
       }
     } else if (isGround !== undefined) {
@@ -291,10 +267,7 @@ export default function engineOutput() {
         activeFluid.current.splice(activeFluid.current.indexOf(entity), 1)
       );
     } else if (isProjectile !== undefined) {
-      activeProjectiles.current.splice(
-        activeProjectiles.current.indexOf(entity),
-        1
-      );
+      activeProjectiles.current.splice(activeProjectiles.current.indexOf(entity), 1);
     }
   }
 
@@ -323,15 +296,12 @@ export default function engineOutput() {
       function entityBoundaryHandler(currentEntity) {
         let newPosition = [direction(currentEntity), currentEntity.position[1]];
         if (
-          (newPosition[0] === 0 &&
-            currentEntity.speedCharge >= currentEntity.speed) ||
+          (newPosition[0] === 0 && currentEntity.speedCharge >= currentEntity.speed) ||
           (newPosition[0] === gameboardWidth.current + 1 &&
             currentEntity.speedCharge >= currentEntity.speed)
         ) {
           if (gameMode.current === "king") {
-            let king = activeEntities.current.find(
-              (entity) => entity.type === "king"
-            );
+            let king = activeEntities.current.find((entity) => entity.type === "king");
             king.hp -= currentEntity.dmg * 2;
             currentEntity.hp = 0;
             return true;
@@ -396,10 +366,7 @@ export default function engineOutput() {
           if (!currentEntity.climbing) {
             let positionBelow = [position[0], position[1] + 1];
             let cellBelow = cellContents(positionBelow);
-            if (
-              cellBelow.ground !== undefined ||
-              cellBelow.entity !== undefined
-            ) {
+            if (cellBelow.ground !== undefined || cellBelow.entity !== undefined) {
               return false;
             }
             return true;
@@ -468,15 +435,9 @@ export default function engineOutput() {
         for (let i = currentEntity.range; i > 0; i--) {
           if (i === currentEntity.range) {
             rangeCells.push([rangeLetter, currentEntity.position[1] - 1]);
-            rangeCells.push([
-              currentEntity.position[0],
-              currentEntity.position[1] - 1,
-            ]);
+            rangeCells.push([currentEntity.position[0], currentEntity.position[1] - 1]);
             rangeCells.push([rangeLetter, currentEntity.position[1] + 1]);
-            rangeCells.push([
-              currentEntity.position[0],
-              currentEntity.position[1] + 1,
-            ]);
+            rangeCells.push([currentEntity.position[0], currentEntity.position[1] + 1]);
           }
           rangeCells.push([rangeLetter, currentEntity.position[1]]);
           if (currentEntity.enemy) {
@@ -505,10 +466,7 @@ export default function engineOutput() {
 
       //function to determine if entity can attack this turn
       function entityCanAttack(currentEntity, targetEntity) {
-        if (
-          currentEntity.rateCharge >= currentEntity.rate &&
-          currentEntity.rate !== 0
-        ) {
+        if (currentEntity.rateCharge >= currentEntity.rate && currentEntity.rate !== 0) {
           if (targetEntity !== undefined) {
             return true;
           }
@@ -568,9 +526,7 @@ export default function engineOutput() {
 
     //checks to see if any enemies exist
     function enemyChecker() {
-      let enemies = activeEntities.current.filter(
-        (entity) => entity.enemy === true
-      );
+      let enemies = activeEntities.current.filter((entity) => entity.enemy === true);
       if (enemies.length > 0) {
         return true;
       }
@@ -616,10 +572,7 @@ export default function engineOutput() {
 
         //holds climbing functions
         function climbHolder(currentEntity) {
-          let positionNextTo = [
-            direction(currentEntity),
-            currentEntity.position[1],
-          ];
+          let positionNextTo = [direction(currentEntity), currentEntity.position[1]];
           if (climbChecker(currentEntity, positionNextTo)) {
             climbMovement(currentEntity, positionNextTo);
             return true;
@@ -643,10 +596,7 @@ export default function engineOutput() {
             function climbSpotFree(positionNextTo) {
               let positionAbove = [positionNextTo[0], positionNextTo[1] - 1];
               let cellAbove = cellContents(positionAbove);
-              if (
-                cellAbove.entity !== undefined ||
-                cellAbove.ground !== undefined
-              ) {
+              if (cellAbove.entity !== undefined || cellAbove.ground !== undefined) {
                 return false;
               }
               return true;
@@ -713,15 +663,9 @@ export default function engineOutput() {
           }
           if (canScale) {
             currentEntity.climbing = true;
-            let cellAbove = [
-              currentEntity.position[0],
-              currentEntity.position[1] - 1,
-            ];
+            let cellAbove = [currentEntity.position[0], currentEntity.position[1] - 1];
             let cellInAbove = cellContents(cellAbove);
-            if (
-              cellInAbove.entity === undefined &&
-              cellInAbove.ground === undefined
-            ) {
+            if (cellInAbove.entity === undefined && cellInAbove.ground === undefined) {
               currentEntity.position = cellAbove;
               currentEntity.speedCharge = 0;
             }
@@ -818,10 +762,7 @@ export default function engineOutput() {
           projectile.fallCharge++;
         } else {
           projectile.fallCharge = 0;
-          projectile.position = [
-            projectile.position[0],
-            projectile.position[1] + 1,
-          ];
+          projectile.position = [projectile.position[0], projectile.position[1] + 1];
           projectile.speedCharge = projectile.speed / 2;
         }
       }
@@ -860,16 +801,15 @@ export default function engineOutput() {
 
       function missileMovement(projectile) {
         if (projectile.direction === "up") {
-          if (projectile.position[1] > 1) {
-            let newPosition = [
-              projectile.position[0],
-              projectile.position[1] - 1,
-            ];
+          if (projectile.position[1] > projectile.parent.position[1] - 8) {
+            let newPosition = [projectile.position[0], projectile.position[1] - 1];
             let cellInPosition = cellContents(newPosition);
             if (cellInPosition.entity !== undefined) {
-              cellInPosition.entity.hp -= projectile.dmg;
-              entityKiller(projectile);
-              return;
+              if (cellInPosition.entity.enemy !== projectile.enemy) {
+                cellInPosition.entity.hp -= projectile.dmg;
+                entityKiller(projectile);
+                return;
+              }
             }
             projectile.position = newPosition;
             projectile.speedCharge = 0;
@@ -886,28 +826,26 @@ export default function engineOutput() {
             projectile.symbol = projectileList[projectile.type].downSymbol;
             return;
           }
-          let newPosition = [
-            projectile.position[0] + 1,
-            projectile.position[1],
-          ];
+          let newPosition = [projectile.position[0] + 1, projectile.position[1]];
           let cellInPosition = cellContents(newPosition);
           if (cellInPosition.entity !== undefined) {
-            cellInPosition.entity.hp -= projectile.dmg;
-            entityKiller(projectile);
-            return;
+            if (cellInPosition.entity.enemy !== projectile.enemy) {
+              cellInPosition.entity.hp -= projectile.dmg;
+              entityKiller(projectile);
+              return;
+            }
           }
           projectile.position = newPosition;
           projectile.speedCharge = 0;
         } else if (projectile.direction === "down") {
-          let newPosition = [
-            projectile.position[0],
-            projectile.position[1] + 1,
-          ];
+          let newPosition = [projectile.position[0], projectile.position[1] + 1];
           let cellInPosition = cellContents(newPosition);
           if (cellInPosition.entity !== undefined) {
-            cellInPosition.entity.hp -= projectile.dmg;
-            entityKiller(projectile);
-            return;
+            if (cellInPosition.entity.enemy !== projectile.enemy) {
+              cellInPosition.entity.hp -= projectile.dmg;
+              entityKiller(projectile);
+              return;
+            }
           }
           projectile.position = newPosition;
           projectile.speedCharge = 0;
@@ -1078,10 +1016,7 @@ export default function engineOutput() {
             entityKiller(fluid);
           }
           let targetCell = cellContents(targetPosition);
-          if (
-            targetCell.ground === undefined &&
-            targetCell.fluid === undefined
-          ) {
+          if (targetCell.ground === undefined && targetCell.fluid === undefined) {
             fluid.position = targetPosition;
             fluid.speedCharge = 0;
             fluid.speed *= 1.3;
@@ -1092,10 +1027,7 @@ export default function engineOutput() {
             } else fluid.direction = "left";
           }
         }
-        let cellBelow = cellContents([
-          fluid.position[0],
-          fluid.position[1] + 1,
-        ]);
+        let cellBelow = cellContents([fluid.position[0], fluid.position[1] + 1]);
         if (fluid.speed > 50 && cellBelow.fluid !== undefined) {
           fluid.speed = Infinity;
         }
@@ -1210,8 +1142,7 @@ export default function engineOutput() {
       function victoryChecker() {
         if (gameMode.current === "king") {
           let kingAlive =
-            activeEntities.current.find((entity) => entity.type === "king") !==
-            undefined;
+            activeEntities.current.find((entity) => entity.type === "king") !== undefined;
           if (kingAlive) {
             return true;
           }
@@ -1252,9 +1183,7 @@ export default function engineOutput() {
       function spawnTime() {
         let baseline = 80;
         let actual =
-          (baseline + 80 * Math.random()) /
-          spawnSpeed.current /
-          gameSpeed.current;
+          (baseline + 80 * Math.random()) / spawnSpeed.current / gameSpeed.current;
         return actual;
       }
 
@@ -1446,8 +1375,7 @@ export default function engineOutput() {
   //runs friendly through checks before spawning
   function friendlySpawner(friendlyType, friendlyPosition, friendlyLvl) {
     if (validFriendly(friendlyType, friendlyLvl)) {
-      let friendlyCost =
-        entityList[friendlyType].lvls["lvl" + friendlyLvl].value;
+      let friendlyCost = entityList[friendlyType].lvls["lvl" + friendlyLvl].value;
       if (bankChecker(friendlyCost)) {
         setBank(bank - friendlyCost);
         friendlyEntityMaker(friendlyType, friendlyPosition, friendlyLvl);
@@ -1496,33 +1424,18 @@ export default function engineOutput() {
       }
       ground.style.boxShadow = "";
       let made = false;
-      let cellAbove = cellContents([
-        ground.position[0],
-        ground.position[1] - 1,
-      ]);
+      let cellAbove = cellContents([ground.position[0], ground.position[1] - 1]);
       let cellLeft = cellContents([ground.position[0] - 1, ground.position[1]]);
-      let cellRight = cellContents([
-        ground.position[0] + 1,
-        ground.position[1],
-      ]);
+      let cellRight = cellContents([ground.position[0] + 1, ground.position[1]]);
       if (cellAbove.ground === undefined) {
         ground.style.boxShadow = "inset 0px 2px 0px grey";
         made = true;
       }
-      if (
-        cellLeft.ground === undefined &&
-        ground.position[0] - 1 !== 0 &&
-        !made
-      ) {
+      if (cellLeft.ground === undefined && ground.position[0] - 1 !== 0 && !made) {
         ground.style.boxShadow = "inset 2px 0px 0px grey";
         made = true;
-      } else if (
-        cellLeft.ground === undefined &&
-        ground.position[0] - 1 !== 0 &&
-        made
-      ) {
-        ground.style.boxShadow =
-          ground.style.boxShadow + ",inset 2px 0px 0px grey";
+      } else if (cellLeft.ground === undefined && ground.position[0] - 1 !== 0 && made) {
+        ground.style.boxShadow = ground.style.boxShadow + ",inset 2px 0px 0px grey";
       }
       if (
         cellRight.ground === undefined &&
@@ -1536,8 +1449,7 @@ export default function engineOutput() {
         ground.position[0] < gameboardWidth.current &&
         made
       ) {
-        ground.style.boxShadow =
-          ground.style.boxShadow + ",inset -2px 0px 0px grey";
+        ground.style.boxShadow = ground.style.boxShadow + ",inset -2px 0px 0px grey";
       }
     } else {
       ground.style.boxShadow = false;
@@ -1558,26 +1470,13 @@ export default function engineOutput() {
         fluid.style.boxShadow = "inset 0px 1px 0px blue";
         made = true;
       }
-      if (
-        cellLeft.fluid === undefined &&
-        cellLeft.ground === undefined &&
-        !made
-      ) {
+      if (cellLeft.fluid === undefined && cellLeft.ground === undefined && !made) {
         fluid.style.boxShadow = "inset 1px 0px 0px blue";
         made = true;
-      } else if (
-        cellLeft.fluid === undefined &&
-        cellLeft.ground === undefined &&
-        made
-      ) {
-        fluid.style.boxShadow =
-          fluid.style.boxShadow + ",inset 1px 0px 0px blue";
+      } else if (cellLeft.fluid === undefined && cellLeft.ground === undefined && made) {
+        fluid.style.boxShadow = fluid.style.boxShadow + ",inset 1px 0px 0px blue";
       }
-      if (
-        cellRight.fluid === undefined &&
-        cellRight.ground === undefined &&
-        !made
-      ) {
+      if (cellRight.fluid === undefined && cellRight.ground === undefined && !made) {
         fluid.style.boxShadow = "inset -1px 0px 0px blue";
         made = true;
       } else if (
@@ -1585,8 +1484,7 @@ export default function engineOutput() {
         cellRight.ground === undefined &&
         made
       ) {
-        fluid.style.boxShadow =
-          fluid.style.boxShadow + ",inset -1px 0px 0px blue";
+        fluid.style.boxShadow = fluid.style.boxShadow + ",inset -1px 0px 0px blue";
       }
     } else {
       fluid.style.boxShadow = false;
@@ -1761,15 +1659,9 @@ export default function engineOutput() {
     }
 
     function inFluid(entity, style) {
-      let cellAbove = cellContents([
-        entity.position[0],
-        entity.position[1] - 1,
-      ]);
+      let cellAbove = cellContents([entity.position[0], entity.position[1] - 1]);
       let cellLeft = cellContents([entity.position[0] - 1, entity.position[1]]);
-      let cellRight = cellContents([
-        entity.position[0] + 1,
-        entity.position[1],
-      ]);
+      let cellRight = cellContents([entity.position[0] + 1, entity.position[1]]);
       if (cellAbove.fluid === undefined) {
         style.boxShadow = style.boxShadow + ",inset 0px 1px 0px blue";
       }
@@ -2098,14 +1990,9 @@ export default function engineOutput() {
 
           <p className="statTitle">Enemies remaining: </p>
           <p className="stat">
-            {totalSpawns.current - enemySpawnCount.current}/
-            {totalSpawns.current}
+            {totalSpawns.current - enemySpawnCount.current}/{totalSpawns.current}
           </p>
-          <button
-            className="statTitle"
-            id="settingsButton"
-            onClick={toggleSettings}
-          >
+          <button className="statTitle" id="settingsButton" onClick={toggleSettings}>
             Settings/Entities &nbsp;
           </button>
         </div>
