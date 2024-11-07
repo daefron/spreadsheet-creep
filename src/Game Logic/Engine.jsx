@@ -305,7 +305,7 @@ export default function engineOutput() {
             } else if (!currentEntity.enemy) {
               enemySpawnCount.current += 2;
             }
-            entityKiller(currentEntity);
+            currentEntity.hp = 0;
           }
         }
       }
@@ -360,6 +360,16 @@ export default function engineOutput() {
           if (!currentEntity.climbing) {
             let positionBelow = [position[0], position[1] + 1];
             let cellBelow = cellContents(positionBelow);
+            if (currentEntity.movement === "scaler") {
+              let positionNextTo = [
+                direction(currentEntity),
+                currentEntity.position[1],
+              ];
+              let cellNextTo = cellContents(positionNextTo);
+              if (cellNextTo.ground !== undefined || cellNextTo.entity !== undefined) {
+                return false;
+              }
+            }
             if (cellBelow.ground !== undefined || cellBelow.entity !== undefined) {
               return false;
             }
