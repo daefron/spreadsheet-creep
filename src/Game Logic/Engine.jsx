@@ -658,7 +658,6 @@ export default function engineOutput() {
             let positionAbove = [positionNextTo[0], positionNextTo[1] - 1];
             currentEntity.position = positionAbove;
             currentEntity.speedCharge = 0;
-            // projectileChecker(currentEntity);
           }
         }
 
@@ -684,7 +683,6 @@ export default function engineOutput() {
           function walk(currentEntity, newPosition) {
             currentEntity.speedCharge = 0;
             currentEntity.position = newPosition;
-            // projectileChecker(currentEntity);
           }
         }
 
@@ -735,21 +733,6 @@ export default function engineOutput() {
             return false;
           }
         }
-
-        //checks if entity walked/climbed into projectile and applies damage if so
-        // function projectileChecker(currentEntity) {
-        //   let cellInPosition = cellContents(currentEntity.position);
-        //   if (
-        //     cellInPosition.projectile !== undefined &&
-        //     cellInPosition.projectile.enemy !== currentEntity.enemy
-        //   ) {
-        //     currentEntity.hp -= cellInPosition.projectile.dmg;
-        //     activeProjectiles.current.splice(
-        //       activeProjectiles.current.indexOf(cellInPosition.projectile),
-        //       1
-        //     );
-        //   }
-        // }
       }
     }
 
@@ -1757,27 +1740,7 @@ export default function engineOutput() {
       }
       if (entity.inLiquid) {
         style.fontStyle = "italic";
-        let cellAbove = cellContents([
-          entity.position[0],
-          entity.position[1] - 1,
-        ]);
-        let cellLeft = cellContents([
-          entity.position[0] - 1,
-          entity.position[1],
-        ]);
-        let cellRight = cellContents([
-          entity.position[0] + 1,
-          entity.position[1],
-        ]);
-        if (cellAbove.fluid === undefined) {
-          style.boxShadow = style.boxShadow + ",inset 0px 1px 0px blue";
-        }
-        if (cellLeft.fluid === undefined && cellLeft.ground === undefined) {
-          style.boxShadow = style.boxShadow + ",inset 1px 0px 0px blue";
-        }
-        if (cellRight.fluid === undefined && cellRight.ground === undefined) {
-          style.boxShadow = style.boxShadow + ",inset -1px 0px 0px blue";
-        }
+        inFluid(entity, style);
       } else {
         style.fontStyle = "normal";
       }
@@ -1791,8 +1754,32 @@ export default function engineOutput() {
         ) === undefined
       ) {
         let style = {};
+        inFluid(projectile, style);
+
         return [key, id, projectile.symbol, style];
       }
+    }
+
+    function inFluid(entity, style) {
+      let cellAbove = cellContents([
+        entity.position[0],
+        entity.position[1] - 1,
+      ]);
+      let cellLeft = cellContents([entity.position[0] - 1, entity.position[1]]);
+      let cellRight = cellContents([
+        entity.position[0] + 1,
+        entity.position[1],
+      ]);
+      if (cellAbove.fluid === undefined) {
+        style.boxShadow = style.boxShadow + ",inset 0px 1px 0px blue";
+      }
+      if (cellLeft.fluid === undefined && cellLeft.ground === undefined) {
+        style.boxShadow = style.boxShadow + ",inset 1px 0px 0px blue";
+      }
+      if (cellRight.fluid === undefined && cellRight.ground === undefined) {
+        style.boxShadow = style.boxShadow + ",inset -1px 0px 0px blue";
+      }
+      return style;
     }
   }
 
