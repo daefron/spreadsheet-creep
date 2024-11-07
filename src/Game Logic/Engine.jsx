@@ -361,10 +361,7 @@ export default function engineOutput() {
             let positionBelow = [position[0], position[1] + 1];
             let cellBelow = cellContents(positionBelow);
             if (currentEntity.movement === "scaler") {
-              let positionNextTo = [
-                direction(currentEntity),
-                currentEntity.position[1],
-              ];
+              let positionNextTo = [direction(currentEntity), currentEntity.position[1]];
               let cellNextTo = cellContents(positionNextTo);
               if (cellNextTo.ground !== undefined || cellNextTo.entity !== undefined) {
                 return false;
@@ -693,11 +690,7 @@ export default function engineOutput() {
 
       //checks if entity is allowed to attack adjacent ground
       function entityCanAttackGround(currentEntity) {
-        if (
-          currentEntity.rateCharge >= currentEntity.rate &&
-          currentEntity.speedCharge >= currentEntity.speed &&
-          currentEntity.rate !== 0
-        ) {
+        if (currentEntity.rateCharge >= currentEntity.rate && currentEntity.rate !== 0) {
           let targetCell = cellContents([
             direction(currentEntity),
             currentEntity.position[1],

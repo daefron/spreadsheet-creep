@@ -123,7 +123,7 @@ export default {
         dmg: 4,
         range: 1,
         rate: 15,
-        speed: 20,
+        speed: 15,
         value: 5,
         chance: 5,
       },
