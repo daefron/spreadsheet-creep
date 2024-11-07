@@ -85,42 +85,7 @@ export default function engineOutput() {
     }
 
     explode() {
-      let w = this.explosionRange;
-      let h = this.explosionRange;
-      let initialW = w;
-      let initialH = h;
-      while (w >= -initialW) {
-        while (h >= -initialH) {
-          let inCell = cellContents([
-            this.position[0] + w,
-            this.position[1] + h,
-          ]);
-          let dmg = parseInt(
-            this.explosionDmg - (Math.random() * this.explosionDmg) / 4
-          );
-          if (inCell.entity !== undefined) {
-            inCell.entity.hp -= dmg;
-          }
-          if (inCell.ground !== undefined) {
-            inCell.ground.hp -= dmg;
-          }
-          if (inCell.fluid !== undefined) {
-            let deathChance = Math.random() * 10;
-            if (deathChance > 5) {
-              entityKiller(inCell.fluid);
-            }
-          }
-          let effectType = effectList["explosion"];
-          let effectPosition = [this.position[0] + w, this.position[1] + h];
-          let effectID =
-            "explosion" + this.position[0] + w + this.position[1] + h;
-          effectID = new Effect(effectType, effectPosition, effectID);
-          activeEffects.current.push(effectID);
-          h--;
-        }
-        h = initialH;
-        w--;
-      }
+      explosion(this);
     }
 
     spawn() {
@@ -130,6 +95,56 @@ export default function engineOutput() {
       entityID = new Entity(entityType, entityLvl, this.position, entityID);
       entityID.enemy = this.enemy;
       activeEntities.current.push(entityID);
+    }
+  }
+
+  function explosion(currentEntity) {
+    let w = currentEntity.explosionRange;
+    let h = currentEntity.explosionRange;
+    let initialW = w;
+    let initialH = h;
+    while (w >= -initialW) {
+      while (h >= -initialH) {
+        let inCell = cellContents([
+          currentEntity.position[0] + w,
+          currentEntity.position[1] + h,
+        ]);
+        let dmg = parseInt(
+          currentEntity.explosionDmg -
+            (Math.random() * currentEntity.explosionDmg) / 4
+        );
+        if (inCell.entity !== undefined) {
+          inCell.entity.hp -= dmg;
+        }
+        if (inCell.ground !== undefined) {
+          inCell.ground.hp -= dmg;
+        }
+        if (inCell.fluid !== undefined) {
+          let deathChance = Math.random() * 10;
+          if (deathChance > 5) {
+            entityKiller(inCell.fluid);
+          }
+        }
+        if (inCell.projectile !== undefined) {
+          entityKiller(inCell.projectile);
+        }
+        let effectType = effectList["explosion"];
+        let effectPosition = [
+          currentEntity.position[0] + w,
+          currentEntity.position[1] + h,
+        ];
+        let effectID =
+          "explosion" +
+          currentEntity.position[0] +
+          w +
+          currentEntity.position[1] +
+          h;
+        effectID = new Effect(effectType, effectPosition, effectID);
+        activeEffects.current.push(effectID);
+        h--;
+      }
+      h = initialH;
+      w--;
     }
   }
 
@@ -148,6 +163,7 @@ export default function engineOutput() {
       this.position = parent.position;
       this.distance = parent.range;
       this.name = name;
+      this.death = type.death;
       if (type.type === "arrow") {
         if (this.enemy) {
           this.symbol = type.enemySymbol;
@@ -159,7 +175,24 @@ export default function engineOutput() {
       }
       if (type.type === "barrel") {
         this.symbol = type.symbol;
+        this.position = [direction(parent), parent.position[1]];
       }
+      if (type.death === "explodes") {
+        this.explosionDmg = this.dmg;
+        this.explosionRange = 1;
+        this.armed = true;
+      }
+    }
+    get onDeath() {
+      if (this.death === "explodes") {
+        if (this.armed) {
+          this.armed = false;
+          this.explode();
+        }
+      }
+    }
+    explode() {
+      explosion(this);
     }
   }
 
@@ -625,7 +658,7 @@ export default function engineOutput() {
             let positionAbove = [positionNextTo[0], positionNextTo[1] - 1];
             currentEntity.position = positionAbove;
             currentEntity.speedCharge = 0;
-            projectileChecker(currentEntity);
+            // projectileChecker(currentEntity);
           }
         }
 
@@ -651,7 +684,7 @@ export default function engineOutput() {
           function walk(currentEntity, newPosition) {
             currentEntity.speedCharge = 0;
             currentEntity.position = newPosition;
-            projectileChecker(currentEntity);
+            // projectileChecker(currentEntity);
           }
         }
 
@@ -704,19 +737,19 @@ export default function engineOutput() {
         }
 
         //checks if entity walked/climbed into projectile and applies damage if so
-        function projectileChecker(currentEntity) {
-          let cellInPosition = cellContents(currentEntity.position);
-          if (
-            cellInPosition.projectile !== undefined &&
-            cellInPosition.projectile.enemy !== currentEntity.enemy
-          ) {
-            currentEntity.hp -= cellInPosition.projectile.dmg;
-            activeProjectiles.current.splice(
-              activeProjectiles.current.indexOf(cellInPosition.projectile),
-              1
-            );
-          }
-        }
+        // function projectileChecker(currentEntity) {
+        //   let cellInPosition = cellContents(currentEntity.position);
+        //   if (
+        //     cellInPosition.projectile !== undefined &&
+        //     cellInPosition.projectile.enemy !== currentEntity.enemy
+        //   ) {
+        //     currentEntity.hp -= cellInPosition.projectile.dmg;
+        //     activeProjectiles.current.splice(
+        //       activeProjectiles.current.indexOf(cellInPosition.projectile),
+        //       1
+        //     );
+        //   }
+        // }
       }
     }
 
@@ -788,7 +821,7 @@ export default function engineOutput() {
           let positionBelow = [position[0], position[1] + 1];
           let cellBelow = cellContents(positionBelow);
           if (cellBelow.entity !== undefined) {
-            barrelExplosion(projectile);
+            entityKiller(projectile);
             return false;
           } else if (cellBelow.ground !== undefined) {
             return false;
@@ -817,68 +850,23 @@ export default function engineOutput() {
       }
 
       function barrelMovement(projectile) {
+        let inCurrent = cellContents(projectile.position);
+        if (inCurrent.entity !== undefined) {
+          entityKiller(projectile);
+        }
         let positionNextTo = [direction(projectile), projectile.position[1]];
         let inNextTo = cellContents(positionNextTo);
         if (inNextTo.entity !== undefined) {
           if (inNextTo.entity.enemy !== projectile.enemy) {
-            barrelExplosion(projectile);
             entityKiller(projectile);
           }
         }
         if (inNextTo.ground !== undefined) {
-          barrelExplosion(projectile);
           entityKiller(projectile);
         }
         projectile.position = positionNextTo;
         projectile.speedCharge = 0;
         return;
-        
-      }
-
-      function barrelExplosion(projectile) {
-        let w = 1;
-        let h = 1;
-        let initialW = w;
-        let initialH = h;
-        while (w >= -initialW) {
-          while (h >= -initialH) {
-            let inCell = cellContents([
-              projectile.position[0] + w,
-              projectile.position[1] + h,
-            ]);
-            let dmg = parseInt(
-              projectile.dmg - (Math.random() * projectile.dmg) / 4
-            );
-            if (inCell.entity !== undefined) {
-              inCell.entity.hp -= dmg;
-            }
-            if (inCell.ground !== undefined) {
-              inCell.ground.hp -= dmg;
-            }
-            if (inCell.fluid !== undefined) {
-              let deathChance = Math.random() * 10;
-              if (deathChance > 5) {
-                entityKiller(inCell.fluid);
-              }
-            }
-            let effectType = effectList["explosion"];
-            let effectPosition = [
-              projectile.position[0] + w,
-              projectile.position[1] + h,
-            ];
-            let effectID =
-              "explosion" +
-              projectile.position[0] +
-              w +
-              projectile.position[1] +
-              h;
-            effectID = new Effect(effectType, effectPosition, effectID);
-            activeEffects.current.push(effectID);
-            h--;
-          }
-          h = initialH;
-          w--;
-        }
       }
 
       function missleCanMove(projectile) {
