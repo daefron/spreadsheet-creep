@@ -244,14 +244,8 @@ export default function engineOutput() {
   //determines which graveyard entities get sent to
   function entityKiller(entity) {
     entity.onDeath;
-    let isEntity = activeEntities.current.find((targetEntity) => entity === targetEntity);
-    let isGround = activeGround.current.find((targetGround) => entity === targetGround);
-    let isFluid = activeFluid.current.find((targetFluid) => entity === targetFluid);
-    let isProjectile = activeProjectiles.current.find(
-      (targetProjetile) => entity === targetProjetile
-    );
-    if (isEntity !== undefined) {
-      if (isEntity.enemy) {
+    if (entity.constructor.name === "Entity") {
+      if (entity.enemy) {
         enemyGraveyard.current.push(
           activeEntities.current.splice(activeEntities.current.indexOf(entity), 1)
         );
@@ -260,13 +254,13 @@ export default function engineOutput() {
           activeEntities.current.splice(activeEntities.current.indexOf(entity), 1)
         );
       }
-    } else if (isGround !== undefined) {
+    } else if (entity.constructor.name === "Ground") {
       activeGround.current.splice(activeGround.current.indexOf(entity), 1);
-    } else if (isFluid !== undefined) {
+    } else if (entity.constructor.name === "Fluid") {
       fluidGraveyard.current.push(
         activeFluid.current.splice(activeFluid.current.indexOf(entity), 1)
       );
-    } else if (isProjectile !== undefined) {
+    } else if (entity.constructor.name === "Projectile") {
       activeProjectiles.current.splice(activeProjectiles.current.indexOf(entity), 1);
     }
   }
@@ -1505,6 +1499,25 @@ export default function engineOutput() {
     }
   }
 
+  function healthBar(currentEntity) {
+    let percentage;
+    if (currentEntity.constructor.name === "Entity") {
+      percentage =
+        currentEntity.hp /
+        entityList[currentEntity.type].lvls["lvl" + currentEntity.lvl].hp;
+    } else if (currentEntity.constructor.name === "Ground") {
+      percentage = currentEntity.hp / groundList[currentEntity.type].hp;
+    }
+    let color = "rgb(200 200 200 /" + (1 - percentage) + ")";
+    if (currentEntity.constructor.name === "Ground") {
+      if (currentEntity.style.boxShadow === "") {
+        currentEntity.style.boxShadow = "inset 157px 21px 0px 0px " + color;
+        return;
+      }
+    }
+    currentEntity.style.boxShadow += ",inset 157px 21px 0px 0px " + color;
+  }
+
   //stops the game loop
   function pause() {
     clearInterval(timer.current);
@@ -1597,11 +1610,11 @@ export default function engineOutput() {
     }
 
     function groundCell(ground, id, key) {
-      if (terrainIsFalling.current) {
-        groundLine(ground);
-      }
+      groundLine(ground);
+      healthBar(ground);
       let style = {
         boxShadow: ground.style.boxShadow,
+        backgroundColor: ground.style.backgroundColor,
       };
       return [key, id, ground.type + " (hp: " + ground.hp + ")", style];
     }
@@ -1627,6 +1640,7 @@ export default function engineOutput() {
 
     function entityCell(entity, id, key) {
       attackBar(entity);
+      healthBar(entity);
       let style = {
         boxShadow: entity.style.boxShadow,
       };
