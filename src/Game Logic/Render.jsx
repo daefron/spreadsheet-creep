@@ -11,13 +11,13 @@ export default function engineOutput() {
   const activeGround = useRef([]);
   const activeFluid = useRef([]);
   const activeEffects = useRef([]);
-  const activeHolder = useRef([
-    activeEntities.current,
-    activeProjectiles.current,
-    activeGround.current,
-    activeFluid.current,
-    activeEffects.current,
-  ]);
+  const activeHolder = useRef({
+    activeEntities: activeEntities,
+    activeProjectiles: activeProjectiles,
+    activeGround: activeGround,
+    activeFluid: activeFluid,
+    activeEffects: activeEffects,
+  });
   const friendlyGraveyard = useRef([]);
   const enemyGraveyard = useRef([]);
   const groundGraveyard = useRef([]);
@@ -52,41 +52,49 @@ export default function engineOutput() {
   let groundList = GroundList;
 
   function gameStatePacker() {
-    let object = {
-      activeEntities: activeEntities,
-      activeProjectiles: activeProjectiles,
-      activeGround: activeGround,
-      activeFluid: activeFluid,
-      activeEffects: activeEffects,
-      activeHolder: activeHolder,
-      friendlyGraveyard: friendlyGraveyard,
-      enemyGraveyard: enemyGraveyard,
-      groundGraveyard: groundGraveyard,
-      fluidGraveyard: fluidGraveyard,
-      bank: bank,
-      enemySpawnCount: enemySpawnCount,
-      friendlySpawnCount: friendlySpawnCount,
-      lastEnemySpawnTime: lastEnemySpawnTime,
-      lastFriendlySpawnTime: lastFriendlySpawnTime,
-      timer: gameTimer,
-      gameboardWidth: gameboardWidth,
-      gameboardHeight: gameboardHeight,
-      groundLevel: groundLevel,
-      groundRoughness: groundRoughness,
-      waterLevel: waterLevel,
-      renderSpeed: renderSpeed,
-      gameSpeed: gameSpeed,
-      totalSpawns: totalSpawns,
-      spawnSpeed: spawnSpeed,
-      gameMode: gameMode,
-      terrainIsFalling: terrainIsFalling,
-      projectileCount: projectileCount,
-      friendlyCount: friendlyCount,
-      selectedCell: selectedCell,
-      cellTyping: cellTyping,
-      currentInput: currentInput,
+    return {
+      active: {
+        activeEntities: activeEntities,
+        activeProjectiles: activeProjectiles,
+        activeGround: activeGround,
+        activeFluid: activeFluid,
+        activeEffects: activeEffects,
+      },
+      graveyard: {
+        friendlyGraveyard: friendlyGraveyard,
+        enemyGraveyard: enemyGraveyard,
+        groundGraveyard: groundGraveyard,
+        fluidGraveyard: fluidGraveyard,
+      },
+      engine: {
+        enemySpawnCount: enemySpawnCount,
+        friendlySpawnCount: friendlySpawnCount,
+        lastEnemySpawnTime: lastEnemySpawnTime,
+        lastFriendlySpawnTime: lastFriendlySpawnTime,
+        terrainIsFalling: terrainIsFalling,
+        projectileCount: projectileCount,
+        friendlyCount: friendlyCount,
+        bank: bank,
+        timer: gameTimer,
+      },
+      settings: {
+        gameboardWidth: gameboardWidth,
+        gameboardHeight: gameboardHeight,
+        groundLevel: groundLevel,
+        groundRoughness: groundRoughness,
+        waterLevel: waterLevel,
+        renderSpeed: renderSpeed,
+        gameSpeed: gameSpeed,
+        totalSpawns: totalSpawns,
+        spawnSpeed: spawnSpeed,
+        gameMode: gameMode,
+      },
+      input: {
+        selectedCell: selectedCell,
+        cellTyping: cellTyping,
+        currentInput: currentInput,
+      },
     };
-    return object;
   }
 
   useEffect(() => {
@@ -128,11 +136,20 @@ export default function engineOutput() {
         ground.style.boxShadow = "inset 0px 2px 0px grey";
         made = true;
       }
-      if (cellLeft.ground === undefined && ground.position[0] - 1 !== 0 && !made) {
+      if (
+        cellLeft.ground === undefined &&
+        ground.position[0] - 1 !== 0 &&
+        !made
+      ) {
         ground.style.boxShadow = "inset 2px 0px 0px grey";
         made = true;
-      } else if (cellLeft.ground === undefined && ground.position[0] - 1 !== 0 && made) {
-        ground.style.boxShadow = ground.style.boxShadow + ",inset 2px 0px 0px grey";
+      } else if (
+        cellLeft.ground === undefined &&
+        ground.position[0] - 1 !== 0 &&
+        made
+      ) {
+        ground.style.boxShadow =
+          ground.style.boxShadow + ",inset 2px 0px 0px grey";
       }
       if (
         cellRight.ground === undefined &&
@@ -146,7 +163,8 @@ export default function engineOutput() {
         ground.position[0] < gameboardWidth.current &&
         made
       ) {
-        ground.style.boxShadow = ground.style.boxShadow + ",inset -2px 0px 0px grey";
+        ground.style.boxShadow =
+          ground.style.boxShadow + ",inset -2px 0px 0px grey";
       }
     } else {
       ground.style.boxShadow = false;
@@ -176,13 +194,26 @@ export default function engineOutput() {
         fluid.style.boxShadow = "inset 0px 1px 0px blue";
         made = true;
       }
-      if (cellLeft.fluid === undefined && cellLeft.ground === undefined && !made) {
+      if (
+        cellLeft.fluid === undefined &&
+        cellLeft.ground === undefined &&
+        !made
+      ) {
         fluid.style.boxShadow = "inset 1px 0px 0px blue";
         made = true;
-      } else if (cellLeft.fluid === undefined && cellLeft.ground === undefined && made) {
-        fluid.style.boxShadow = fluid.style.boxShadow + ",inset 1px 0px 0px blue";
+      } else if (
+        cellLeft.fluid === undefined &&
+        cellLeft.ground === undefined &&
+        made
+      ) {
+        fluid.style.boxShadow =
+          fluid.style.boxShadow + ",inset 1px 0px 0px blue";
       }
-      if (cellRight.fluid === undefined && cellRight.ground === undefined && !made) {
+      if (
+        cellRight.fluid === undefined &&
+        cellRight.ground === undefined &&
+        !made
+      ) {
         fluid.style.boxShadow = "inset -1px 0px 0px blue";
         made = true;
       } else if (
@@ -190,7 +221,8 @@ export default function engineOutput() {
         cellRight.ground === undefined &&
         made
       ) {
-        fluid.style.boxShadow = fluid.style.boxShadow + ",inset -1px 0px 0px blue";
+        fluid.style.boxShadow =
+          fluid.style.boxShadow + ",inset -1px 0px 0px blue";
       }
     } else {
       fluid.style.boxShadow = false;
@@ -516,7 +548,7 @@ export default function engineOutput() {
     renderTimer.current = setInterval(() => {
       updateGameboardEntities();
     }, renderSpeed.current * 4);
-    engine(false, true, gameStatePacker());
+    engine(true, gameStatePacker());
   }
 
   function updateGameboardWidth(e) {
@@ -595,9 +627,14 @@ export default function engineOutput() {
 
           <p className="statTitle">Enemies remaining: </p>
           <p className="stat">
-            {totalSpawns.current - enemySpawnCount.current}/{totalSpawns.current}
+            {totalSpawns.current - enemySpawnCount.current}/
+            {totalSpawns.current}
           </p>
-          <button className="statTitle" id="settingsButton" onClick={toggleSettings}>
+          <button
+            className="statTitle"
+            id="settingsButton"
+            onClick={toggleSettings}
+          >
             Settings/Entities &nbsp;
           </button>
         </div>

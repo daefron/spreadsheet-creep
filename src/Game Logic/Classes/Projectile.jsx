@@ -1,5 +1,4 @@
-import { direction, cellContents } from "../Tools.jsx";
-
+import { direction } from "../Tools.jsx";
 class Projectile {
   constructor(parent, name, type) {
     this.type = type.type;
@@ -19,6 +18,7 @@ class Projectile {
       if (this.enemy) {
         this.symbol = type.enemySymbol;
       } else this.symbol = type.friendlySymbol;
+      this.position = [direction(parent), parent.position[1]];
     }
     if (type.type === "missile") {
       this.direction = "up";
@@ -35,5 +35,4 @@ class Projectile {
     }
   }
 }
-
 export default Projectile;

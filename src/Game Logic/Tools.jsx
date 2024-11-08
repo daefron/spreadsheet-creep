@@ -1,17 +1,17 @@
-export function cellContents(position, activeHolder) {
-  let entityInCell = activeHolder[0].find((entity) =>
+export function cellContents(position, active) {
+  let entityInCell = active.activeEntities.current.find((entity) =>
     comparePosition(entity.position, position)
   );
-  let groundInCell = activeHolder[2].find((ground) =>
+  let groundInCell = active.activeGround.current.find((ground) =>
     comparePosition(ground.position, position)
   );
-  let fluidInCell = activeHolder[3].find((fluid) =>
+  let fluidInCell = active.activeFluid.current.find((fluid) =>
     comparePosition(fluid.position, position)
   );
-  let projectileInCell = activeHolder[1].find((projectile) =>
-    comparePosition(projectile.position, position)
+  let projectileInCell = active.activeProjectiles.current.find(
+    (projectile) => comparePosition(projectile.position, position)
   );
-  let effectInCell = activeHolder[4].find((effect) =>
+  let effectInCell = active.activeEffects.current.find((effect) =>
     comparePosition(effect.position, position)
   );
   let inCell = {

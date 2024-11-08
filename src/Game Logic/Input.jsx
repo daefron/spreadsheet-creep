@@ -3,9 +3,9 @@ import EntityList from "./Lists/EntityList";
 import { cellContents } from "./Tools.jsx";
 let entityList = EntityList;
 export function clickSelect(e, gameState) {
-  let selectedCell = gameState.selectedCell;
-  let currentInput = gameState.currentInput;
-  let cellTyping = gameState.cellTyping;
+  let selectedCell = gameState.input.selectedCell;
+  let currentInput = gameState.input.currentInput;
+  let cellTyping = gameState.input.cellTyping;
   if (e.target === selectedCell.current) {
     e.target.readOnly = false;
     cellTyping.current = true;
@@ -19,16 +19,11 @@ export function clickSelect(e, gameState) {
 }
 //gives the user input a spreadsheet like experience
 export function keyboardSelect(e, gameState) {
-  let gameboardWidth = gameState.gameboardWidth;
-  let gameboardHeight = gameState.gameboardHeight;
-  let selectedCell = gameState.selectedCell;
-  let currentInput = gameState.currentInput;
-  let cellTyping = gameState.cellTyping;
-  let activeHolder = gameState.activeHolder;
-  let gameMode = gameState.gameMode;
-  let bank = gameState.bank;
-  let friendlyCount = gameState.friendlyCount;
-  let activeEntities = gameState.activeEntities;
+  let gameboardWidth = gameState.settings.gameboardWidth;
+  let gameboardHeight = gameState.settings.gameboardHeight;
+  let selectedCell = gameState.input.selectedCell;
+  let currentInput = gameState.input.currentInput;
+  let cellTyping = gameState.input.cellTyping;
   if (selectedCell.current === undefined) {
     return;
   }
@@ -88,18 +83,11 @@ export function keyboardSelect(e, gameState) {
     if (keyPressed === "Enter") {
       if (cellTyping.current) {
         cellTyping.current = false;
-        friendlyInput(
-          position,
-          currentInput,
-          gameMode,
-          bank,
-          friendlyCount,
-          activeEntities
-        );
+        friendlyInput(position, gameState);
         currentInput.current = "";
         return [position[0], position[1] + 1];
       }
-      if (typingChecker(position, activeHolder)) {
+      if (typingChecker(position, gameState)) {
         selectedCell.current.readOnly = false;
         cellTyping.current = true;
         return;
@@ -109,19 +97,12 @@ export function keyboardSelect(e, gameState) {
     if (keyPressed === "Tab") {
       e.preventDefault();
       cellTyping.current = false;
-      friendlyInput(
-        position,
-        currentInput,
-        gameMode,
-        bank,
-        friendlyCount,
-        activeEntities
-      );
+      friendlyInput(position, gameState);
       currentInput.current = "";
       return [position[0] + 1, position[1]];
     }
     if (keyPressed.length === 1 || keyPressed === "space") {
-      if (typingChecker(position, activeHolder)) {
+      if (typingChecker(position, gameState)) {
         cellTyping.current = true;
         selectedCell.current.readOnly = false;
         if (keyPressed === "space") {
@@ -137,23 +118,16 @@ export function keyboardSelect(e, gameState) {
 }
 
 //checks to see if user input is in space of other entity
-function typingChecker(position, activeHolder) {
-  let targetCell = cellContents(position, activeHolder.current);
+function typingChecker(position, gameState) {
+  let targetCell = cellContents(position, gameState.active);
   if (targetCell.ground === undefined && targetCell.entity === undefined) {
     return true;
   }
 }
 
 //parses user input into usable data
-function friendlyInput(
-  position,
-  currentInput,
-  gameMode,
-  bank,
-  friendlyCount,
-  activeEntities
-) {
-  let input = currentInput.current;
+function friendlyInput(position, gameState) {
+  let input = gameState.input.currentInput.current;
   let parsedType = "";
   let parsedLvl = "";
   let hitNumber = false;
@@ -166,10 +140,7 @@ function friendlyInput(
     parsedType,
     position,
     parsedLvl,
-    gameMode,
-    bank,
-    friendlyCount,
-    activeEntities
+    gameState
   );
 }
 
@@ -178,21 +149,18 @@ function friendlySpawner(
   friendlyType,
   friendlyPosition,
   friendlyLvl,
-  gameMode,
-  bank,
-  friendlyCount,
-  activeEntities
+  gameState
 ) {
-  if (validFriendly(friendlyType, friendlyLvl, gameMode)) {
+  if (validFriendly(friendlyType, friendlyLvl, gameState.settings.gameMode)) {
     let friendlyCost = entityList[friendlyType].lvls["lvl" + friendlyLvl].value;
-    if (bankChecker(friendlyCost, bank)) {
-      bank -= friendlyCost;
+    if (bankChecker(friendlyCost, gameState.engine.bank)) {
+      gameState.engine.bank -= friendlyCost;
       friendlyEntityMaker(
         friendlyType,
         friendlyPosition,
         friendlyLvl,
-        friendlyCount,
-        activeEntities
+        gameState.engine.friendlyCount,
+        gameState.active.activeEntities
       );
     }
   }
