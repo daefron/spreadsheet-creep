@@ -37,3 +37,8 @@ export function comparePosition(position1, position2) {
   }
   return false;
 }
+
+export function toLetter(position) {
+  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  return letters[position];
+}

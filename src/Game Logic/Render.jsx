@@ -1,12 +1,9 @@
 import { useState, useEffect, useRef } from "react";
-import EntityList from "./Lists/EntityList.jsx";
-import ProjectileList from "./Lists/ProjectileList.jsx";
-import GroundList from "./Lists/GroundList.jsx";
-import FluidList from "./Lists/FluidList.jsx";
-import EffectList from "./Lists/EffectList.jsx";
-import Entity from "./Classes/Entity.jsx";
-import { cellContents, direction, comparePosition } from "./Tools.jsx";
+import { cellContents, comparePosition, toLetter } from "./Tools.jsx";
+import { keyboardSelect, clickSelect } from "./Input.jsx";
 import { engine } from "./Engine.jsx";
+import EntityList from "./Lists/EntityList.jsx";
+import GroundList from "./Lists/GroundList.jsx";
 
 export default function engineOutput() {
   const activeEntities = useRef([]);
@@ -51,130 +48,22 @@ export default function engineOutput() {
   const [gameboardEntities, setGameboardEntities] = useState([]);
   const [settingsState, setSettingsState] = useState("none");
   let entityList = EntityList;
-  let projectileList = ProjectileList;
   let groundList = GroundList;
-  let fluidList = FluidList;
-  let effectList = EffectList;
 
-  //function that creates new active entities
-  // class Entity {
-  //   constructor(type, lvl, position, ID) {
-  //     this.name = ID;
-  //     this.type = type.type;
-  //     this.position = position;
-  //     this.lvl = lvl.lvl;
-  //     this.hp = lvl.hp;
-  //     this.enemy = type.enemy;
-  //     this.value = lvl.value;
-  //     this.dmg = lvl.dmg;
-  //     this.range = lvl.range;
-  //     this.rate = lvl.rate / gameSpeed.current;
-  //     this.rateCharge = this.rate;
-  //     this.speed = lvl.speed / gameSpeed.current;
-  //     this.speedCharge = 0;
-  //     this.fallSpeed = type.fallSpeed / gameSpeed.current;
-  //     this.fallCharge = 0;
-  //     this.movement = type.movement;
-  //     this.attack = type.attack;
-  //     this.breathes = type.breathes;
-  //     this.projectile = type.projectile;
-  //     this.style = type.style;
-  //     this.explosionDmg = lvl.explosionDmg;
-  //     this.explosionRange = lvl.explosionRange;
-  //     this.death = type.death;
-  //     this.spawnType = type.spawnType;
-  //   }
-
-  //   get onDeath() {
-  //     if (this.death === "explodes") {
-  //       explosion(this);
-  //     }
-  //     if (this.death === "spawn") {
-  //       this.spawn();
-  //     }
-  //   }
-
-  //   spawn() {
-  //     let entityID = this.name;
-  //     let entityType = entityList[this.spawnType];
-  //     let entityLvl = entityType.lvls["lvl" + this.lvl];
-  //     entityID = new Entity(entityType, entityLvl, this.position, entityID);
-  //     entityID.enemy = this.enemy;
-  //     activeEntities.current.push(entityID);
-  //   }
-  // }
-
-  //turns position into spreadsheet style coordinate
-  function toLetter(position) {
-    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    return letters[position];
-  }
-
-  //checks to see if user input is in space of other entity
-  function typingChecker(position) {
-    let targetCell = cellContents(position, activeHolder.current);
-    if (targetCell.ground === undefined && targetCell.entity === undefined) {
-      return true;
+  useEffect(() => {
+    function handleKeyPress(e) {
+      keyboardSelect(e, gameStatePacker());
     }
-  }
-
-  //parses user input into usable data
-  function friendlyInput(position) {
-    let input = currentInput.current;
-    let parsedType = "";
-    let parsedLvl = "";
-    let hitNumber = false;
-    for (let i = 0; i < input.length; i++) {
-      if (isNaN(input[i]) && !hitNumber) {
-        parsedType = parsedType.concat(input[i]);
-      } else parsedLvl = parsedLvl.concat(input[i]);
+    function handleClick(e) {
+      clickSelect(e, gameStatePacker());
     }
-    friendlySpawner(parsedType, position, parsedLvl);
-  }
-
-  //runs friendly through checks before spawning
-  function friendlySpawner(friendlyType, friendlyPosition, friendlyLvl) {
-    if (validFriendly(friendlyType, friendlyLvl)) {
-      let friendlyCost = entityList[friendlyType].lvls["lvl" + friendlyLvl].value;
-      if (bankChecker(friendlyCost)) {
-        setBank(bank - friendlyCost);
-        friendlyEntityMaker(friendlyType, friendlyPosition, friendlyLvl);
-      }
-    }
-  }
-
-  //determines if entity name and level are valid
-  function validFriendly(friendlyType, friendlyLvl) {
-    if (entityList[friendlyType] !== undefined) {
-      if (entityList[friendlyType].lvls["lvl" + friendlyLvl] !== undefined) {
-        if (gameMode.current === "sandbox") {
-          return true;
-        }
-        if (!entityList[friendlyType].enemy) {
-          return true;
-        }
-      }
-    }
-  }
-
-  //determines if enough money in bank to spawn friendly
-  function bankChecker(friendlyCost) {
-    if (friendlyCost <= bank) {
-      return true;
-    }
-  }
-
-  //translates user input into data Entity maker can use
-  function friendlyEntityMaker(entityType, entityPosition, entitylvl) {
-    let ID = friendlyCount.current + 1;
-    friendlyCount.current = ID;
-    entityType = entityList[entityType];
-    entitylvl = entityType.lvls["lvl" + entitylvl];
-    let entityID = entityType.type + friendlyCount.current;
-    entityID = new Entity(entityType, entitylvl, entityPosition, entityID);
-    activeEntities.current.push(entityID);
-    updateGameboardEntities();
-  }
+    document.addEventListener("keydown", handleKeyPress);
+    document.addEventListener("click", handleClick);
+    return function cleanup() {
+      document.removeEventListener("click", handleClick);
+      document.removeEventListener("keydown", handleKeyPress);
+    };
+  }, []);
 
   //gives the ground entities a thicker outline if groundline
   function groundLine(ground) {
@@ -481,130 +370,6 @@ export default function engineOutput() {
     }
   }
 
-  useEffect(() => {
-    function handleKeyPress(e) {
-      keyboardSelect(e);
-    }
-    function handleClick(e) {
-      clickSelect(e);
-    }
-    document.addEventListener("keydown", handleKeyPress);
-    document.addEventListener("click", handleClick);
-    return function cleanup() {
-      document.removeEventListener("click", handleClick);
-      document.removeEventListener("keydown", handleKeyPress);
-    };
-  }, []);
-
-  function clickSelect(e) {
-    if (e.target === selectedCell.current) {
-      e.target.readOnly = false;
-      cellTyping.current = true;
-    } else if (e.target.className === "boardCell") {
-      if (selectedCell.current !== undefined) {
-        selectedCell.current.readOnly = true;
-      }
-      selectedCell.current = e.target;
-      currentInput.current = "";
-    }
-  }
-  //gives the user input a spreadsheet like experience
-  function keyboardSelect(e) {
-    if (selectedCell.current === undefined) {
-      return;
-    }
-    let position = selectedCell.current.id.split("x");
-    position[0] = parseInt(position[0]);
-    position[1] = parseInt(position[1]);
-    let newPosition = keyPosition(e.key, position, e);
-    if (!newPosition) {
-      return;
-    }
-    if (
-      newPosition === undefined ||
-      newPosition[0] === 0 ||
-      newPosition[0] > gameboardWidth.current ||
-      newPosition[1] === 0 ||
-      newPosition[1] > gameboardHeight.current
-    ) {
-      return;
-    }
-    selectedCell.current.readOnly = true;
-    let newID = newPosition[0] + "x" + newPosition[1];
-    selectedCell.current = document.getElementById(newID);
-    selectedCell.current.focus();
-    function keyPosition(keyPressed, position, e) {
-      if (keyPressed === "ArrowUp") {
-        if (cellTyping.current) {
-          return;
-        }
-        e.preventDefault();
-        cellTyping.current = false;
-        return [position[0], position[1] - 1];
-      }
-      if (keyPressed === "ArrowDown") {
-        if (cellTyping.current) {
-          return;
-        }
-        e.preventDefault();
-        cellTyping.current = false;
-        return [position[0], position[1] + 1];
-      }
-      if (keyPressed === "ArrowLeft") {
-        if (cellTyping.current) {
-          return;
-        }
-        e.preventDefault();
-        cellTyping.current = false;
-        return [position[0] - 1, position[1]];
-      }
-      if (keyPressed === "ArrowRight") {
-        if (cellTyping.current) {
-          return;
-        }
-        e.preventDefault();
-        cellTyping.current = false;
-        return [position[0] + 1, position[1]];
-      }
-      if (keyPressed === "Enter") {
-        if (cellTyping.current) {
-          cellTyping.current = false;
-          friendlyInput(position);
-          currentInput.current = "";
-          return [position[0], position[1] + 1];
-        }
-        if (typingChecker(position)) {
-          selectedCell.current.readOnly = false;
-          cellTyping.current = true;
-          return;
-        }
-        return;
-      }
-      if (keyPressed === "Tab") {
-        e.preventDefault();
-        cellTyping.current = false;
-        friendlyInput(position);
-        currentInput.current = "";
-        return [position[0] + 1, position[1]];
-      }
-      if (keyPressed.length === 1 || keyPressed === "space") {
-        if (typingChecker(position)) {
-          cellTyping.current = true;
-          selectedCell.current.readOnly = false;
-          if (keyPressed === "space") {
-            currentInput.current += " ";
-          }
-          currentInput.current += keyPressed;
-          updateGameboardEntities();
-        } else e.preventDefault();
-      }
-      if (keyPressed === "Backspace") {
-        currentInput.current = currentInput.current.slice(0, -1);
-        updateGameboardEntities();
-      } else return false;
-    }
-  }
-
   //makes a list of purchasble entities
   function Purchasables() {
     let entityArray = Object.values(entityList);
@@ -738,6 +503,10 @@ export default function engineOutput() {
       gameMode: gameMode,
       terrainIsFalling: terrainIsFalling,
       projectileCount: projectileCount,
+      friendlyCount: friendlyCount,
+      selectedCell: selectedCell,
+      cellTyping: cellTyping,
+      currentInput: currentInput,
     };
     return object;
   }
@@ -812,15 +581,6 @@ export default function engineOutput() {
 
   //renders the gameboard once on page load
   useEffect(() => {
-    // gameMode.current = "sandbox";
-    // engine(
-    //   false,
-    //   true,
-    //   gameStatePacker()
-    // );
-    // timer.current = setInterval(() => {
-    //   updateGameboardEntities();
-    // }, renderSpeed.current * 4);
     updateGameboardEntities();
   }, []);
 
