@@ -50,6 +50,44 @@ export default function engineOutput() {
   let entityList = EntityList;
   let groundList = GroundList;
 
+  function gameStatePacker() {
+    let object = {
+      activeEntities: activeEntities,
+      activeProjectiles: activeProjectiles,
+      activeGround: activeGround,
+      activeFluid: activeFluid,
+      activeEffects: activeEffects,
+      activeHolder: activeHolder,
+      friendlyGraveyard: friendlyGraveyard,
+      enemyGraveyard: enemyGraveyard,
+      groundGraveyard: groundGraveyard,
+      fluidGraveyard: fluidGraveyard,
+      bank: bank,
+      enemySpawnCount: enemySpawnCount,
+      friendlySpawnCount: friendlySpawnCount,
+      lastEnemySpawnTime: lastEnemySpawnTime,
+      lastFriendlySpawnTime: lastFriendlySpawnTime,
+      timer: timer,
+      gameboardWidth: gameboardWidth,
+      gameboardHeight: gameboardHeight,
+      groundLevel: groundLevel,
+      groundRoughness: groundRoughness,
+      waterLevel: waterLevel,
+      renderSpeed: renderSpeed,
+      gameSpeed: gameSpeed,
+      totalSpawns: totalSpawns,
+      spawnSpeed: spawnSpeed,
+      gameMode: gameMode,
+      terrainIsFalling: terrainIsFalling,
+      projectileCount: projectileCount,
+      friendlyCount: friendlyCount,
+      selectedCell: selectedCell,
+      cellTyping: cellTyping,
+      currentInput: currentInput,
+    };
+    return object;
+  }
+
   useEffect(() => {
     function handleKeyPress(e) {
       keyboardSelect(e, gameStatePacker());
@@ -189,16 +227,6 @@ export default function engineOutput() {
       }
     }
     currentEntity.style.boxShadow += ",inset 157px 21px 0px 0px " + color;
-  }
-
-  //stops the game loop
-  function pause() {
-    clearInterval(timer.current);
-  }
-
-  //pushes everything back into the game and starts the loop
-  function resume() {
-    engine(true, false);
   }
 
   //handles making a usable array for the grid renderer
@@ -471,44 +499,6 @@ export default function engineOutput() {
         </tbody>
       </table>
     );
-  }
-
-  function gameStatePacker() {
-    let object = {
-      activeEntities: activeEntities,
-      activeProjectiles: activeProjectiles,
-      activeGround: activeGround,
-      activeFluid: activeFluid,
-      activeEffects: activeEffects,
-      activeHolder: activeHolder,
-      friendlyGraveyard: friendlyGraveyard,
-      enemyGraveyard: enemyGraveyard,
-      groundGraveyard: groundGraveyard,
-      fluidGraveyard: fluidGraveyard,
-      bank: bank,
-      enemySpawnCount: enemySpawnCount,
-      friendlySpawnCount: friendlySpawnCount,
-      lastEnemySpawnTime: lastEnemySpawnTime,
-      lastFriendlySpawnTime: lastFriendlySpawnTime,
-      timer: timer,
-      gameboardWidth: gameboardWidth,
-      gameboardHeight: gameboardHeight,
-      groundLevel: groundLevel,
-      groundRoughness: groundRoughness,
-      waterLevel: waterLevel,
-      renderSpeed: renderSpeed,
-      gameSpeed: gameSpeed,
-      totalSpawns: totalSpawns,
-      spawnSpeed: spawnSpeed,
-      gameMode: gameMode,
-      terrainIsFalling: terrainIsFalling,
-      projectileCount: projectileCount,
-      friendlyCount: friendlyCount,
-      selectedCell: selectedCell,
-      cellTyping: cellTyping,
-      currentInput: currentInput,
-    };
-    return object;
   }
 
   function newButton() {
