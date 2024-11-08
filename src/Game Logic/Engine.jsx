@@ -1,200 +1,49 @@
-import { useState, useEffect, useRef } from "react";
-import EntityList from "./EntityList.jsx";
-import ProjectileList from "./ProjectileList.jsx";
-import GroundList from "./GroundList.jsx";
-import FluidList from "./FluidList.jsx";
-import EffectList from "./EffectList.jsx";
-import { cellContents } from "./Tools.jsx";
-import { direction } from "./Tools.jsx";
-import { comparePosition } from "./Tools.jsx";
+import EntityList from "./Lists/EntityList.jsx";
+import ProjectileList from "./Lists/ProjectileList.jsx";
+import GroundList from "./Lists/GroundList.jsx";
+import FluidList from "./Lists/FluidList.jsx";
+import EffectList from "./Lists/EffectList.jsx";
+import Entity from "./Classes/Entity.jsx";
+import Projectile from "./Classes/Projectile.jsx";
+import Ground from "./Classes/Ground.jsx";
+import Fluid from "./Classes/Fluid.jsx";
+import Effect from "./Classes/Effect.jsx";
+let entityList = EntityList;
+let projectileList = ProjectileList;
+let groundList = GroundList;
+let fluidList = FluidList;
+let effectList = EffectList;
+import { cellContents, direction, comparePosition } from "./Tools.jsx";
 
-export default function engineOutput() {
-  const activeEntities = useRef([]);
-  const activeProjectiles = useRef([]);
-  const activeGround = useRef([]);
-  const activeFluid = useRef([]);
-  const activeEffects = useRef([]);
-  const activeHolder = useRef([
-    activeEntities.current,
-    activeProjectiles.current,
-    activeGround.current,
-    activeFluid.current,
-    activeEffects.current,
-  ]);
-  const friendlyGraveyard = useRef([]);
-  const enemyGraveyard = useRef([]);
-  const groundGraveyard = useRef([]);
-  const fluidGraveyard = useRef([]);
-  const [bank, setBank] = useState(10000);
-  const enemySpawnCount = useRef(0);
-  const friendlySpawnCount = useRef(0);
-  const lastEnemySpawnTime = useRef(0);
-  const lastFriendlySpawnTime = useRef(0);
-  const timer = useRef();
-  const gameboardWidth = useRef(11);
-  const gameboardHeight = useRef(33);
-  const groundLevel = useRef(15);
-  const groundRoughness = useRef(5);
-  const waterLevel = useRef(1);
-  const renderSpeed = useRef(5);
-  const gameSpeed = useRef(0.5);
-  const totalSpawns = useRef(30);
-  const spawnSpeed = useRef(1);
-  const kingHP = useRef(20);
-  const gameMode = useRef("king");
-  const friendlyCount = useRef(1);
-  const terrainIsFalling = useRef(false);
-  const projectileCount = useRef(0);
-  const selectedCell = useRef();
-  const cellTyping = useRef(false);
-  const currentInput = useRef("");
-  const [gameboardEntities, setGameboardEntities] = useState([]);
-  const [settingsState, setSettingsState] = useState("none");
-  let entityList = EntityList;
-  let projectileList = ProjectileList;
-  let groundList = GroundList;
-  let fluidList = FluidList;
-  let effectList = EffectList;
-
-  //function that creates new active entities
-  class Entity {
-    constructor(type, lvl, position, ID) {
-      this.name = ID;
-      this.type = type.type;
-      this.position = position;
-      this.lvl = lvl.lvl;
-      this.hp = lvl.hp;
-      this.enemy = type.enemy;
-      this.value = lvl.value;
-      this.dmg = lvl.dmg;
-      this.range = lvl.range;
-      this.rate = lvl.rate / gameSpeed.current;
-      this.rateCharge = this.rate;
-      this.speed = lvl.speed / gameSpeed.current;
-      this.speedCharge = 0;
-      this.fallSpeed = type.fallSpeed / gameSpeed.current;
-      this.fallCharge = 0;
-      this.movement = type.movement;
-      this.attack = type.attack;
-      this.breathes = type.breathes;
-      this.projectile = type.projectile;
-      this.style = type.style;
-      this.explosionDmg = lvl.explosionDmg;
-      this.explosionRange = lvl.explosionRange;
-      this.death = type.death;
-      this.spawnType = type.spawnType;
-    }
-
-    get onDeath() {
-      if (this.death === "explodes") {
-        explosion(this);
-      }
-      if (this.death === "spawn") {
-        this.spawn();
-      }
-    }
-
-    spawn() {
-      let entityID = this.name;
-      let entityType = entityList[this.spawnType];
-      let entityLvl = entityType.lvls["lvl" + this.lvl];
-      entityID = new Entity(entityType, entityLvl, this.position, entityID);
-      entityID.enemy = this.enemy;
-      activeEntities.current.push(entityID);
-    }
-  }
-
-  //function that creates new active projectiles
-  class Projectile {
-    constructor(parent, name, type) {
-      this.type = type.type;
-      this.name = name;
-      this.parent = parent;
-      this.enemy = parent.enemy;
-      this.dmg = parent.dmg;
-      this.speed = type.speed / gameSpeed.current;
-      this.speedCharge = 0;
-      this.fallSpeed = type.fallSpeed / gameSpeed.current;
-      this.fallCharge = 0;
-      this.position = parent.position;
-      this.distance = parent.range;
-      this.name = name;
-      this.death = type.death;
-      if (type.type === "arrow") {
-        if (this.enemy) {
-          this.symbol = type.enemySymbol;
-        } else this.symbol = type.friendlySymbol;
-      }
-      if (type.type === "missile") {
-        this.direction = "up";
-        this.symbol = type.upSymbol;
-      }
-      if (type.type === "barrel") {
-        this.symbol = type.symbol;
-        this.position = [direction(parent), parent.position[1]];
-      }
-      if (type.death === "explodes") {
-        this.explosionDmg = this.dmg;
-        this.explosionRange = 1;
-        this.armed = true;
-      }
-    }
-    get onDeath() {
-      if (this.death === "explodes") {
-        if (this.armed) {
-          this.armed = false;
-          explosion(this);
-        }
-      }
-    }
-  }
-
-  //function that creates new active ground entities
-  class Ground {
-    constructor(type, position, ID) {
-      this.name = ID;
-      this.type = type.type;
-      this.position = position;
-      this.hp = type.hp;
-      this.fallSpeed = type.fallSpeed / gameSpeed.current;
-      this.fallCharge = 0;
-      this.style = type.style;
-    }
-  }
-
-  class Fluid {
-    constructor(type, position, ID) {
-      this.name = ID;
-      this.type = type.type;
-      this.position = position;
-      this.fallSpeed = type.fallSpeed / gameSpeed.current;
-      this.fallCharge = 0;
-      this.speed = type.speed / gameSpeed.current;
-      this.speedCharge = 0;
-      if (type.speed !== undefined) {
-        let directionDecider = Math.random() * 10;
-        if (directionDecider > 5) {
-          this.direction = "left";
-        } else {
-          this.direction = "right";
-        }
-      }
-      this.weight = type.weight;
-      this.style = type.style;
-    }
-  }
-
-  class Effect {
-    constructor(type, position, ID) {
-      this.name = ID;
-      this.type = type.type;
-      this.position = position;
-      this.symbol = type.symbol;
-      this.duration = type.duration;
-      this.durationCharge = 0;
-      this.style = type.style;
-    }
-  }
+export function engine(paused, newRound, gameState) {
+  let activeEntities = gameState.activeEntities;
+  let activeProjectiles = gameState.activeProjectiles;
+  let activeGround = gameState.activeGround;
+  let activeFluid = gameState.activeFluid;
+  let activeEffects = gameState.activeEffects;
+  let activeHolder = gameState.activeHolder;
+  let friendlyGraveyard = gameState.friendlyGraveyard;
+  let enemyGraveyard = gameState.enemyGraveyard;
+  let groundGraveyard = gameState.groundGraveyard;
+  let fluidGraveyard = gameState.fluidGraveyard;
+  let bank = gameState.bank;
+  let enemySpawnCount = gameState.enemySpawnCount;
+  let friendlySpawnCount = gameState.friendlySpawnCount;
+  let lastEnemySpawnTime = gameState.lastEnemySpawnTime;
+  let lastFriendlySpawnTime = gameState.lastFriendlySpawnTime;
+  let timer = gameState.timer;
+  let gameboardWidth = gameState.gameboardWidth;
+  let gameboardHeight = gameState.gameboardHeight;
+  let groundLevel = gameState.groundLevel;
+  let groundRoughness = gameState.groundRoughness;
+  let waterLevel = gameState.waterLevel;
+  let renderSpeed = gameState.renderSpeed;
+  let gameSpeed = gameState.gameSpeed;
+  let totalSpawns = gameState.totalSpawns;
+  let spawnSpeed = gameState.spawnSpeed;
+  let gameMode = gameState.gameMode;
+  let terrainIsFalling = gameState.terrainIsFalling;
+  let projectileCount = gameState.projectileCount;
 
   function explosion(currentEntity) {
     let w = currentEntity.explosionRange;
@@ -241,11 +90,20 @@ export default function engineOutput() {
     }
   }
 
+  function spawn(entity) {
+    let entityID = entity.name;
+    let entityType = entityList[entity.spawnType];
+    let entityLvl = entityType.lvls["lvl" + entity.lvl];
+    entityID = new Entity(entityType, entityLvl, entity.position, entityID);
+    entityID.enemy = entity.enemy;
+    activeEntities.current.push(entityID);
+  }
+
   //checks to see if entity dies
   function healthChecker(entity) {
     if (entity.hp <= 0) {
       if (entity.enemy) {
-        setBank(bank + entity.value);
+        bank += entity.value;
       }
       entityKiller(entity);
     }
@@ -253,7 +111,17 @@ export default function engineOutput() {
 
   //determines which graveyard entities get sent to
   function entityKiller(entity) {
-    entity.onDeath;
+    if (entity.death !== undefined) {
+      if (entity.death === "explodes") {
+        if (entity.armed) {
+          entity.armed = false;
+          explosion(entity);
+        }
+      }
+    }
+    if (entity.death === "spawn") {
+      spawn(entity);
+    }
     if (entity.constructor.name === "Entity") {
       if (entity.enemy) {
         enemyGraveyard.current.push(
@@ -274,1962 +142,1045 @@ export default function engineOutput() {
       activeProjectiles.current.splice(activeProjectiles.current.indexOf(entity), 1);
     }
   }
-
-  function engine(paused, newRound) {
-    //tells entities what to do on their turn
-    function entityTurn(currentEntity) {
-      healthChecker(currentEntity);
-      liquidChecker(currentEntity);
-      if (entityBoundaryHandler(currentEntity)) {
-        return;
-      }
-      if (entityFallHolder(currentEntity)) {
-        return;
-      }
-      if (entityAttackHolder(currentEntity)) {
-        return;
-      }
-      if (entityMovementHolder(currentEntity)) {
-        return;
-      }
-      if (entityAttackGroundHandler(currentEntity)) {
-        return;
-      }
-
-      //determines what happens to entity if hits boundary wall
-      function entityBoundaryHandler(currentEntity) {
-        let newPosition = [direction(currentEntity), currentEntity.position[1]];
-        if (
-          (newPosition[0] === 0 && currentEntity.speedCharge >= currentEntity.speed) ||
-          (newPosition[0] === gameboardWidth.current + 1 &&
-            currentEntity.speedCharge >= currentEntity.speed)
-        ) {
-          if (gameMode.current === "king") {
-            let king = activeEntities.current.find((entity) => entity.type === "king");
-            king.hp -= currentEntity.dmg * 2;
-            currentEntity.hp = 0;
-            return true;
-          } else if (gameMode.current === "battle") {
-            if (currentEntity.enemy) {
-              friendlySpawnCount.current += 2;
-            } else if (!currentEntity.enemy) {
-              enemySpawnCount.current += 2;
-            }
-            currentEntity.hp = 0;
-          }
-        }
-      }
+  //tells entities what to do on their turn
+  function entityTurn(currentEntity) {
+    healthChecker(currentEntity);
+    liquidChecker(currentEntity);
+    if (entityBoundaryHandler(currentEntity)) {
+      return;
+    }
+    if (entityFallHolder(currentEntity)) {
+      return;
+    }
+    if (entityAttackHolder(currentEntity)) {
+      return;
+    }
+    if (entityMovementHolder(currentEntity)) {
+      return;
+    }
+    if (entityAttackGroundHandler(currentEntity)) {
+      return;
     }
 
-    function liquidChecker(currentEntity) {
-      let liquidInPosition = activeFluid.current.find((fluid) =>
-        comparePosition(fluid.position, currentEntity.position)
-      );
-      if (liquidInPosition !== undefined) {
-        if (!currentEntity.inLiquid) {
-          currentEntity.inLiquid = true;
-          currentEntity.speed *= 2;
-          currentEntity.rate *= 2;
-          currentEntity.rateCharge *= 2;
-          currentEntity.fallSpeed *= 4;
-          if (currentEntity.breathes) {
-            currentEntity.oxygen = 300;
-          }
-        } else {
-          currentEntity.oxygen--;
-          if (currentEntity.oxygen === 0) {
-            currentEntity.hp--;
-            if (currentEntity.hp === 0) {
-              entityKiller(currentEntity);
-            }
-            currentEntity.oxygen = 50;
-          }
-        }
-      } else if (currentEntity.inLiquid) {
-        currentEntity.inLiquid = false;
-        currentEntity.speed /= 2;
-        currentEntity.rate /= 2;
-        currentEntity.rateCharge /= 2;
-        currentEntity.fallSpeed /= 4;
-        currentEntity.oxygen = undefined;
-      }
-    }
-
-    //holds functions for entity falling
-    function entityFallHolder(currentEntity) {
-      for (let i = gameSpeed.current; i > 0; i--) {
-        if (entityCanFall(currentEntity.position, currentEntity)) {
-          entityFall(currentEntity);
+    //determines what happens to entity if hits boundary wall
+    function entityBoundaryHandler(currentEntity) {
+      let newPosition = [direction(currentEntity), currentEntity.position[1]];
+      if (
+        (newPosition[0] === 0 && currentEntity.speedCharge >= currentEntity.speed) ||
+        (newPosition[0] === gameboardWidth.current + 1 &&
+          currentEntity.speedCharge >= currentEntity.speed)
+      ) {
+        if (gameMode.current === "king") {
+          let king = activeEntities.current.find((entity) => entity.type === "king");
+          king.hp -= currentEntity.dmg * 2;
+          currentEntity.hp = 0;
           return true;
+        } else if (gameMode.current === "battle") {
+          if (currentEntity.enemy) {
+            friendlySpawnCount.current += 2;
+          } else if (!currentEntity.enemy) {
+            enemySpawnCount.current += 2;
+          }
+          currentEntity.hp = 0;
         }
       }
+    }
+  }
 
-      //function to determine if there is anything under the current entity
-      function entityCanFall(position, currentEntity) {
-        if (position[1] !== gameboardHeight.current) {
-          if (!currentEntity.climbing) {
-            let positionBelow = [position[0], position[1] + 1];
-            let cellBelow = cellContents(positionBelow, activeHolder.current);
-            if (currentEntity.movement === "scaler") {
-              let positionNextTo = [direction(currentEntity), currentEntity.position[1]];
-              let cellNextTo = cellContents(positionNextTo, activeHolder.current);
-              if (cellNextTo.ground !== undefined || cellNextTo.entity !== undefined) {
-                return false;
-              }
-            }
-            if (cellBelow.ground !== undefined || cellBelow.entity !== undefined) {
+  function liquidChecker(currentEntity) {
+    let liquidInPosition = activeFluid.current.find((fluid) =>
+      comparePosition(fluid.position, currentEntity.position)
+    );
+    if (liquidInPosition !== undefined) {
+      if (!currentEntity.inLiquid) {
+        currentEntity.inLiquid = true;
+        currentEntity.speed *= 2;
+        currentEntity.rate *= 2;
+        currentEntity.rateCharge *= 2;
+        currentEntity.fallSpeed *= 4;
+        if (currentEntity.breathes) {
+          currentEntity.oxygen = 300;
+        }
+      } else {
+        currentEntity.oxygen--;
+        if (currentEntity.oxygen === 0) {
+          currentEntity.hp--;
+          if (currentEntity.hp === 0) {
+            entityKiller(currentEntity);
+          }
+          currentEntity.oxygen = 50;
+        }
+      }
+    } else if (currentEntity.inLiquid) {
+      currentEntity.inLiquid = false;
+      currentEntity.speed /= 2;
+      currentEntity.rate /= 2;
+      currentEntity.rateCharge /= 2;
+      currentEntity.fallSpeed /= 4;
+      currentEntity.oxygen = undefined;
+    }
+  }
+
+  //holds functions for entity falling
+  function entityFallHolder(currentEntity) {
+    for (let i = gameSpeed.current; i > 0; i--) {
+      if (entityCanFall(currentEntity.position, currentEntity)) {
+        entityFall(currentEntity);
+        return true;
+      }
+    }
+
+    //function to determine if there is anything under the current entity
+    function entityCanFall(position, currentEntity) {
+      if (position[1] !== gameboardHeight.current) {
+        if (!currentEntity.climbing) {
+          let positionBelow = [position[0], position[1] + 1];
+          let cellBelow = cellContents(positionBelow, activeHolder.current);
+          if (currentEntity.movement === "scaler") {
+            let positionNextTo = [direction(currentEntity), currentEntity.position[1]];
+            let cellNextTo = cellContents(positionNextTo, activeHolder.current);
+            if (cellNextTo.ground !== undefined || cellNextTo.entity !== undefined) {
               return false;
             }
-            return true;
           }
-        } else if (currentEntity.ghost) {
-          entityKiller(currentEntity);
+          if (cellBelow.ground !== undefined || cellBelow.entity !== undefined) {
+            return false;
+          }
+          return true;
         }
-      }
-
-      //moves entities down if falling
-      function entityFall(entity) {
-        if (entity.fallCharge < entity.fallSpeed) {
-          entity.fallCharge++;
-        } else {
-          entity.fallCharge = 0;
-          entity.position = [entity.position[0], entity.position[1] + 1];
-          entity.speedCharge = entity.speed / 2;
-        }
+      } else if (currentEntity.ghost) {
+        entityKiller(currentEntity);
       }
     }
 
-    //holds functions for entity attacks
-    function entityAttackHolder(currentEntity) {
-      if (currentEntity.attack !== undefined) {
-        currentEntity.rateCharge++;
+    //moves entities down if falling
+    function entityFall(entity) {
+      if (entity.fallCharge < entity.fallSpeed) {
+        entity.fallCharge++;
+      } else {
+        entity.fallCharge = 0;
+        entity.position = [entity.position[0], entity.position[1] + 1];
+        entity.speedCharge = entity.speed / 2;
       }
-      if (currentEntity.attack === "melee") {
-        let rangeCells = meleeRange(currentEntity);
-        let targetEntity = meleeAttackTargetter(currentEntity, rangeCells);
-        if (entityCanAttack(currentEntity, targetEntity)) {
-          meleeAttack(currentEntity, targetEntity);
+    }
+  }
+
+  //holds functions for entity attacks
+  function entityAttackHolder(currentEntity) {
+    if (currentEntity.attack !== undefined) {
+      currentEntity.rateCharge++;
+    }
+    if (currentEntity.attack === "melee") {
+      let rangeCells = meleeRange(currentEntity);
+      let targetEntity = meleeAttackTargetter(currentEntity, rangeCells);
+      if (entityCanAttack(currentEntity, targetEntity)) {
+        meleeAttack(currentEntity, targetEntity);
+        return true;
+      }
+      if (targetEntity !== undefined) {
+        return true;
+      }
+    }
+    if (currentEntity.attack === "projectile") {
+      let target = projectileTargetter(currentEntity);
+      if (target !== undefined) {
+        if (entityCanAttack(currentEntity, target)) {
+          rangedAttack(currentEntity);
           return true;
         }
-        if (targetEntity !== undefined) {
-          return true;
-        }
       }
-      if (currentEntity.attack === "projectile") {
-        let target = projectileTargetter(currentEntity);
-        if (target !== undefined) {
-          if (entityCanAttack(currentEntity, target)) {
-            rangedAttack(currentEntity);
-            return true;
-          }
-        }
-      }
-      if (currentEntity.attack === "enemyExists") {
-        if (enemyChecker()) {
-          if (entityCanAttack(currentEntity, true)) {
-            rangedAttack(currentEntity);
-            return true;
-          }
-        }
-      }
-      if (currentEntity.attack === "automatic") {
+    }
+    if (currentEntity.attack === "enemyExists") {
+      if (enemyChecker()) {
         if (entityCanAttack(currentEntity, true)) {
           rangedAttack(currentEntity);
           return true;
         }
       }
-
-      //function to return array of cells entity can target
-      function meleeRange(currentEntity) {
-        let rangeCells = [];
-        let rangeLetter = direction(currentEntity);
-        for (let i = currentEntity.range; i > 0; i--) {
-          if (i === currentEntity.range) {
-            rangeCells.push([rangeLetter, currentEntity.position[1] - 1]);
-            rangeCells.push([currentEntity.position[0], currentEntity.position[1] - 1]);
-            rangeCells.push([rangeLetter, currentEntity.position[1] + 1]);
-            rangeCells.push([currentEntity.position[0], currentEntity.position[1] + 1]);
-          }
-          rangeCells.push([rangeLetter, currentEntity.position[1]]);
-          if (currentEntity.enemy) {
-            rangeLetter--;
-          } else {
-            rangeLetter++;
-          }
-        }
-        return rangeCells;
-      }
-
-      //function to return entity to attack
-      function meleeAttackTargetter(currentEntity, rangeCells) {
-        let target;
-        rangeCells.forEach((cell) => {
-          let targetCell = cellContents(cell, activeHolder.current);
-          if (
-            targetCell.entity !== undefined &&
-            targetCell.entity.enemy !== currentEntity.enemy
-          ) {
-            return (target = targetCell.entity);
-          }
-        });
-        return target;
-      }
-
-      //function to determine if entity can attack this turn
-      function entityCanAttack(currentEntity, targetEntity) {
-        if (currentEntity.rateCharge >= currentEntity.rate && currentEntity.rate !== 0) {
-          if (targetEntity !== undefined) {
-            return true;
-          }
-        }
-      }
-
-      //function to execute attack if can
-      function meleeAttack(currentEntity, targetEntity) {
-        targetEntity.hp -= currentEntity.dmg;
-        currentEntity.rateCharge = 0;
-        currentEntity.speedCharge = 0;
+    }
+    if (currentEntity.attack === "automatic") {
+      if (entityCanAttack(currentEntity, true)) {
+        rangedAttack(currentEntity);
+        return true;
       }
     }
 
-    function projectileTargetter(currentEntity) {
-      let target;
+    //function to return array of cells entity can target
+    function meleeRange(currentEntity) {
+      let rangeCells = [];
       let rangeLetter = direction(currentEntity);
       for (let i = currentEntity.range; i > 0; i--) {
-        let targetCell = cellContents(
-          [rangeLetter, currentEntity.position[1]],
-          activeHolder.current
-        );
-        if (targetCell.ground !== undefined) {
-          i = 0;
+        if (i === currentEntity.range) {
+          rangeCells.push([rangeLetter, currentEntity.position[1] - 1]);
+          rangeCells.push([currentEntity.position[0], currentEntity.position[1] - 1]);
+          rangeCells.push([rangeLetter, currentEntity.position[1] + 1]);
+          rangeCells.push([currentEntity.position[0], currentEntity.position[1] + 1]);
         }
-        if (targetCell.entity !== undefined) {
-          if (targetCell.entity.enemy !== currentEntity.enemy) {
-            target = targetCell.entity;
-          }
-        }
+        rangeCells.push([rangeLetter, currentEntity.position[1]]);
         if (currentEntity.enemy) {
           rangeLetter--;
         } else {
           rangeLetter++;
         }
       }
+      return rangeCells;
+    }
+
+    //function to return entity to attack
+    function meleeAttackTargetter(currentEntity, rangeCells) {
+      let target;
+      rangeCells.forEach((cell) => {
+        let targetCell = cellContents(cell, activeHolder.current);
+        if (
+          targetCell.entity !== undefined &&
+          targetCell.entity.enemy !== currentEntity.enemy
+        ) {
+          return (target = targetCell.entity);
+        }
+      });
       return target;
     }
 
-    //function to spawn projectile
-    function rangedAttack(currentEntity) {
-      let projectileID =
-        currentEntity.projectile + projectileCount.current + currentEntity.name;
-      projectileCount.current++;
-      let type = projectileList[currentEntity.projectile];
-      if (currentEntity.projectile === "water") {
-        projectileID = new Fluid(
-          fluidList["water"],
-          [currentEntity.position[0], currentEntity.position[1] - 3],
-          projectileID
-        );
-        activeFluid.current.push(projectileID);
-      } else {
-        projectileID = new Projectile(currentEntity, projectileID, type);
-        activeProjectiles.current.push(projectileID);
-      }
-      currentEntity.rateCharge = 0;
-      currentEntity.speedCharge = 0;
-    }
-
-    //checks to see if any enemies exist
-    function enemyChecker() {
-      let enemies = activeEntities.current.filter((entity) => entity.enemy === true);
-      if (enemies.length > 0) {
-        return true;
-      }
-    }
-
-    //holds functions for entity movement
-    function entityMovementHolder(currentEntity) {
-      currentEntity.speedCharge++;
-      if (entityCanMove(currentEntity)) {
-        return entityMovementType(currentEntity);
-      }
-
-      //function to determine if entity can move this turn
-      function entityCanMove(currentEntity) {
-        if (currentEntity.movement === undefined) {
-          return false;
-        }
-        if (currentEntity.speedCharge >= currentEntity.speed) {
+    //function to determine if entity can attack this turn
+    function entityCanAttack(currentEntity, targetEntity) {
+      if (currentEntity.rateCharge >= currentEntity.rate && currentEntity.rate !== 0) {
+        if (targetEntity !== undefined) {
           return true;
         }
       }
+    }
 
-      //function to determine how entity moves if it can
-      function entityMovementType(currentEntity) {
-        let newPosition = [direction(currentEntity), currentEntity.position[1]];
-        if (currentEntity.movement === "walker") {
-          if (climbHolder(currentEntity)) {
-            return true;
-          }
-          if (walkHolder(currentEntity, newPosition)) {
-            return true;
-          }
+    //function to execute attack if can
+    function meleeAttack(currentEntity, targetEntity) {
+      targetEntity.hp -= currentEntity.dmg;
+      currentEntity.rateCharge = 0;
+      currentEntity.speedCharge = 0;
+    }
+  }
+
+  function projectileTargetter(currentEntity) {
+    let target;
+    let rangeLetter = direction(currentEntity);
+    for (let i = currentEntity.range; i > 0; i--) {
+      let targetCell = cellContents(
+        [rangeLetter, currentEntity.position[1]],
+        activeHolder.current
+      );
+      if (targetCell.ground !== undefined) {
+        i = 0;
+      }
+      if (targetCell.entity !== undefined) {
+        if (targetCell.entity.enemy !== currentEntity.enemy) {
+          target = targetCell.entity;
         }
-        if (currentEntity.movement === "scaler") {
-          if (scaleHolder(currentEntity, newPosition)) {
-            return true;
-          }
-          if (walkHolder(currentEntity, newPosition)) {
-            return true;
-          }
-        }
+      }
+      if (currentEntity.enemy) {
+        rangeLetter--;
+      } else {
+        rangeLetter++;
+      }
+    }
+    return target;
+  }
+
+  //function to spawn projectile
+  function rangedAttack(currentEntity) {
+    let projectileID =
+      currentEntity.projectile + projectileCount.current + currentEntity.name;
+    projectileCount.current++;
+    let type = projectileList[currentEntity.projectile];
+    if (currentEntity.projectile === "water") {
+      projectileID = new Fluid(
+        fluidList["water"],
+        [currentEntity.position[0], currentEntity.position[1] - 3],
+        projectileID
+      );
+      activeFluid.current.push(projectileID);
+    } else {
+      projectileID = new Projectile(currentEntity, projectileID, type);
+      activeProjectiles.current.push(projectileID);
+    }
+    currentEntity.rateCharge = 0;
+    currentEntity.speedCharge = 0;
+  }
+
+  //checks to see if any enemies exist
+  function enemyChecker() {
+    let enemies = activeEntities.current.filter((entity) => entity.enemy === true);
+    if (enemies.length > 0) {
+      return true;
+    }
+  }
+
+  //holds functions for entity movement
+  function entityMovementHolder(currentEntity) {
+    currentEntity.speedCharge++;
+    if (entityCanMove(currentEntity)) {
+      return entityMovementType(currentEntity);
+    }
+
+    //function to determine if entity can move this turn
+    function entityCanMove(currentEntity) {
+      if (currentEntity.movement === undefined) {
         return false;
-
-        //holds climbing functions
-        function climbHolder(currentEntity) {
-          let positionNextTo = [direction(currentEntity), currentEntity.position[1]];
-          if (climbChecker(currentEntity, positionNextTo)) {
-            climbMovement(currentEntity, positionNextTo);
-            return true;
-          }
-
-          //checks if entity wants to climb
-          function climbChecker(currentEntity, positionNextTo) {
-            let cellNextTo = cellContents(positionNextTo, activeHolder.current);
-            if (
-              cellNextTo.entity !== undefined &&
-              cellNextTo.entity.enemy === currentEntity.enemy
-            ) {
-              return climbSpotFree(positionNextTo);
-            }
-            if (cellNextTo.ground !== undefined) {
-              return climbSpotFree(positionNextTo);
-            }
-            return false;
-
-            //checks if position to climb into is free
-            function climbSpotFree(positionNextTo) {
-              let positionAbove = [positionNextTo[0], positionNextTo[1] - 1];
-              let cellAbove = cellContents(positionAbove, activeHolder.current);
-              if (cellAbove.entity !== undefined || cellAbove.ground !== undefined) {
-                return false;
-              }
-              return true;
-            }
-          }
-
-          //makes entity climb
-          function climbMovement(currentEntity, positionNextTo) {
-            let positionAbove = [positionNextTo[0], positionNextTo[1] - 1];
-            currentEntity.position = positionAbove;
-            currentEntity.speedCharge = 0;
-          }
-        }
-
-        //holds functions for normal walking
-        function walkHolder(currentEntity, newPosition) {
-          if (walkChecker(newPosition)) {
-            walk(currentEntity, newPosition);
-            return true;
-          }
-
-          //checks if entity can walk
-          function walkChecker(newPosition) {
-            let cellNewPosition = cellContents(newPosition, activeHolder.current);
-            if (
-              cellNewPosition.entity === undefined &&
-              cellNewPosition.ground === undefined
-            ) {
-              return true;
-            }
-          }
-
-          //makes entity walk
-          function walk(currentEntity, newPosition) {
-            currentEntity.speedCharge = 0;
-            currentEntity.position = newPosition;
-          }
-        }
-
-        function scaleHolder(currentEntity, newPosition) {
-          let cellInPositionNextTo = cellContents(newPosition, activeHolder.current);
-          if (
-            cellInPositionNextTo.entity === undefined &&
-            cellInPositionNextTo.ground === undefined
-          ) {
-            return false;
-          }
-          if (currentEntity.speedCharge < currentEntity.speed) {
-            return false;
-          }
-          let positionAboveNextTo = [newPosition[0], newPosition[1] - 1];
-          let cellInPositionAboveNextTo = cellContents(
-            positionAboveNextTo,
-            activeHolder.current
-          );
-          let canScale = false;
-          if (
-            cellInPositionNextTo.ground !== undefined ||
-            cellInPositionNextTo.entity !== undefined
-          ) {
-            if (
-              cellInPositionAboveNextTo.ground !== undefined ||
-              cellInPositionAboveNextTo.entity !== undefined
-            ) {
-              canScale = true;
-            }
-          }
-          if (canScale) {
-            currentEntity.climbing = true;
-            let cellAbove = [currentEntity.position[0], currentEntity.position[1] - 1];
-            let cellInAbove = cellContents(cellAbove, activeHolder.current);
-            if (cellInAbove.entity === undefined && cellInAbove.ground === undefined) {
-              currentEntity.position = cellAbove;
-              currentEntity.speedCharge = 0;
-            }
-            return true;
-          } else {
-            currentEntity.climbing = false;
-            currentEntity.position = positionAboveNextTo;
-            currentEntity.speedCharge = 0;
-            return false;
-          }
-        }
+      }
+      if (currentEntity.speedCharge >= currentEntity.speed) {
+        return true;
       }
     }
 
-    //holds functions for entities attacking ground
-    function entityAttackGroundHandler(currentEntity) {
-      if (entityCanAttackGround(currentEntity)) {
-        entityAttackGround(currentEntity);
-        return true;
+    //function to determine how entity moves if it can
+    function entityMovementType(currentEntity) {
+      let newPosition = [direction(currentEntity), currentEntity.position[1]];
+      if (currentEntity.movement === "walker") {
+        if (climbHolder(currentEntity)) {
+          return true;
+        }
+        if (walkHolder(currentEntity, newPosition)) {
+          return true;
+        }
       }
+      if (currentEntity.movement === "scaler") {
+        if (scaleHolder(currentEntity, newPosition)) {
+          return true;
+        }
+        if (walkHolder(currentEntity, newPosition)) {
+          return true;
+        }
+      }
+      return false;
 
-      //checks if entity is allowed to attack adjacent ground
-      function entityCanAttackGround(currentEntity) {
-        if (currentEntity.rateCharge >= currentEntity.rate && currentEntity.rate !== 0) {
-          let targetCell = cellContents(
-            [direction(currentEntity), currentEntity.position[1]],
-            activeHolder.current
-          );
-          if (targetCell.ground !== undefined) {
+      //holds climbing functions
+      function climbHolder(currentEntity) {
+        let positionNextTo = [direction(currentEntity), currentEntity.position[1]];
+        if (climbChecker(currentEntity, positionNextTo)) {
+          climbMovement(currentEntity, positionNextTo);
+          return true;
+        }
+
+        //checks if entity wants to climb
+        function climbChecker(currentEntity, positionNextTo) {
+          let cellNextTo = cellContents(positionNextTo, activeHolder.current);
+          if (
+            cellNextTo.entity !== undefined &&
+            cellNextTo.entity.enemy === currentEntity.enemy
+          ) {
+            return climbSpotFree(positionNextTo);
+          }
+          if (cellNextTo.ground !== undefined) {
+            return climbSpotFree(positionNextTo);
+          }
+          return false;
+
+          //checks if position to climb into is free
+          function climbSpotFree(positionNextTo) {
+            let positionAbove = [positionNextTo[0], positionNextTo[1] - 1];
+            let cellAbove = cellContents(positionAbove, activeHolder.current);
+            if (cellAbove.entity !== undefined || cellAbove.ground !== undefined) {
+              return false;
+            }
             return true;
           }
         }
-        return false;
+
+        //makes entity climb
+        function climbMovement(currentEntity, positionNextTo) {
+          let positionAbove = [positionNextTo[0], positionNextTo[1] - 1];
+          currentEntity.position = positionAbove;
+          currentEntity.speedCharge = 0;
+        }
       }
 
-      //makes entity attack adjacent ground
-      function entityAttackGround(currentEntity) {
+      //holds functions for normal walking
+      function walkHolder(currentEntity, newPosition) {
+        if (walkChecker(newPosition)) {
+          walk(currentEntity, newPosition);
+          return true;
+        }
+
+        //checks if entity can walk
+        function walkChecker(newPosition) {
+          let cellNewPosition = cellContents(newPosition, activeHolder.current);
+          if (
+            cellNewPosition.entity === undefined &&
+            cellNewPosition.ground === undefined
+          ) {
+            return true;
+          }
+        }
+
+        //makes entity walk
+        function walk(currentEntity, newPosition) {
+          currentEntity.speedCharge = 0;
+          currentEntity.position = newPosition;
+        }
+      }
+
+      function scaleHolder(currentEntity, newPosition) {
+        let cellInPositionNextTo = cellContents(newPosition, activeHolder.current);
+        if (
+          cellInPositionNextTo.entity === undefined &&
+          cellInPositionNextTo.ground === undefined
+        ) {
+          return false;
+        }
+        if (currentEntity.speedCharge < currentEntity.speed) {
+          return false;
+        }
+        let positionAboveNextTo = [newPosition[0], newPosition[1] - 1];
+        let cellInPositionAboveNextTo = cellContents(
+          positionAboveNextTo,
+          activeHolder.current
+        );
+        let canScale = false;
+        if (
+          cellInPositionNextTo.ground !== undefined ||
+          cellInPositionNextTo.entity !== undefined
+        ) {
+          if (
+            cellInPositionAboveNextTo.ground !== undefined ||
+            cellInPositionAboveNextTo.entity !== undefined
+          ) {
+            canScale = true;
+          }
+        }
+        if (canScale) {
+          currentEntity.climbing = true;
+          let cellAbove = [currentEntity.position[0], currentEntity.position[1] - 1];
+          let cellInAbove = cellContents(cellAbove, activeHolder.current);
+          if (cellInAbove.entity === undefined && cellInAbove.ground === undefined) {
+            currentEntity.position = cellAbove;
+            currentEntity.speedCharge = 0;
+          }
+          return true;
+        } else {
+          currentEntity.climbing = false;
+          currentEntity.position = positionAboveNextTo;
+          currentEntity.speedCharge = 0;
+          return false;
+        }
+      }
+    }
+  }
+
+  //holds functions for entities attacking ground
+  function entityAttackGroundHandler(currentEntity) {
+    if (entityCanAttackGround(currentEntity)) {
+      entityAttackGround(currentEntity);
+      return true;
+    }
+
+    //checks if entity is allowed to attack adjacent ground
+    function entityCanAttackGround(currentEntity) {
+      if (currentEntity.rateCharge >= currentEntity.rate && currentEntity.rate !== 0) {
         let targetCell = cellContents(
           [direction(currentEntity), currentEntity.position[1]],
           activeHolder.current
         );
-        targetCell.ground.hp -= currentEntity.dmg;
-        currentEntity.rateCharge = 0;
-        currentEntity.speedCharge = 0;
+        if (targetCell.ground !== undefined) {
+          return true;
+        }
       }
+      return false;
     }
 
-    //tells the projectile what to do on its turn
-    function projectileTurn(projectile) {
-      projectile.speedCharge++;
-      if (projectile.type === "missile") {
-        if (missleCanMove(projectile)) {
-          missileMovement(projectile);
-          return;
-        }
-      }
-      if (projectile.type === "arrow") {
-        if (arrowCanMove(projectile)) {
-          arrowMovement(projectile);
-          return;
-        }
-      }
-      if (projectile.type === "barrel") {
-        if (barrelCanFall(projectile.position)) {
-          barrelFall(projectile);
-          return;
-        }
-        if (barrelCanMove(projectile)) {
-          barrelMovement(projectile);
-          return;
-        }
-      }
+    //makes entity attack adjacent ground
+    function entityAttackGround(currentEntity) {
+      let targetCell = cellContents(
+        [direction(currentEntity), currentEntity.position[1]],
+        activeHolder.current
+      );
+      targetCell.ground.hp -= currentEntity.dmg;
+      currentEntity.rateCharge = 0;
+      currentEntity.speedCharge = 0;
+    }
+  }
 
-      function barrelCanFall(position) {
-        if (position[1] !== gameboardHeight.current) {
-          let positionBelow = [position[0], position[1] + 1];
-          let cellBelow = cellContents(positionBelow, activeHolder.current);
-          if (cellBelow.entity !== undefined) {
-            entityKiller(projectile);
-            return false;
-          } else if (cellBelow.ground !== undefined) {
-            return false;
-          }
-          return true;
-        }
-      }
-
-      function barrelFall(projectile) {
-        if (projectile.fallCharge < projectile.fallSpeed) {
-          projectile.fallCharge++;
-        } else {
-          projectile.fallCharge = 0;
-          projectile.position = [projectile.position[0], projectile.position[1] + 1];
-          projectile.speedCharge = projectile.speed / 2;
-        }
-      }
-
-      function barrelCanMove(projectile) {
-        if (projectile.speedCharge >= projectile.speed) {
-          return true;
-        }
-      }
-
-      function barrelMovement(projectile) {
-        let inCurrent = cellContents(projectile.position, activeHolder.current);
-        if (inCurrent.entity !== undefined) {
-          entityKiller(projectile);
-        }
-        let positionNextTo = [direction(projectile), projectile.position[1]];
-        let inNextTo = cellContents(positionNextTo, activeHolder.current);
-        if (inNextTo.entity !== undefined) {
-          if (inNextTo.entity.enemy !== projectile.enemy) {
-            entityKiller(projectile);
-          }
-        }
-        if (inNextTo.ground !== undefined) {
-          entityKiller(projectile);
-        }
-        projectile.position = positionNextTo;
-        projectile.speedCharge = 0;
+  //tells the projectile what to do on its turn
+  function projectileTurn(projectile) {
+    projectile.speedCharge++;
+    if (projectile.type === "missile") {
+      if (missleCanMove(projectile)) {
+        missileMovement(projectile);
         return;
       }
-
-      function missleCanMove(projectile) {
-        if (projectile.speedCharge >= projectile.speed) {
-          return true;
-        }
+    }
+    if (projectile.type === "arrow") {
+      if (arrowCanMove(projectile)) {
+        arrowMovement(projectile);
+        return;
       }
-
-      function missileMovement(projectile) {
-        if (projectile.direction === "up") {
-          if (projectile.position[1] > projectile.parent.position[1] - 8) {
-            let newPosition = [projectile.position[0], projectile.position[1] - 1];
-            let cellInPosition = cellContents(newPosition, activeHolder.current);
-            if (cellInPosition.entity !== undefined) {
-              if (cellInPosition.entity.enemy !== projectile.enemy) {
-                cellInPosition.entity.hp -= projectile.dmg;
-                entityKiller(projectile);
-                return;
-              }
-            }
-            projectile.position = newPosition;
-            projectile.speedCharge = 0;
-          } else {
-            projectile.direction = "right";
-            projectile.speed = 4;
-            projectile.symbol = projectileList[projectile.type].rightSymbol;
-            return;
-          }
-        } else if (projectile.direction === "right") {
-          if (belowTargetter(projectile)) {
-            projectile.direction = "down";
-            projectile.speed = 0;
-            projectile.symbol = projectileList[projectile.type].downSymbol;
-            return;
-          }
-          let newPosition = [projectile.position[0] + 1, projectile.position[1]];
-          let cellInPosition = cellContents(newPosition, activeHolder.current);
-          if (cellInPosition.entity !== undefined) {
-            if (cellInPosition.entity.enemy !== projectile.enemy) {
-              cellInPosition.entity.hp -= projectile.dmg;
-              entityKiller(projectile);
-              return;
-            }
-          }
-          projectile.position = newPosition;
-          projectile.speedCharge = 0;
-        } else if (projectile.direction === "down") {
-          let newPosition = [projectile.position[0], projectile.position[1] + 1];
-          let cellInPosition = cellContents(newPosition, activeHolder.current);
-          if (cellInPosition.entity !== undefined) {
-            if (cellInPosition.entity.enemy !== projectile.enemy) {
-              cellInPosition.entity.hp -= projectile.dmg;
-              entityKiller(projectile);
-              return;
-            }
-          }
-          projectile.position = newPosition;
-          projectile.speedCharge = 0;
-        }
-
-        //checks to see if there is an enemy below projectile
-        function belowTargetter(projectile) {
-          let targetFound = false;
-          for (let h = gameboardHeight.current; h > 1; h--) {
-            let targetPosition = [projectile.position[0], h];
-            let target = cellContents(targetPosition, activeHolder.current);
-            if (target.entity !== undefined) {
-              if (target.entity.enemy !== projectile.enemy) {
-                targetFound = true;
-              }
-            }
-          }
-          if (targetFound) {
-            return true;
-          }
-        }
+    }
+    if (projectile.type === "barrel") {
+      if (barrelCanFall(projectile.position)) {
+        barrelFall(projectile);
+        return;
       }
+      if (barrelCanMove(projectile)) {
+        barrelMovement(projectile);
+        return;
+      }
+    }
 
-      //checks if the projectile can move this turn
-      function arrowCanMove(projectile) {
-        if (projectile.distance === 0) {
-          activeProjectiles.current.splice(
-            activeProjectiles.current.indexOf(projectile),
-            1
-          );
+    function barrelCanFall(position) {
+      if (position[1] !== gameboardHeight.current) {
+        let positionBelow = [position[0], position[1] + 1];
+        let cellBelow = cellContents(positionBelow, activeHolder.current);
+        if (cellBelow.entity !== undefined) {
+          entityKiller(projectile);
+          return false;
+        } else if (cellBelow.ground !== undefined) {
           return false;
         }
-        if (projectile.speedCharge >= projectile.speed) {
-          return true;
-        }
-      }
-
-      //checks to see if projectile will move or attack enemy
-      function arrowMovement(projectile) {
-        let newPosition = [direction(projectile), projectile.position[1]];
-        let cellAtPosition = cellContents(newPosition, activeHolder.current);
-        if (
-          cellAtPosition.entity !== undefined &&
-          cellAtPosition.entity.enemy !== projectile.enemy
-        ) {
-          cellAtPosition.entity.hp -= projectile.dmg;
-          activeProjectiles.current.splice(
-            activeProjectiles.current.indexOf(projectile),
-            1
-          );
-        } else if (cellAtPosition.ground !== undefined) {
-          cellAtPosition.ground.hp -= projectile.dmg;
-          activeProjectiles.current.splice(
-            activeProjectiles.current.indexOf(projectile),
-            1
-          );
-        } else {
-          projectile.speedCharge = 0;
-          projectile.position = newPosition;
-          projectile.distance--;
-        }
+        return true;
       }
     }
 
-    //initiates ground turn
-    function groundTurn(ground) {
-      healthChecker(ground);
-      for (let i = gameSpeed.current; i > 0; i--) {
-        if (groundCanFall(ground.position, ground)) {
-          terrainIsFalling.current = true;
-          ground.falling = true;
-          groundFall(ground);
-        } else {
-          ground.falling = false;
-          terrainIsFalling.current = true;
-        }
-      }
-
-      //checks if ground can fall
-      function groundCanFall(position, ground) {
-        if (position[1] < gameboardHeight.current) {
-          let spaceBelow = true;
-          let positionBelow = [position[0], position[1] + 1];
-          let cellBelow = cellContents(positionBelow, activeHolder.current);
-          if (cellBelow.entity !== undefined) {
-            groundAttack(ground, cellBelow.entity);
-          }
-          if (cellBelow.ground !== undefined) {
-            spaceBelow = false;
-          }
-          return spaceBelow;
-        }
-        if (ground.ghost) {
-          entityKiller(ground);
-        }
-      }
-
-      //makes ground fall
-      function groundFall(ground) {
-        if (ground.fallCharge < ground.fallSpeed) {
-          ground.fallCharge++;
-        } else {
-          ground.fallCharge = 0;
-          let newPosition = [ground.position[0], ground.position[1] + 1];
-          ground.position = newPosition;
-        }
-      }
-
-      //kills entity ground falls onto
-      function groundAttack(ground, entityBelow) {
-        entityBelow.hp = 0;
-      }
-    }
-
-    function fluidTurn(fluid) {
-      for (let i = gameSpeed.current; i > 0; i--) {
-        if (fluidCanFall(fluid.position, fluid)) {
-          terrainIsFalling.current = true;
-          fluid.speed = 5;
-          fluid.falling = true;
-          fluidFall(fluid);
-        } else {
-          fluid.falling = false;
-          terrainIsFalling.current = true;
-        }
-      }
-      if (!fluid.falling) {
-        fluidMovement(fluid);
-      }
-
-      function fluidCanFall(position, fluid) {
-        if (position[1] < gameboardHeight.current) {
-          let positionBelow = [position[0], position[1] + 1];
-          let cellBelow = cellContents(positionBelow, activeHolder.current);
-          if (cellBelow.ground !== undefined || cellBelow.fluid !== undefined) {
-            return false;
-          }
-          return true;
-        } else if (fluid.ghost) {
-          entityKiller(fluid);
-        }
-      }
-
-      function fluidFall(fluid) {
-        if (fluid.fallCharge < fluid.fallSpeed) {
-          fluid.fallCharge++;
-        } else {
-          fluid.fallCharge = 0;
-          let newPosition = [fluid.position[0], fluid.position[1] + 1];
-          fluid.position = newPosition;
-        }
-      }
-
-      function fluidMovement(fluid) {
-        if (fluid.speedCharge < fluid.speed) {
-          fluid.speedCharge++;
-        } else {
-          let targetPosition;
-          if (fluid.direction === "left") {
-            targetPosition = [fluid.position[0] - 1, fluid.position[1]];
-          } else if (fluid.direction === "right") {
-            targetPosition = [fluid.position[0] + 1, fluid.position[1]];
-          }
-          if (
-            targetPosition[0] === 0 ||
-            targetPosition[0] === gameboardWidth.current + 1
-          ) {
-            entityKiller(fluid);
-          }
-          let targetCell = cellContents(targetPosition, activeHolder.current);
-          if (targetCell.ground === undefined && targetCell.fluid === undefined) {
-            fluid.position = targetPosition;
-            fluid.speedCharge = 0;
-            fluid.speed *= 1.3;
-            return;
-          } else {
-            if (fluid.direction === "left") {
-              fluid.direction = "right";
-            } else fluid.direction = "left";
-          }
-        }
-        let cellBelow = cellContents(
-          [fluid.position[0], fluid.position[1] + 1],
-          activeHolder.current
-        );
-        if (fluid.speed > 50 && cellBelow.fluid !== undefined) {
-          fluid.speed = Infinity;
-        }
-      }
-    }
-
-    function effectTurn(effect) {
-      if (effect.durationCharge < effect.duration) {
-        effect.durationCharge++;
+    function barrelFall(projectile) {
+      if (projectile.fallCharge < projectile.fallSpeed) {
+        projectile.fallCharge++;
       } else {
-        activeEffects.current.splice(activeEffects.current.indexOf(effect), 1);
-      }
-    }
-    //creates ground based on groundHeight and type
-    function terrainMaker() {
-      for (
-        let h = gameboardHeight.current;
-        h > gameboardHeight.current - groundLevel.current;
-        h--
-      ) {
-        for (let w = 1; w <= gameboardWidth.current; w++) {
-          let spawnChance = 10;
-          if (gameMode.current === "king") {
-            if (w < 3) {
-              spawnChance = 10;
-            } else if (w > gameboardWidth.current / 2) {
-              spawnChance = Math.random() * 10;
-            } else {
-              spawnChance = Math.random() * 50;
-            }
-          } else {
-            spawnChance = Math.random() * 10;
-          }
-          if (spawnChance > groundRoughness.current) {
-            let stoneChance;
-            let type = "dirt";
-            if (h > gameboardHeight.current - groundLevel.current / 3) {
-              stoneChance = 40;
-              if (Math.random() * 100 < stoneChance) {
-                type = "stone";
-              }
-            }
-            let position = [w, h - gameboardHeight.current];
-            let groundID = type + position[0] + position[1];
-            groundID = new Ground(groundList[type], position, groundID);
-            activeGround.current.push(groundID);
-          }
-        }
-      }
-      for (
-        let h = -groundLevel.current;
-        h > -groundLevel.current - waterLevel.current;
-        h--
-      ) {
-        for (let w = 1; w <= gameboardWidth.current; w++) {
-          let position = [w, h];
-          let waterID = "water" + position[0] + position[1];
-          waterID = new Fluid(fluidList["water"], position, waterID);
-          activeFluid.current.push(waterID);
-        }
+        projectile.fallCharge = 0;
+        projectile.position = [projectile.position[0], projectile.position[1] + 1];
+        projectile.speedCharge = projectile.speed / 2;
       }
     }
 
-    //sets amount of turns to play
-    function amountOfTurns(finished) {
-      let gameFinished = finished;
-      if (!gameFinished) {
-        timer.current = setInterval(() => {
-          turnCycler();
-        }, renderSpeed.current * 4);
+    function barrelCanMove(projectile) {
+      if (projectile.speedCharge >= projectile.speed) {
+        return true;
       }
+    }
 
-      //runs through turn actions
-      function turnCycler() {
-        if (gameMode.current === "king") {
-          spawnChecker(true);
+    function barrelMovement(projectile) {
+      let inCurrent = cellContents(projectile.position, activeHolder.current);
+      if (inCurrent.entity !== undefined) {
+        entityKiller(projectile);
+      }
+      let positionNextTo = [direction(projectile), projectile.position[1]];
+      let inNextTo = cellContents(positionNextTo, activeHolder.current);
+      if (inNextTo.entity !== undefined) {
+        if (inNextTo.entity.enemy !== projectile.enemy) {
+          entityKiller(projectile);
         }
-        if (gameMode.current === "battle") {
-          spawnChecker(true);
-          spawnChecker(false);
+      }
+      if (inNextTo.ground !== undefined) {
+        entityKiller(projectile);
+      }
+      projectile.position = positionNextTo;
+      projectile.speedCharge = 0;
+      return;
+    }
+
+    function missleCanMove(projectile) {
+      if (projectile.speedCharge >= projectile.speed) {
+        return true;
+      }
+    }
+
+    function missileMovement(projectile) {
+      if (projectile.direction === "up") {
+        if (projectile.position[1] > projectile.parent.position[1] - 8) {
+          let newPosition = [projectile.position[0], projectile.position[1] - 1];
+          let cellInPosition = cellContents(newPosition, activeHolder.current);
+          if (cellInPosition.entity !== undefined) {
+            if (cellInPosition.entity.enemy !== projectile.enemy) {
+              cellInPosition.entity.hp -= projectile.dmg;
+              entityKiller(projectile);
+              return;
+            }
+          }
+          projectile.position = newPosition;
+          projectile.speedCharge = 0;
+        } else {
+          projectile.direction = "right";
+          projectile.speed = 4;
+          projectile.symbol = projectileList[projectile.type].rightSymbol;
+          return;
         }
-        nextTurn();
-        if (gameMode.current !== "sandbox") {
-          if (!victoryChecker()) {
-            clearInterval(timer.current);
+      } else if (projectile.direction === "right") {
+        if (belowTargetter(projectile)) {
+          projectile.direction = "down";
+          projectile.speed = 0;
+          projectile.symbol = projectileList[projectile.type].downSymbol;
+          return;
+        }
+        let newPosition = [projectile.position[0] + 1, projectile.position[1]];
+        let cellInPosition = cellContents(newPosition, activeHolder.current);
+        if (cellInPosition.entity !== undefined) {
+          if (cellInPosition.entity.enemy !== projectile.enemy) {
+            cellInPosition.entity.hp -= projectile.dmg;
+            entityKiller(projectile);
+            return;
           }
         }
-        updateGameboardEntities();
+        projectile.position = newPosition;
+        projectile.speedCharge = 0;
+      } else if (projectile.direction === "down") {
+        let newPosition = [projectile.position[0], projectile.position[1] + 1];
+        let cellInPosition = cellContents(newPosition, activeHolder.current);
+        if (cellInPosition.entity !== undefined) {
+          if (cellInPosition.entity.enemy !== projectile.enemy) {
+            cellInPosition.entity.hp -= projectile.dmg;
+            entityKiller(projectile);
+            return;
+          }
+        }
+        projectile.position = newPosition;
+        projectile.speedCharge = 0;
       }
 
-      //makes all entities take turn
-      function nextTurn() {
-        activeEntities.current.forEach((entity) => {
-          entityTurn(entity);
-        });
-        activeProjectiles.current.forEach((projectile) => {
-          projectileTurn(projectile);
-        });
-        terrainIsFalling.current = false;
-        activeGround.current.forEach((ground) => {
-          groundTurn(ground);
-        });
-        activeFluid.current.forEach((fluid) => {
-          fluidTurn(fluid);
-        });
-        activeEffects.current.forEach((effect) => {
-          effectTurn(effect);
-        });
-      }
-
-      //checks to see if the king died
-      function victoryChecker() {
-        if (gameMode.current === "king") {
-          let kingAlive =
-            activeEntities.current.find((entity) => entity.type === "king") !== undefined;
-          if (kingAlive) {
-            return true;
+      //checks to see if there is an enemy below projectile
+      function belowTargetter(projectile) {
+        let targetFound = false;
+        for (let h = gameboardHeight.current; h > 1; h--) {
+          let targetPosition = [projectile.position[0], h];
+          let target = cellContents(targetPosition, activeHolder.current);
+          if (target.entity !== undefined) {
+            if (target.entity.enemy !== projectile.enemy) {
+              targetFound = true;
+            }
           }
-          return false;
-        } else if (gameMode.current === "battle") {
-          if (
-            enemySpawnCount.current === totalSpawns.current ||
-            friendlySpawnCount.current === totalSpawns.current
-          ) {
-            return false;
-          }
+        }
+        if (targetFound) {
           return true;
         }
       }
-
-      //checks if game is allowed to spawn on current turn
-      function spawnChecker(enemy) {
-        if (enemy) {
-          if (enemySpawnCount.current <= totalSpawns.current) {
-            lastEnemySpawnTime.current++;
-            if (lastEnemySpawnTime.current > spawnTime()) {
-              entitySpawner(spawnType(), enemy);
-              enemySpawnCount.current++;
-              lastEnemySpawnTime.current = 0;
-            }
-          }
-        } else if (!enemy) {
-          lastFriendlySpawnTime.current++;
-          if (lastFriendlySpawnTime.current > spawnTime()) {
-            entitySpawner(spawnType(), enemy);
-            friendlySpawnCount.current++;
-            lastFriendlySpawnTime.current = 0;
-          }
-        }
-      }
-
-      //sets how long until next unit spawns
-      function spawnTime() {
-        let baseline = 80;
-        let actual =
-          (baseline + 80 * Math.random()) / spawnSpeed.current / gameSpeed.current;
-        return actual;
-      }
-
-      //determines what entity will spawn based on weighted chance
-      function spawnType() {
-        let entitiesEnemy = Object.entries(entityList)
-          .filter((entity) => entity[1].enemy)
-          .map((entity) => entity[1]);
-        let parsedEntities = [];
-        entitiesEnemy.forEach((entity) => {
-          Object.entries(entity.lvls).forEach((level) => {
-            if (level[1].chance !== undefined) {
-              parsedEntities.push([entity.type, level[1].lvl, level[1].chance]);
-            }
-          });
-        });
-        let totalWeight = 0;
-        parsedEntities.forEach((entity) => {
-          totalWeight = totalWeight + entity[2];
-        });
-        let weightedChance = totalWeight * Math.random();
-        let chancePosition = 0;
-        parsedEntities.forEach((entity) => {
-          entity[2] = entity[2] + chancePosition;
-          chancePosition = entity[2];
-        });
-        let closestChance = Infinity;
-        let chosenEntity;
-        parsedEntities.forEach((entity) => {
-          let entityChance = entity[2] - weightedChance;
-          if (entityChance > 0 && entityChance < closestChance) {
-            closestChance = entityChance;
-            chosenEntity = entity;
-          }
-        });
-        return chosenEntity;
-      }
-
-      //spawns chosen entity
-      function entitySpawner(entity, enemy) {
-        let entityType = entityList[entity[0]];
-        let entityLvl = entityType.lvls["lvl" + entity[1]];
-        let position = spawnPositionFinder(enemy);
-        let entityID = entity[0];
-        if (enemy) {
-          entityID += enemySpawnCount;
-        } else entityID += friendlySpawnCount;
-        entityID = new Entity(entityType, entityLvl, position, entityID);
-        if (!enemy) {
-          entityID.enemy = false;
-        }
-        activeEntities.current.push(entityID);
-      }
-
-      //finds the position above the highest entity in the final column
-      function spawnPositionFinder(enemy) {
-        let baselinePosition;
-        if (enemy) {
-          baselinePosition = [gameboardWidth.current, gameboardHeight.current];
-        } else if (!enemy) {
-          baselinePosition = [1, gameboardHeight.current];
-        }
-        let spawnPosition = baselinePosition;
-        let endEntities = activeEntities.current.filter(
-          (entity) => entity.position[0] === baselinePosition[0]
-        );
-        endEntities.forEach((entity) => {
-          if (entity.position[1] <= spawnPosition[1]) {
-            spawnPosition = [entity.position[0], entity.position[1] - 1];
-          }
-        });
-        if (!comparePosition(spawnPosition, baselinePosition)) {
-          return spawnPosition;
-        }
-        let endGrounds = activeGround.current.filter(
-          (ground) => ground.position[0] === baselinePosition[0]
-        );
-        endGrounds.forEach((ground) => {
-          if (ground.position[1] <= spawnPosition[1]) {
-            spawnPosition = [ground.position[0], ground.position[1] - 1];
-          }
-        });
-        return spawnPosition;
-      }
     }
 
-    function ghoster() {
-      activeEntities.current.forEach((entity) => {
-        entity.fallSpeed = 0;
-        entity.ghost = true;
-      });
-      activeGround.current.forEach((ground) => {
-        ground.fallSpeed = 0;
-        ground.ghost = true;
-      });
-      activeFluid.current.forEach((fluid) => {
-        fluid.ghost = true;
-      });
-      activeProjectiles.current.forEach((projectile) => {
+    //checks if the projectile can move this turn
+    function arrowCanMove(projectile) {
+      if (projectile.distance === 0) {
         activeProjectiles.current.splice(
           activeProjectiles.current.indexOf(projectile),
           1
         );
-      });
+        return false;
+      }
+      if (projectile.speedCharge >= projectile.speed) {
+        return true;
+      }
     }
 
-    if (newRound) {
-      ghoster();
-      terrainMaker();
+    //checks to see if projectile will move or attack enemy
+    function arrowMovement(projectile) {
+      let newPosition = [direction(projectile), projectile.position[1]];
+      let cellAtPosition = cellContents(newPosition, activeHolder.current);
+      if (
+        cellAtPosition.entity !== undefined &&
+        cellAtPosition.entity.enemy !== projectile.enemy
+      ) {
+        cellAtPosition.entity.hp -= projectile.dmg;
+        activeProjectiles.current.splice(
+          activeProjectiles.current.indexOf(projectile),
+          1
+        );
+      } else if (cellAtPosition.ground !== undefined) {
+        cellAtPosition.ground.hp -= projectile.dmg;
+        activeProjectiles.current.splice(
+          activeProjectiles.current.indexOf(projectile),
+          1
+        );
+      } else {
+        projectile.speedCharge = 0;
+        projectile.position = newPosition;
+        projectile.distance--;
+      }
+    }
+  }
+
+  //initiates ground turn
+  function groundTurn(ground) {
+    healthChecker(ground);
+    for (let i = gameSpeed.current; i > 0; i--) {
+      if (groundCanFall(ground.position, ground)) {
+        terrainIsFalling.current = true;
+        ground.falling = true;
+        groundFall(ground);
+      } else {
+        ground.falling = false;
+        terrainIsFalling.current = true;
+      }
+    }
+
+    //checks if ground can fall
+    function groundCanFall(position, ground) {
+      if (position[1] < gameboardHeight.current) {
+        let spaceBelow = true;
+        let positionBelow = [position[0], position[1] + 1];
+        let cellBelow = cellContents(positionBelow, activeHolder.current);
+        if (cellBelow.entity !== undefined) {
+          groundAttack(ground, cellBelow.entity);
+        }
+        if (cellBelow.ground !== undefined) {
+          spaceBelow = false;
+        }
+        return spaceBelow;
+      }
+      if (ground.ghost) {
+        entityKiller(ground);
+      }
+    }
+
+    //makes ground fall
+    function groundFall(ground) {
+      if (ground.fallCharge < ground.fallSpeed) {
+        ground.fallCharge++;
+      } else {
+        ground.fallCharge = 0;
+        let newPosition = [ground.position[0], ground.position[1] + 1];
+        ground.position = newPosition;
+      }
+    }
+
+    //kills entity ground falls onto
+    function groundAttack(ground, entityBelow) {
+      entityBelow.hp = 0;
+    }
+  }
+
+  function fluidTurn(fluid) {
+    for (let i = gameSpeed.current; i > 0; i--) {
+      if (fluidCanFall(fluid.position, fluid)) {
+        terrainIsFalling.current = true;
+        fluid.speed = 5;
+        fluid.falling = true;
+        fluidFall(fluid);
+      } else {
+        fluid.falling = false;
+        terrainIsFalling.current = true;
+      }
+    }
+    if (!fluid.falling) {
+      fluidMovement(fluid);
+    }
+
+    function fluidCanFall(position, fluid) {
+      if (position[1] < gameboardHeight.current) {
+        let positionBelow = [position[0], position[1] + 1];
+        let cellBelow = cellContents(positionBelow, activeHolder.current);
+        if (cellBelow.ground !== undefined || cellBelow.fluid !== undefined) {
+          return false;
+        }
+        return true;
+      } else if (fluid.ghost) {
+        entityKiller(fluid);
+      }
+    }
+
+    function fluidFall(fluid) {
+      if (fluid.fallCharge < fluid.fallSpeed) {
+        fluid.fallCharge++;
+      } else {
+        fluid.fallCharge = 0;
+        let newPosition = [fluid.position[0], fluid.position[1] + 1];
+        fluid.position = newPosition;
+      }
+    }
+
+    function fluidMovement(fluid) {
+      if (fluid.speedCharge < fluid.speed) {
+        fluid.speedCharge++;
+      } else {
+        let targetPosition;
+        if (fluid.direction === "left") {
+          targetPosition = [fluid.position[0] - 1, fluid.position[1]];
+        } else if (fluid.direction === "right") {
+          targetPosition = [fluid.position[0] + 1, fluid.position[1]];
+        }
+        if (targetPosition[0] === 0 || targetPosition[0] === gameboardWidth.current + 1) {
+          entityKiller(fluid);
+        }
+        let targetCell = cellContents(targetPosition, activeHolder.current);
+        if (targetCell.ground === undefined && targetCell.fluid === undefined) {
+          fluid.position = targetPosition;
+          fluid.speedCharge = 0;
+          fluid.speed *= 1.3;
+          return;
+        } else {
+          if (fluid.direction === "left") {
+            fluid.direction = "right";
+          } else fluid.direction = "left";
+        }
+      }
+      let cellBelow = cellContents(
+        [fluid.position[0], fluid.position[1] + 1],
+        activeHolder.current
+      );
+      if (fluid.speed > 50 && cellBelow.fluid !== undefined) {
+        fluid.speed = Infinity;
+      }
+    }
+  }
+
+  function effectTurn(effect) {
+    if (effect.durationCharge < effect.duration) {
+      effect.durationCharge++;
+    } else {
+      activeEffects.current.splice(activeEffects.current.indexOf(effect), 1);
+    }
+  }
+  //creates ground based on groundHeight and type
+  function terrainMaker() {
+    for (
+      let h = gameboardHeight.current;
+      h > gameboardHeight.current - groundLevel.current;
+      h--
+    ) {
+      for (let w = 1; w <= gameboardWidth.current; w++) {
+        let spawnChance = 10;
+        if (gameMode.current === "king") {
+          if (w < 3) {
+            spawnChance = 10;
+          } else if (w > gameboardWidth.current / 2) {
+            spawnChance = Math.random() * 10;
+          } else {
+            spawnChance = Math.random() * 50;
+          }
+        } else {
+          spawnChance = Math.random() * 10;
+        }
+        if (spawnChance > groundRoughness.current) {
+          let stoneChance;
+          let type = "dirt";
+          if (h > gameboardHeight.current - groundLevel.current / 3) {
+            stoneChance = 40;
+            if (Math.random() * 100 < stoneChance) {
+              type = "stone";
+            }
+          }
+          let position = [w, h - gameboardHeight.current];
+          let groundID = type + position[0] + position[1];
+          groundID = new Ground(groundList[type], position, groundID);
+          activeGround.current.push(groundID);
+        }
+      }
+    }
+    for (
+      let h = -groundLevel.current;
+      h > -groundLevel.current - waterLevel.current;
+      h--
+    ) {
+      for (let w = 1; w <= gameboardWidth.current; w++) {
+        let position = [w, h];
+        let waterID = "water" + position[0] + position[1];
+        waterID = new Fluid(fluidList["water"], position, waterID);
+        activeFluid.current.push(waterID);
+      }
+    }
+  }
+
+  //sets amount of turns to play
+  function amountOfTurns(finished) {
+    let gameFinished = finished;
+    if (!gameFinished) {
+      timer.current = setInterval(() => {
+        turnCycler();
+      }, renderSpeed.current * 4);
+    }
+
+    //runs through turn actions
+    function turnCycler() {
       if (gameMode.current === "king") {
-        friendlySpawner("king", [1, -groundLevel.current], 1);
+        spawnChecker(true);
+      }
+      if (gameMode.current === "battle") {
+        spawnChecker(true);
+        spawnChecker(false);
+      }
+      nextTurn();
+      if (gameMode.current !== "sandbox") {
+        if (!victoryChecker()) {
+          clearInterval(timer.current);
+        }
       }
       // updateGameboardEntities();
     }
-    amountOfTurns(false);
-  }
 
-  //turns position into spreadsheet style coordinate
-  function toLetter(position) {
-    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    return letters[position];
-  }
-
-  //checks to see if user input is in space of other entity
-  function typingChecker(position) {
-    let targetCell = cellContents(position, activeHolder.current);
-    if (targetCell.ground === undefined && targetCell.entity === undefined) {
-      return true;
+    //makes all entities take turn
+    function nextTurn() {
+      activeEntities.current.forEach((entity) => {
+        entityTurn(entity);
+      });
+      activeProjectiles.current.forEach((projectile) => {
+        projectileTurn(projectile);
+      });
+      terrainIsFalling.current = false;
+      activeGround.current.forEach((ground) => {
+        groundTurn(ground);
+      });
+      activeFluid.current.forEach((fluid) => {
+        fluidTurn(fluid);
+      });
+      activeEffects.current.forEach((effect) => {
+        effectTurn(effect);
+      });
     }
-  }
 
-  //parses user input into usable data
-  function friendlyInput(position) {
-    let input = currentInput.current;
-    let parsedType = "";
-    let parsedLvl = "";
-    let hitNumber = false;
-    for (let i = 0; i < input.length; i++) {
-      if (isNaN(input[i]) && !hitNumber) {
-        parsedType = parsedType.concat(input[i]);
-      } else parsedLvl = parsedLvl.concat(input[i]);
-    }
-    friendlySpawner(parsedType, position, parsedLvl);
-  }
-
-  //runs friendly through checks before spawning
-  function friendlySpawner(friendlyType, friendlyPosition, friendlyLvl) {
-    if (validFriendly(friendlyType, friendlyLvl)) {
-      let friendlyCost = entityList[friendlyType].lvls["lvl" + friendlyLvl].value;
-      if (bankChecker(friendlyCost)) {
-        setBank(bank - friendlyCost);
-        friendlyEntityMaker(friendlyType, friendlyPosition, friendlyLvl);
-      }
-    }
-  }
-
-  //determines if entity name and level are valid
-  function validFriendly(friendlyType, friendlyLvl) {
-    if (entityList[friendlyType] !== undefined) {
-      if (entityList[friendlyType].lvls["lvl" + friendlyLvl] !== undefined) {
-        if (gameMode.current === "sandbox") {
+    //checks to see if the king died
+    function victoryChecker() {
+      if (gameMode.current === "king") {
+        let kingAlive =
+          activeEntities.current.find((entity) => entity.type === "king") !== undefined;
+        if (kingAlive) {
           return true;
         }
-        if (!entityList[friendlyType].enemy) {
-          return true;
+        return false;
+      } else if (gameMode.current === "battle") {
+        if (
+          enemySpawnCount.current === totalSpawns.current ||
+          friendlySpawnCount.current === totalSpawns.current
+        ) {
+          return false;
         }
-      }
-    }
-  }
-
-  //determines if enough money in bank to spawn friendly
-  function bankChecker(friendlyCost) {
-    if (friendlyCost <= bank) {
-      return true;
-    }
-  }
-
-  //translates user input into data Entity maker can use
-  function friendlyEntityMaker(entityType, entityPosition, entitylvl) {
-    let ID = friendlyCount.current + 1;
-    friendlyCount.current = ID;
-    entityType = entityList[entityType];
-    entitylvl = entityType.lvls["lvl" + entitylvl];
-    let entityID = entityType.type + friendlyCount.current;
-    entityID = new Entity(entityType, entitylvl, entityPosition, entityID);
-    activeEntities.current.push(entityID);
-    updateGameboardEntities();
-  }
-
-  //gives the ground entities a thicker outline if groundline
-  function groundLine(ground) {
-    if (!ground.falling) {
-      if (ground.fallSpeed > ground.fallCharge) {
-        return;
-      }
-      ground.style.boxShadow = "";
-      let made = false;
-      let cellAbove = cellContents(
-        [ground.position[0], ground.position[1] - 1],
-        activeHolder.current
-      );
-      let cellLeft = cellContents(
-        [ground.position[0] - 1, ground.position[1]],
-        activeHolder.current
-      );
-      let cellRight = cellContents(
-        [ground.position[0] + 1, ground.position[1]],
-        activeHolder.current
-      );
-      if (cellAbove.ground === undefined) {
-        ground.style.boxShadow = "inset 0px 2px 0px grey";
-        made = true;
-      }
-      if (cellLeft.ground === undefined && ground.position[0] - 1 !== 0 && !made) {
-        ground.style.boxShadow = "inset 2px 0px 0px grey";
-        made = true;
-      } else if (cellLeft.ground === undefined && ground.position[0] - 1 !== 0 && made) {
-        ground.style.boxShadow = ground.style.boxShadow + ",inset 2px 0px 0px grey";
-      }
-      if (
-        cellRight.ground === undefined &&
-        ground.position[0] < gameboardWidth.current &&
-        !made
-      ) {
-        ground.style.boxShadow = "inset -2px 0px 0px grey";
-        made = true;
-      } else if (
-        cellRight.ground === undefined &&
-        ground.position[0] < gameboardWidth.current &&
-        made
-      ) {
-        ground.style.boxShadow = ground.style.boxShadow + ",inset -2px 0px 0px grey";
-      }
-    } else {
-      ground.style.boxShadow = false;
-    }
-  }
-
-  function fluidLine(fluid) {
-    if (!fluid.falling) {
-      if (fluid.fallSpeed > fluid.fallCharge) {
-        return;
-      }
-      fluid.style.boxShadow = "";
-      let made = false;
-      let cellAbove = cellContents(
-        [fluid.position[0], fluid.position[1] - 1],
-        activeHolder.current
-      );
-      let cellLeft = cellContents(
-        [fluid.position[0] - 1, fluid.position[1]],
-        activeHolder.current
-      );
-      let cellRight = cellContents(
-        [fluid.position[0] + 1, fluid.position[1]],
-        activeHolder.current
-      );
-      if (cellAbove.fluid === undefined) {
-        fluid.style.boxShadow = "inset 0px 1px 0px blue";
-        made = true;
-      }
-      if (cellLeft.fluid === undefined && cellLeft.ground === undefined && !made) {
-        fluid.style.boxShadow = "inset 1px 0px 0px blue";
-        made = true;
-      } else if (cellLeft.fluid === undefined && cellLeft.ground === undefined && made) {
-        fluid.style.boxShadow = fluid.style.boxShadow + ",inset 1px 0px 0px blue";
-      }
-      if (cellRight.fluid === undefined && cellRight.ground === undefined && !made) {
-        fluid.style.boxShadow = "inset -1px 0px 0px blue";
-        made = true;
-      } else if (
-        cellRight.fluid === undefined &&
-        cellRight.ground === undefined &&
-        made
-      ) {
-        fluid.style.boxShadow = fluid.style.boxShadow + ",inset -1px 0px 0px blue";
-      }
-    } else {
-      fluid.style.boxShadow = false;
-    }
-  }
-
-  //gives entities an attack bar
-  function attackBar(currentEntity) {
-    let maxWidth = 157;
-    let percentage = currentEntity.rateCharge / currentEntity.rate;
-    let currentWidth = maxWidth * percentage;
-    if (currentEntity.enemy) {
-      currentEntity.style.boxShadow =
-        "inset " + -currentWidth + "px 0px 0px 0px #0000001e";
-    } else {
-      currentEntity.style.boxShadow =
-        "inset " + currentWidth + "px 0px 0px 0px #0000001e";
-    }
-  }
-
-  function healthBar(currentEntity) {
-    let percentage;
-    if (currentEntity.constructor.name === "Entity") {
-      percentage =
-        currentEntity.hp /
-        entityList[currentEntity.type].lvls["lvl" + currentEntity.lvl].hp;
-    } else if (currentEntity.constructor.name === "Ground") {
-      percentage = currentEntity.hp / groundList[currentEntity.type].hp;
-    }
-    let color = "rgb(200 200 200 /" + (1 - percentage) + ")";
-    if (currentEntity.constructor.name === "Ground") {
-      if (currentEntity.style.boxShadow === "") {
-        currentEntity.style.boxShadow = "inset 157px 21px 0px 0px " + color;
-        return;
-      }
-    }
-    currentEntity.style.boxShadow += ",inset 157px 21px 0px 0px " + color;
-  }
-
-  //stops the game loop
-  function pause() {
-    clearInterval(timer.current);
-  }
-
-  //pushes everything back into the game and starts the loop
-  function resume() {
-    engine(true, false);
-  }
-
-  //handles making a usable array for the grid renderer
-  function updateGameboardEntities() {
-    let grid = [];
-    for (let h = 0; h <= gameboardHeight.current; h++) {
-      let subGrid = [];
-      for (let w = 0; w <= gameboardWidth.current; w++) {
-        subGrid.push(cellType(w, h));
-      }
-      grid.push(subGrid);
-    }
-    setGameboardEntities(grid);
-
-    //determines what type function to call
-    function cellType(w, h) {
-      let id = w + "x" + h;
-      let cell = cellContents([w, h], activeHolder.current);
-      let key = id;
-      if (selectedCell.current !== undefined && currentInput.current !== "") {
-        let inputPosition = selectedCell.current.id.split("x");
-        inputPosition[0] = parseInt(inputPosition[0]);
-        inputPosition[1] = parseInt(inputPosition[1]);
-        if (comparePosition(inputPosition, [w, h])) {
-          return [key, id, currentInput.current];
-        }
-      }
-      if (w === 0) {
-        return firstColumnCell(h, id, key);
-      }
-      if (h === 0) {
-        return firstRowCell(w, id, key);
-      }
-      if (cell.effect !== undefined) {
-        return effectCell(cell.effect, id, key);
-      }
-      if (cell.entity !== undefined) {
-        return entityCell(cell.entity, id, key);
-      }
-      if (cell.ground !== undefined) {
-        return groundCell(cell.ground, id, key);
-      }
-      if (cell.projectile !== undefined) {
-        return projectileCell(cell.projectile, id, key);
-      }
-      if (cell.fluid !== undefined) {
-        return fluidCell(cell.fluid, id, key);
-      }
-      let style = {};
-      return [key, id, "", style];
-    }
-
-    //below functions return what is to be rendered in cell
-    function firstColumnCell(h, id, key) {
-      if (h === 0) {
-        let style = {
-          width: "50px",
-          position: "sticky",
-          boxShadow: "inset -1px 0px 0px #404040, inset 0px -2px 0px #404040",
-        };
-        return [key, id, "", style];
-      } else {
-        let style = {
-          textAlign: "center",
-          width: "50px",
-          boxShadow: "inset -1px 0px 0px #404040",
-          color: "#404040",
-        };
-        return [key, id, h + " ", style];
+        return true;
       }
     }
 
-    function firstRowCell(w, id, key) {
-      let style = {
-        textAlign: "center",
-        color: "#404040",
-        position: "sticky",
-        boxShadow: "inset 0px -2px 0px #404040",
-      };
-      return [key, id, toLetter(w - 1) + " ", style];
-    }
-
-    function groundCell(ground, id, key) {
-      groundLine(ground);
-      healthBar(ground);
-      let style = {
-        boxShadow: ground.style.boxShadow,
-        backgroundColor: ground.style.backgroundColor,
-      };
-      return [key, id, ground.type + " (hp: " + ground.hp + ")", style];
-    }
-
-    function fluidCell(fluid, id, key) {
-      if (terrainIsFalling.current) {
-        fluidLine(fluid);
-      }
-      let style = {
-        boxShadow: fluid.style.boxShadow,
-      };
-      style.fontStyle = "italic";
-      return [key, id, fluid.type, style];
-    }
-
-    function effectCell(effect, id, key) {
-      let style = {
-        backgroundColor: effect.style.backgroundColor,
-        color: effect.style.color,
-      };
-      return [key, id, effect.symbol, style];
-    }
-
-    function entityCell(entity, id, key) {
-      attackBar(entity);
-      healthBar(entity);
-      let style = {
-        boxShadow: entity.style.boxShadow,
-      };
-      let cellText = entity.type + entity.lvl + " (hp: " + entity.hp + ")";
-      if (entity.enemy === true) {
-        style.color = "darkRed";
-      } else {
-        style.color = "darkGreen";
-      }
-      if (entity.inLiquid) {
-        style.fontStyle = "italic";
-        inFluid(entity, style);
-      } else {
-        style.fontStyle = "normal";
-      }
-      return [key, id, cellText, style];
-    }
-
-    function projectileCell(projectile, id, key) {
-      if (
-        activeEntities.current.find((entity) =>
-          comparePosition(entity.position, projectile.position)
-        ) === undefined
-      ) {
-        let style = {};
-        inFluid(projectile, style);
-
-        return [key, id, projectile.symbol, style];
-      }
-    }
-
-    function inFluid(entity, style) {
-      let cellAbove = cellContents(
-        [entity.position[0], entity.position[1] - 1],
-        activeHolder.current
-      );
-      let cellLeft = cellContents(
-        [entity.position[0] - 1, entity.position[1]],
-        activeHolder.current
-      );
-      let cellRight = cellContents(
-        [entity.position[0] + 1, entity.position[1]],
-        activeHolder.current
-      );
-      if (cellAbove.fluid === undefined) {
-        style.boxShadow = style.boxShadow + ",inset 0px 1px 0px blue";
-      }
-      if (cellLeft.fluid === undefined && cellLeft.ground === undefined) {
-        style.boxShadow = style.boxShadow + ",inset 1px 0px 0px blue";
-      }
-      if (cellRight.fluid === undefined && cellRight.ground === undefined) {
-        style.boxShadow = style.boxShadow + ",inset -1px 0px 0px blue";
-      }
-      return style;
-    }
-  }
-
-  useEffect(() => {
-    function handleKeyPress(e) {
-      keyboardSelect(e);
-    }
-    function handleClick(e) {
-      clickSelect(e);
-    }
-    document.addEventListener("keydown", handleKeyPress);
-    document.addEventListener("click", handleClick);
-    return function cleanup() {
-      document.removeEventListener("click", handleClick);
-      document.removeEventListener("keydown", handleKeyPress);
-    };
-  }, []);
-
-  function clickSelect(e) {
-    if (e.target === selectedCell.current) {
-      e.target.readOnly = false;
-      cellTyping.current = true;
-    } else if (e.target.className === "boardCell") {
-      if (selectedCell.current !== undefined) {
-        selectedCell.current.readOnly = true;
-      }
-      selectedCell.current = e.target;
-      currentInput.current = "";
-    }
-  }
-  //gives the user input a spreadsheet like experience
-  function keyboardSelect(e) {
-    if (selectedCell.current === undefined) {
-      return;
-    }
-    let position = selectedCell.current.id.split("x");
-    position[0] = parseInt(position[0]);
-    position[1] = parseInt(position[1]);
-    let newPosition = keyPosition(e.key, position, e);
-    if (!newPosition) {
-      return;
-    }
-    if (
-      newPosition === undefined ||
-      newPosition[0] === 0 ||
-      newPosition[0] > gameboardWidth.current ||
-      newPosition[1] === 0 ||
-      newPosition[1] > gameboardHeight.current
-    ) {
-      return;
-    }
-    selectedCell.current.readOnly = true;
-    let newID = newPosition[0] + "x" + newPosition[1];
-    selectedCell.current = document.getElementById(newID);
-    selectedCell.current.focus();
-    function keyPosition(keyPressed, position, e) {
-      if (keyPressed === "ArrowUp") {
-        if (cellTyping.current) {
-          return;
-        }
-        e.preventDefault();
-        cellTyping.current = false;
-        return [position[0], position[1] - 1];
-      }
-      if (keyPressed === "ArrowDown") {
-        if (cellTyping.current) {
-          return;
-        }
-        e.preventDefault();
-        cellTyping.current = false;
-        return [position[0], position[1] + 1];
-      }
-      if (keyPressed === "ArrowLeft") {
-        if (cellTyping.current) {
-          return;
-        }
-        e.preventDefault();
-        cellTyping.current = false;
-        return [position[0] - 1, position[1]];
-      }
-      if (keyPressed === "ArrowRight") {
-        if (cellTyping.current) {
-          return;
-        }
-        e.preventDefault();
-        cellTyping.current = false;
-        return [position[0] + 1, position[1]];
-      }
-      if (keyPressed === "Enter") {
-        if (cellTyping.current) {
-          cellTyping.current = false;
-          friendlyInput(position);
-          currentInput.current = "";
-          return [position[0], position[1] + 1];
-        }
-        if (typingChecker(position)) {
-          selectedCell.current.readOnly = false;
-          cellTyping.current = true;
-          return;
-        }
-        return;
-      }
-      if (keyPressed === "Tab") {
-        e.preventDefault();
-        cellTyping.current = false;
-        friendlyInput(position);
-        currentInput.current = "";
-        return [position[0] + 1, position[1]];
-      }
-      if (keyPressed.length === 1 || keyPressed === "space") {
-        if (typingChecker(position)) {
-          cellTyping.current = true;
-          selectedCell.current.readOnly = false;
-          if (keyPressed === "space") {
-            currentInput.current += " ";
+    //checks if game is allowed to spawn on current turn
+    function spawnChecker(enemy) {
+      if (enemy) {
+        if (enemySpawnCount.current <= totalSpawns.current) {
+          lastEnemySpawnTime.current++;
+          if (lastEnemySpawnTime.current > spawnTime()) {
+            entitySpawner(spawnType(), enemy);
+            enemySpawnCount.current++;
+            lastEnemySpawnTime.current = 0;
           }
-          currentInput.current += keyPressed;
-          updateGameboardEntities();
-        } else e.preventDefault();
+        }
+      } else if (!enemy) {
+        lastFriendlySpawnTime.current++;
+        if (lastFriendlySpawnTime.current > spawnTime()) {
+          entitySpawner(spawnType(), enemy);
+          friendlySpawnCount.current++;
+          lastFriendlySpawnTime.current = 0;
+        }
       }
-      if (keyPressed === "Backspace") {
-        currentInput.current = currentInput.current.slice(0, -1);
-        updateGameboardEntities();
-      } else return false;
+    }
+
+    //sets how long until next unit spawns
+    function spawnTime() {
+      let baseline = 80;
+      let actual =
+        (baseline + 80 * Math.random()) / spawnSpeed.current / gameSpeed.current;
+      return actual;
+    }
+
+    //determines what entity will spawn based on weighted chance
+    function spawnType() {
+      let entitiesEnemy = Object.entries(entityList)
+        .filter((entity) => entity[1].enemy)
+        .map((entity) => entity[1]);
+      let parsedEntities = [];
+      entitiesEnemy.forEach((entity) => {
+        Object.entries(entity.lvls).forEach((level) => {
+          if (level[1].chance !== undefined) {
+            parsedEntities.push([entity.type, level[1].lvl, level[1].chance]);
+          }
+        });
+      });
+      let totalWeight = 0;
+      parsedEntities.forEach((entity) => {
+        totalWeight = totalWeight + entity[2];
+      });
+      let weightedChance = totalWeight * Math.random();
+      let chancePosition = 0;
+      parsedEntities.forEach((entity) => {
+        entity[2] = entity[2] + chancePosition;
+        chancePosition = entity[2];
+      });
+      let closestChance = Infinity;
+      let chosenEntity;
+      parsedEntities.forEach((entity) => {
+        let entityChance = entity[2] - weightedChance;
+        if (entityChance > 0 && entityChance < closestChance) {
+          closestChance = entityChance;
+          chosenEntity = entity;
+        }
+      });
+      return chosenEntity;
+    }
+
+    //spawns chosen entity
+    function entitySpawner(entity, enemy) {
+      let entityType = entityList[entity[0]];
+      let entityLvl = entityType.lvls["lvl" + entity[1]];
+      let position = spawnPositionFinder(enemy);
+      let entityID = entity[0];
+      if (enemy) {
+        entityID += enemySpawnCount;
+      } else entityID += friendlySpawnCount;
+      entityID = new Entity(entityType, entityLvl, position, entityID);
+      if (!enemy) {
+        entityID.enemy = false;
+      }
+      activeEntities.current.push(entityID);
+    }
+
+    //finds the position above the highest entity in the final column
+    function spawnPositionFinder(enemy) {
+      let baselinePosition;
+      if (enemy) {
+        baselinePosition = [gameboardWidth.current, gameboardHeight.current];
+      } else if (!enemy) {
+        baselinePosition = [1, gameboardHeight.current];
+      }
+      let spawnPosition = baselinePosition;
+      let endEntities = activeEntities.current.filter(
+        (entity) => entity.position[0] === baselinePosition[0]
+      );
+      endEntities.forEach((entity) => {
+        if (entity.position[1] <= spawnPosition[1]) {
+          spawnPosition = [entity.position[0], entity.position[1] - 1];
+        }
+      });
+      if (!comparePosition(spawnPosition, baselinePosition)) {
+        return spawnPosition;
+      }
+      let endGrounds = activeGround.current.filter(
+        (ground) => ground.position[0] === baselinePosition[0]
+      );
+      endGrounds.forEach((ground) => {
+        if (ground.position[1] <= spawnPosition[1]) {
+          spawnPosition = [ground.position[0], ground.position[1] - 1];
+        }
+      });
+      return spawnPosition;
     }
   }
 
-  //makes a list of purchasble entities
-  function Purchasables() {
-    let entityArray = Object.values(entityList);
-    let friendlyEntityArray = entityArray.filter((entity) => !entity.enemy);
-    //removes king from array
-    friendlyEntityArray.pop();
-    let parsedFriendlyEntityArray = [
-      [
-        [gameboardHeight.current + 1 + " "],
-        ["Purchasable entities:"],
-        [""],
-        [""],
-        [""],
-        [""],
-        [""],
-        [""],
-      ],
-      [
-        [gameboardHeight.current + 2 + " "],
-        ["Name"],
-        ["Level"],
-        ["Cost"],
-        ["HP"],
-        ["Damage"],
-        ["Range"],
-        ["Rate"],
-      ],
-    ];
-    let headerNumber = gameboardHeight.current + 3;
-    friendlyEntityArray.forEach((entity) => {
-      let lvls = Object.values(entity.lvls);
-      lvls.forEach((lvl) => {
-        let name = "";
-        if (lvl.lvl === 1) {
-          name = entity.type;
-        }
-        let thisLevel = [
-          [headerNumber + " "],
-          [name],
-          [lvl.lvl],
-          [lvl.value],
-          [lvl.hp],
-          [lvl.dmg],
-          [lvl.range],
-          [lvl.rate],
-        ];
-        parsedFriendlyEntityArray.push(thisLevel);
-        headerNumber++;
-      });
+  function ghoster() {
+    activeEntities.current.forEach((entity) => {
+      entity.fallSpeed = 0;
+      entity.ghost = true;
     });
-    let cellCount = 0;
-    let style = {};
-    parsedFriendlyEntityArray.forEach((row) => {
-      row.forEach((cell) => {
-        cell.push(cellCount + "purchasable");
-        cellCount++;
-      });
+    activeGround.current.forEach((ground) => {
+      ground.fallSpeed = 0;
+      ground.ghost = true;
     });
-    parsedFriendlyEntityArray.forEach((row) => {
-      style = {
-        textAlign: "center",
-        width: "50px",
-        boxShadow: "inset -1px 0px 0px #404040",
-        color: "#404040",
-      };
-      row[0].push(style);
+    activeFluid.current.forEach((fluid) => {
+      fluid.ghost = true;
     });
-    parsedFriendlyEntityArray[0].forEach((cell) => {
-      if (cell[0] !== gameboardHeight.current + 1 + " ") {
-        style = {
-          boxShadow: "inset 0px -2px 0px 0px black",
-        };
-        cell.push(style);
-      }
+    activeProjectiles.current.forEach((projectile) => {
+      activeProjectiles.current.splice(activeProjectiles.current.indexOf(projectile), 1);
     });
-    return (
-      <table id="purchasables">
-        <tbody>
-          {parsedFriendlyEntityArray.map((row) => {
-            return (
-              <tr className="purchasableRow" key={row}>
-                {row.map((position) => {
-                  return (
-                    <td key={position[1]}>
-                      <input
-                        id={position[1]}
-                        className="purchasableCell"
-                        type="text"
-                        defaultValue={position[0]}
-                        style={position[2]}
-                        readOnly
-                      ></input>
-                    </td>
-                  );
-                })}
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    );
   }
 
-  function newButton() {
-    clearInterval(timer.current);
-    enemyGraveyard.current = [];
-    friendlyGraveyard.current = [];
-    groundGraveyard.current = [];
-    fluidGraveyard.current = [];
-    enemySpawnCount.current = 0;
-    friendlySpawnCount.current = 0;
-    lastEnemySpawnTime.current = 0;
-    lastFriendlySpawnTime.current = 0;
-    engine(false, true);
+  if (newRound) {
+    ghoster();
+    terrainMaker();
+    if (gameMode.current === "king") {
+      let entityType = entityList["king"];
+      let entityID = "king";
+      entityID += friendlySpawnCount;
+      entityID = new Entity(
+        entityType,
+        entityType.lvls["lvl1"],
+        [1, -groundLevel.current],
+        entityID
+      );
+      activeEntities.current.push(entityID);
+    }
   }
-
-  function updateGameboardWidth(e) {
-    gameboardWidth.current = parseInt(e.target.value);
-    updateGameboardEntities();
-  }
-  function updateGameboardHeight(e) {
-    gameboardHeight.current = parseInt(e.target.value);
-    updateGameboardEntities();
-  }
-  function updateGroundHeight(e) {
-    groundLevel.current = parseInt(e.target.value);
-    updateGameboardEntities();
-  }
-  function updateWaterLevel(e) {
-    waterLevel.current = parseInt(e.target.value);
-    updateGameboardEntities();
-  }
-  function updateGroundRoughness(e) {
-    groundRoughness.current = parseFloat(e.target.value);
-    updateGameboardEntities();
-  }
-  function updateGameSpeed(e) {
-    gameSpeed.current = parseFloat(e.target.value);
-    updateGameboardEntities();
-  }
-  function updateRenderSpeed(e) {
-    renderSpeed.current = parseFloat(e.target.value);
-    updateGameboardEntities();
-  }
-  function updateTotalSpawns(e) {
-    totalSpawns.current = parseInt(e.target.value);
-    updateGameboardEntities();
-  }
-  function updateSpawnSpeed(e) {
-    spawnSpeed.current = parseFloat(e.target.value);
-    updateGameboardEntities();
-  }
-  function updateKingHP(e) {
-    kingHP.current = parseInt(e.target.value);
-    entityList.king.lvls.lvl1.hp = kingHP.current + 1;
-    updateGameboardEntities();
-  }
-  function updateGameMode(e) {
-    gameMode.current = e.target.value;
-    updateGameboardEntities();
-  }
-
-  function toggleSettings() {
-    if (settingsState === "flex") {
-      setSettingsState("none");
-    } else setSettingsState("flex");
-  }
-
-  //renders the gameboard once on page load
-  useEffect(() => {
-    gameMode.current = "sandbox";
-    engine(false, true);
-  }, []);
-
-  return (
-    <>
-      <div id="above">
-        <div id="stats">
-          <p className="statTitle" id="firstStat"></p>
-          <p className="statTitle">Money:</p>
-          <p className="stat">{bank}</p>
-
-          <p className="statTitle">Friendly deaths: </p>
-          <p className="stat">{friendlyGraveyard.current.length}</p>
-
-          <p className="statTitle">Enemy deaths: </p>
-          <p className="stat">{enemyGraveyard.current.length}</p>
-
-          <p className="statTitle">Terrain destroyed: </p>
-          <p className="stat">{groundGraveyard.current.length}</p>
-
-          <p className="statTitle">Enemies remaining: </p>
-          <p className="stat">
-            {totalSpawns.current - enemySpawnCount.current}/{totalSpawns.current}
-          </p>
-          <button className="statTitle" id="settingsButton" onClick={toggleSettings}>
-            Settings/Entities &nbsp;
-          </button>
-        </div>
-        <table id="gameboard">
-          <tbody>
-            {gameboardEntities.map((row) => {
-              return (
-                <tr className="boardRow" key={row[0][0].split("x")[1]}>
-                  {row.map((position) => {
-                    return (
-                      <td key={position[0]} id={position[1] + "xtd"}>
-                        <input
-                          className="boardCell"
-                          type="text"
-                          style={position[3]}
-                          id={position[1]}
-                          value={position[2]}
-                          readOnly={true}
-                        ></input>
-                      </td>
-                    );
-                  })}
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-      <div id="below" style={{ display: settingsState }}>
-        <Purchasables></Purchasables>
-        <div id="settings">
-          <div
-            className="settingHolder"
-            style={{ display: "flex", alignItems: "center" }}
-          >
-            <p
-              className="settingTitle"
-              style={{ boxShadow: "inset 0px -2px 0px 0px black" }}
-            >
-              Settings:
-            </p>
-            <input
-              id="settingTitle"
-              style={{ boxShadow: "inset 0px -2px 0px 0px black" }}
-            ></input>
-          </div>
-          <div className="settingHolder">
-            <p className="settingTitle">Gameboard width:</p>
-            <div>
-              <p>{gameboardWidth.current}</p>
-              <input
-                id="boardWidth"
-                className="settingSlider"
-                type="range"
-                min="2"
-                max="80"
-                value={gameboardWidth.current}
-                onChange={updateGameboardWidth}
-              ></input>
-            </div>
-          </div>
-          <div className="settingHolder">
-            <p className="settingTitle">Gameboard height:</p>
-            <div>
-              <p>{gameboardHeight.current}</p>
-              <input
-                id="boardHeight"
-                className="settingSlider"
-                type="range"
-                min="1"
-                max="50"
-                value={gameboardHeight.current}
-                onChange={updateGameboardHeight}
-              ></input>
-            </div>
-          </div>
-          <div className="settingHolder">
-            <p className="settingTitle">Ground height:</p>
-            <div>
-              <p>{groundLevel.current}</p>
-              <input
-                id="groundLevel.current"
-                className="settingSlider"
-                type="range"
-                min="0"
-                max={gameboardHeight.current}
-                value={groundLevel.current}
-                onChange={updateGroundHeight}
-              ></input>
-            </div>
-          </div>{" "}
-          <div className="settingHolder">
-            <p className="settingTitle">Water level:</p>
-            <div>
-              <p>{waterLevel.current}</p>
-              <input
-                id="waterLevel.current"
-                className="settingSlider"
-                type="range"
-                min="0"
-                max={gameboardHeight.current}
-                value={waterLevel.current}
-                onChange={updateWaterLevel}
-              ></input>
-            </div>
-          </div>
-          <div className="settingHolder">
-            <p className="settingTitle">Ground roughness:</p>
-            <div>
-              <p>{groundRoughness.current}</p>
-              <input
-                id="groundRoughness.current"
-                className="settingSlider"
-                type="range"
-                min="0"
-                max="10"
-                value={groundRoughness.current}
-                onChange={updateGroundRoughness}
-              ></input>
-            </div>
-          </div>
-          <div className="settingHolder">
-            <p className="settingTitle">Game speed:</p>
-            <div>
-              <p>{gameSpeed.current}</p>
-              <input
-                id="gameSpeed.current"
-                className="settingSlider"
-                type="range"
-                min="1"
-                max="100"
-                value={gameSpeed.current}
-                onChange={updateGameSpeed}
-              ></input>
-            </div>
-          </div>
-          <div className="settingHolder">
-            <p className="settingTitle">Render speed:</p>
-            <div>
-              <p>{renderSpeed.current}</p>
-              <input
-                id="renderSpeed.current"
-                className="settingSlider"
-                type="range"
-                min="1"
-                max="10"
-                value={renderSpeed.current}
-                onChange={updateRenderSpeed}
-              ></input>
-            </div>
-          </div>
-          <div className="settingHolder">
-            <p className="settingTitle">Total spawns:</p>
-            <div>
-              <p>{totalSpawns.current}</p>
-              <input
-                id="totalSpawns.current"
-                className="settingSlider"
-                type="range"
-                min="1"
-                max="300"
-                value={totalSpawns.current}
-                onChange={updateTotalSpawns}
-              ></input>
-            </div>
-          </div>
-          <div className="settingHolder">
-            <p className="settingTitle">Spawn speed:</p>
-            <div>
-              <p>{spawnSpeed.current}</p>
-              <input
-                id="spawnSpeed.current"
-                className="settingSlider"
-                type="range"
-                min="1"
-                max="100"
-                value={spawnSpeed.current}
-                onChange={updateSpawnSpeed}
-              ></input>
-            </div>
-          </div>
-          <div className="settingHolder">
-            <p className="settingTitle">King HP:</p>
-            <div>
-              <p>{kingHP.current}</p>
-              <input
-                id="kingHP.current"
-                className="settingSlider"
-                type="range"
-                min="10"
-                max="10000"
-                value={kingHP.current}
-                onChange={updateKingHP}
-              ></input>
-            </div>
-          </div>
-          <div
-            className="settingHolder"
-            style={{ display: "flex", alignItems: "center" }}
-          >
-            <p className="settingTitle">Gamemode:</p>
-            <select
-              id="gamemode.currentSelect"
-              defaultValue={gameMode.current}
-              onChange={updateGameMode}
-            >
-              <option value="king">king</option>
-              <option value="battle">battle</option>
-              <option value="sandbox">sandbox</option>
-            </select>
-          </div>
-        </div>
-      </div>
-      <button id="newButton" onClick={newButton}>
-        New Round
-      </button>
-    </>
-  );
+  amountOfTurns(false);
 }

@@ -1,4 +1,4 @@
-import EngineOutput from "./Game Logic/Engine.jsx";
+import EngineOutput from "./Game Logic/Render.jsx";
 import "./App.css";
 function App() {
 return EngineOutput();
