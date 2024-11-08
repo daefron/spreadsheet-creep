@@ -27,7 +27,8 @@ export default function engineOutput() {
   const friendlySpawnCount = useRef(0);
   const lastEnemySpawnTime = useRef(0);
   const lastFriendlySpawnTime = useRef(0);
-  const timer = useRef();
+  const gameTimer = useRef();
+  const renderTimer = useRef();
   const gameboardWidth = useRef(11);
   const gameboardHeight = useRef(33);
   const groundLevel = useRef(15);
@@ -67,7 +68,7 @@ export default function engineOutput() {
       friendlySpawnCount: friendlySpawnCount,
       lastEnemySpawnTime: lastEnemySpawnTime,
       lastFriendlySpawnTime: lastFriendlySpawnTime,
-      timer: timer,
+      timer: gameTimer,
       gameboardWidth: gameboardWidth,
       gameboardHeight: gameboardHeight,
       groundLevel: groundLevel,
@@ -502,7 +503,8 @@ export default function engineOutput() {
   }
 
   function newButton() {
-    clearInterval(timer.current);
+    clearInterval(renderTimer.current);
+    clearInterval(gameTimer.current);
     enemyGraveyard.current = [];
     friendlyGraveyard.current = [];
     groundGraveyard.current = [];
@@ -511,7 +513,7 @@ export default function engineOutput() {
     friendlySpawnCount.current = 0;
     lastEnemySpawnTime.current = 0;
     lastFriendlySpawnTime.current = 0;
-    timer.current = setInterval(() => {
+    renderTimer.current = setInterval(() => {
       updateGameboardEntities();
     }, renderSpeed.current * 4);
     engine(false, true, gameStatePacker());
