@@ -309,27 +309,6 @@ export default function engineOutput() {
       return [key, id, toLetter(w - 1) + " ", style];
     }
 
-    function groundCell(ground, id, key) {
-      groundLine(ground);
-      healthBar(ground);
-      let style = {
-        boxShadow: ground.style.boxShadow,
-        backgroundColor: ground.style.backgroundColor,
-      };
-      return [key, id, ground.type + " (hp: " + ground.hp + ")", style];
-    }
-
-    function fluidCell(fluid, id, key) {
-      if (terrainIsFalling.current) {
-        fluidLine(fluid);
-      }
-      let style = {
-        boxShadow: fluid.style.boxShadow,
-      };
-      style.fontStyle = "italic";
-      return [key, id, fluid.type, style];
-    }
-
     function effectCell(effect, id, key) {
       let style = {
         backgroundColor: effect.style.backgroundColor,
@@ -359,6 +338,16 @@ export default function engineOutput() {
       return [key, id, cellText, style];
     }
 
+    function groundCell(ground, id, key) {
+      groundLine(ground);
+      healthBar(ground);
+      let style = {
+        boxShadow: ground.style.boxShadow,
+        backgroundColor: ground.style.backgroundColor,
+      };
+      return [key, id, ground.type + " (hp: " + ground.hp + ")", style];
+    }
+
     function projectileCell(projectile, id, key) {
       if (
         activeEntities.current.find((entity) =>
@@ -370,6 +359,17 @@ export default function engineOutput() {
 
         return [key, id, projectile.symbol, style];
       }
+    }
+
+    function fluidCell(fluid, id, key) {
+      if (terrainIsFalling.current) {
+        fluidLine(fluid);
+      }
+      let style = {
+        boxShadow: fluid.style.boxShadow,
+      };
+      style.fontStyle = "italic";
+      return [key, id, fluid.type, style];
     }
 
     function inFluid(entity, style) {
@@ -511,10 +511,10 @@ export default function engineOutput() {
     friendlySpawnCount.current = 0;
     lastEnemySpawnTime.current = 0;
     lastFriendlySpawnTime.current = 0;
-    engine(false, true, gameStatePacker());
     timer.current = setInterval(() => {
       updateGameboardEntities();
     }, renderSpeed.current * 4);
+    engine(false, true, gameStatePacker());
   }
 
   function updateGameboardWidth(e) {
