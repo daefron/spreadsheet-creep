@@ -21,10 +21,13 @@ export class Entity {
     this.breathes = type.breathes;
     this.projectile = type.projectile;
     this.style = type.style;
-    this.explosionDmg = lvl.explosionDmg;
-    this.explosionRange = lvl.explosionRange;
     this.death = type.death;
     this.spawnType = type.spawnType;
+    if (type.death === "explodes") {
+      this.explosionDmg = lvl.explosionDmg;
+      this.explosionRange = lvl.explosionRange;
+      this.armed = true;
+    }
   }
 }
 
