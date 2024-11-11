@@ -224,7 +224,7 @@ export function engine(newRound, gameState) {
         currentEntity.oxygen--;
         if (currentEntity.oxygen === 0) {
           currentEntity.hp--;
-          if (currentEntity.hp === 0) {
+          if (currentEntity.hp >= 0) {
             entityKiller(currentEntity);
           }
           currentEntity.oxygen = 50;
