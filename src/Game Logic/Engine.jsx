@@ -127,7 +127,6 @@ export function engine(newRound, gameState) {
         spawn(entity);
       }
     }
-    console.log(entity.class);
     if (entity.class === "entity") {
       if (entity.enemy) {
         enemyGraveyard.current.push(

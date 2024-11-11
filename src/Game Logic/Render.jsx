@@ -30,7 +30,7 @@ export default function engineOutput() {
   const gameTimer = useRef();
   const renderTimer = useRef();
   const gameboardWidth = useRef(11);
-  const gameboardHeight = useRef(33);
+  const gameboardHeight = useRef(32);
   const groundLevel = useRef(15);
   const groundRoughness = useRef(5);
   const waterLevel = useRef(1);
@@ -245,15 +245,15 @@ export default function engineOutput() {
 
   function healthBar(currentEntity) {
     let percentage;
-    if (currentEntity.constructor.name === "Entity") {
+    if (currentEntity.class === "entity") {
       percentage =
         currentEntity.hp /
         entityList[currentEntity.type].lvls["lvl" + currentEntity.lvl].hp;
-    } else if (currentEntity.constructor.name === "Ground") {
+    } else if (currentEntity.class === "ground") {
       percentage = currentEntity.hp / groundList[currentEntity.type].hp;
     }
     let color = "rgb(200 200 200 /" + (1 - percentage) + ")";
-    if (currentEntity.constructor.name === "Ground") {
+    if (currentEntity.class === "ground") {
       if (currentEntity.style.boxShadow === "") {
         currentEntity.style.boxShadow = "inset 157px 21px 0px 0px " + color;
         return;
