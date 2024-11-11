@@ -160,21 +160,22 @@ export function engine(newRound, gameState) {
   }
   //tells entities what to do on their turn
   function entityTurn(currentEntity) {
+    currentEntity.turn = false;
     healthChecker(currentEntity);
     liquidChecker(currentEntity);
     if (entityBoundaryHandler(currentEntity)) {
       return;
     }
-    if (entityFall(currentEntity)) {
+    if (entityFall(currentEntity) && !currentEntity.turn) {
       return;
     }
-    if (entityAttack(currentEntity)) {
+    if (entityAttack(currentEntity) && !currentEntity.turn) {
       return;
     }
-    if (entityMovement(currentEntity)) {
+    if (entityMovement(currentEntity) && !currentEntity.turn) {
       return;
     }
-    if (entityAttackGroundHandler(currentEntity)) {
+    if (entityAttackGroundHandler(currentEntity) && !currentEntity.turn) {
       return;
     }
 
@@ -183,9 +184,10 @@ export function engine(newRound, gameState) {
       let newPosition = [direction(currentEntity), currentEntity.position[1]];
       if (
         (newPosition[0] === 0 &&
-          currentEntity.speedCharge >= currentEntity.speed) ||
+          currentEntity.speedCharge >=
+            currentEntity.speed / gameSpeed.current) ||
         (newPosition[0] === gameboardWidth.current + 1 &&
-          currentEntity.speedCharge >= currentEntity.speed)
+          currentEntity.speedCharge >= currentEntity.speed / gameSpeed.current)
       ) {
         if (gameMode.current === "king") {
           let king = activeEntities.current.find(
@@ -213,29 +215,29 @@ export function engine(newRound, gameState) {
     if (liquidInPosition !== undefined) {
       if (!currentEntity.inLiquid) {
         currentEntity.inLiquid = true;
-        currentEntity.speed *= 2;
-        currentEntity.rate *= 2;
-        currentEntity.rateCharge *= 2;
-        currentEntity.fallSpeed *= 4;
+        currentEntity.speed *= 1.5;
+        currentEntity.rate *= 1.5;
+        currentEntity.rateCharge *= 1.5;
+        currentEntity.fallSpeed *= 8;
         if (currentEntity.breathes) {
-          currentEntity.oxygen = 300;
+          currentEntity.oxygen = 300 / gameSpeed.current;
         }
       } else {
         currentEntity.oxygen--;
         if (currentEntity.oxygen === 0) {
           currentEntity.hp--;
-          if (currentEntity.hp >= 0) {
+          if (currentEntity.hp <= 0) {
             entityKiller(currentEntity);
           }
-          currentEntity.oxygen = 50;
+          currentEntity.oxygen = 50 / gameSpeed.current;
         }
       }
     } else if (currentEntity.inLiquid) {
       currentEntity.inLiquid = false;
-      currentEntity.speed /= 2;
-      currentEntity.rate /= 2;
-      currentEntity.rateCharge /= 2;
-      currentEntity.fallSpeed /= 4;
+      currentEntity.speed /= 1.5;
+      currentEntity.rate /= 1.5;
+      currentEntity.rateCharge /= 1.5;
+      currentEntity.fallSpeed /= 8;
       currentEntity.oxygen = undefined;
     }
   }
@@ -283,12 +285,14 @@ export function engine(newRound, gameState) {
 
     //moves entities down if falling
     function entityFall(entity) {
-      if (entity.fallCharge < entity.fallSpeed) {
+      if (entity.fallCharge < entity.fallSpeed / gameSpeed.current) {
         entity.fallCharge++;
       } else {
         entity.fallCharge = 0;
+        currentEntity.idle = 0;
         entity.position = [entity.position[0], entity.position[1] + 1];
         entity.speedCharge = entity.speed / 2;
+        currentEntity.turn = true;
       }
     }
   }
@@ -336,7 +340,7 @@ export function engine(newRound, gameState) {
     //function to determine if entity can attack this turn
     function entityCanAttack(currentEntity, targetEntity) {
       if (
-        currentEntity.rateCharge >= currentEntity.rate &&
+        currentEntity.rateCharge >= currentEntity.rate / gameSpeed.current &&
         currentEntity.rate !== 0
       ) {
         if (targetEntity !== undefined) {
@@ -392,6 +396,8 @@ export function engine(newRound, gameState) {
       targetEntity.hp -= currentEntity.dmg;
       currentEntity.rateCharge = 0;
       currentEntity.speedCharge = 0;
+      currentEntity.idle = 0;
+      currentEntity.turn = true;
     }
   }
 
@@ -439,6 +445,8 @@ export function engine(newRound, gameState) {
     }
     currentEntity.rateCharge = 0;
     currentEntity.speedCharge = 0;
+    currentEntity.idle = 0;
+    currentEntity.turn = true;
   }
 
   //checks to see if any enemies exist
@@ -512,6 +520,7 @@ export function engine(newRound, gameState) {
           if (cellNextTo.ground !== undefined) {
             return climbSpotFree(positionNextTo);
           }
+          console.log("made it");
           return false;
 
           //checks if position to climb into is free
@@ -533,13 +542,15 @@ export function engine(newRound, gameState) {
           let positionAbove = [positionNextTo[0], positionNextTo[1] - 1];
           currentEntity.position = positionAbove;
           currentEntity.speedCharge = 0;
+          currentEntity.idle = 0;
+          currentEntity.turn = true;
         }
       }
 
       //holds functions for normal walking
       function walk(currentEntity, newPosition) {
         if (walkChecker(newPosition)) {
-          walk(currentEntity, newPosition);
+          walkMovement(currentEntity, newPosition);
           return true;
         }
 
@@ -555,9 +566,11 @@ export function engine(newRound, gameState) {
         }
 
         //makes entity walk
-        function walk(currentEntity, newPosition) {
+        function walkMovement(currentEntity, newPosition) {
           currentEntity.speedCharge = 0;
+          currentEntity.idle = 0;
           currentEntity.position = newPosition;
+          currentEntity.turn = true;
         }
       }
 
@@ -602,12 +615,14 @@ export function engine(newRound, gameState) {
           ) {
             currentEntity.position = cellAbove;
             currentEntity.speedCharge = 0;
+            currentEntity.idle = 0;
           }
           return true;
         } else {
           currentEntity.climbing = false;
           currentEntity.position = positionAboveNextTo;
           currentEntity.speedCharge = 0;
+          currentEntity.idle = 0;
           return false;
         }
       }
@@ -623,9 +638,14 @@ export function engine(newRound, gameState) {
 
     //checks if entity is allowed to attack adjacent ground
     function entityCanAttackGround(currentEntity) {
+      if (currentEntity.idle === undefined) {
+        currentEntity.idle = 0;
+      }
+      currentEntity.idle++;
       if (
         currentEntity.rateCharge >= currentEntity.rate &&
-        currentEntity.rate !== 0
+        currentEntity.rate !== 0 &&
+        currentEntity.idle >= 30
       ) {
         let targetCell = cellContents(
           [direction(currentEntity), currentEntity.position[1]],
