@@ -1,3 +1,4 @@
+import { cellContents, direction, comparePosition } from "./Tools.jsx";
 import EntityList from "./Lists/EntityList.jsx";
 import ProjectileList from "./Lists/ProjectileList.jsx";
 import GroundList from "./Lists/GroundList.jsx";
@@ -13,15 +14,14 @@ let projectileList = ProjectileList;
 let groundList = GroundList;
 let fluidList = FluidList;
 let effectList = EffectList;
-import { cellContents, direction, comparePosition } from "./Tools.jsx";
 
 export function engine(newRound, gameState) {
+  let active = gameState.active;
   let activeEntities = gameState.active.activeEntities;
   let activeProjectiles = gameState.active.activeProjectiles;
   let activeGround = gameState.active.activeGround;
   let activeFluid = gameState.active.activeFluid;
   let activeEffects = gameState.active.activeEffects;
-  let active = gameState.active;
   let friendlyGraveyard = gameState.graveyard.friendlyGraveyard;
   let enemyGraveyard = gameState.graveyard.enemyGraveyard;
   let groundGraveyard = gameState.graveyard.groundGraveyard;
@@ -1241,7 +1241,7 @@ export function engine(newRound, gameState) {
     if (gameMode.current === "king") {
       let entityType = entityList["king"];
       let entityID = "king";
-      entityID += friendlySpawnCount;
+      entityID += friendlySpawnCount.current;
       entityID = new Entity(
         entityType,
         entityType.lvls["lvl1"],
