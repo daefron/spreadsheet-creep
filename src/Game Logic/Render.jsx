@@ -377,6 +377,7 @@ export default function engineOutput() {
       let style = {
         boxShadow: ground.style.boxShadow,
         backgroundColor: ground.style.backgroundColor,
+        color: "black",
       };
       return [key, id, ground.type + " (hp: " + ground.hp + ")", style];
     }
@@ -400,8 +401,9 @@ export default function engineOutput() {
       }
       let style = {
         boxShadow: fluid.style.boxShadow,
+        fontStyle: "italic",
+        color: "black",
       };
-      style.fontStyle = "italic";
       return [key, id, fluid.type, style];
     }
 
@@ -633,6 +635,7 @@ export default function engineOutput() {
           <button
             className="statTitle"
             id="settingsButton"
+            style={{ color: "black" }}
             onClick={toggleSettings}
           >
             Settings/Entities &nbsp;
@@ -840,6 +843,7 @@ export default function engineOutput() {
               id="gamemode.currentSelect"
               defaultValue={gameMode.current}
               onChange={updateGameMode}
+              style={{ color: "black" }}
             >
               <option value="king">king</option>
               <option value="battle">battle</option>
@@ -848,7 +852,11 @@ export default function engineOutput() {
           </div>
         </div>
       </div>
-      <button id="newButton" onClick={newButton}>
+      <button
+        id="newButton"
+        onClick={newButton}
+        style={{ color: "black", backgroundColor: "white" }}
+      >
         New Round
       </button>
     </>
