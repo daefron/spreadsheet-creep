@@ -325,6 +325,7 @@ export function engine(newRound, gameState) {
     if (currentEntity.attack === "enemyExists") {
       if (enemyChecker()) {
         if (entityCanAttack(currentEntity, true)) {
+          console.log(currentEntity.rateCharge, currentEntity.rate);
           rangedAttack(currentEntity);
           return true;
         }
@@ -340,7 +341,7 @@ export function engine(newRound, gameState) {
     //function to determine if entity can attack this turn
     function entityCanAttack(currentEntity, targetEntity) {
       if (
-        currentEntity.rateCharge >= currentEntity.rate / gameSpeed.current &&
+        currentEntity.rateCharge >= currentEntity.rate &&
         currentEntity.rate !== 0
       ) {
         if (targetEntity !== undefined) {
