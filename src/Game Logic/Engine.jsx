@@ -123,10 +123,11 @@ export function engine(newRound, gameState) {
           explosion(entity);
         }
       }
+      if (entity.death === "spawn") {
+        spawn(entity);
+      }
     }
-    if (entity.death === "spawn") {
-      spawn(entity);
-    }
+    console.log(entity.constructor.name);
     if (entity.constructor.name === "Entity") {
       if (entity.enemy) {
         enemyGraveyard.current.push(
