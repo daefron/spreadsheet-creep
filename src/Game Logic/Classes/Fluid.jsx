@@ -2,6 +2,7 @@ class Fluid {
   constructor(type, position, ID) {
     this.name = ID;
     this.type = type.type;
+    this.class = type.class;
     this.position = position;
     this.fallSpeed = type.fallSpeed;
     this.fallCharge = 0;

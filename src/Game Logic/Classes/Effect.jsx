@@ -2,6 +2,7 @@ class Effect {
   constructor(type, position, ID) {
     this.name = ID;
     this.type = type.type;
+    this.class = type.class;
     this.position = position;
     this.symbol = type.symbol;
     this.duration = type.duration;

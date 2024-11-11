@@ -3,6 +3,7 @@ class Projectile {
   constructor(parent, name, type) {
     this.type = type.type;
     this.name = name;
+    this.class = type.class;
     this.parent = parent;
     this.enemy = parent.enemy;
     this.dmg = parent.dmg;

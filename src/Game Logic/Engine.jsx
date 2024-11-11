@@ -127,8 +127,8 @@ export function engine(newRound, gameState) {
         spawn(entity);
       }
     }
-    console.log(entity.constructor.name);
-    if (entity.constructor.name === "Entity") {
+    console.log(entity.class);
+    if (entity.class === "entity") {
       if (entity.enemy) {
         enemyGraveyard.current.push(
           activeEntities.current.splice(
@@ -144,15 +144,15 @@ export function engine(newRound, gameState) {
           )
         );
       }
-    } else if (entity.constructor.name === "Ground") {
+    } else if (entity.class === "ground") {
       groundGraveyard.current.push(
         activeGround.current.splice(activeGround.current.indexOf(entity), 1)
       );
-    } else if (entity.constructor.name === "Fluid") {
+    } else if (entity.class === "fluid") {
       fluidGraveyard.current.push(
         activeFluid.current.splice(activeFluid.current.indexOf(entity), 1)
       );
-    } else if (entity.constructor.name === "Projectile") {
+    } else if (entity.class === "projectile") {
       activeProjectiles.current.splice(
         activeProjectiles.current.indexOf(entity),
         1

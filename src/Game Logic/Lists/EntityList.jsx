@@ -1,6 +1,7 @@
 export default {
   goblin: {
     type: "goblin",
+    class: "entity",
     enemy: true,
     fallSpeed: 1,
     movement: "walker",
@@ -32,6 +33,7 @@ export default {
   },
   skeleton: {
     type: "skeleton",
+    class: "entity",
     enemy: true,
     movement: "walker",
     attack: "projectile",
@@ -63,6 +65,7 @@ export default {
   },
   spider: {
     type: "spider",
+    class: "entity",
     enemy: true,
     fallSpeed: 1,
     movement: "scaler",
@@ -84,6 +87,7 @@ export default {
   },
   bomber: {
     type: "bomber",
+    class: "entity",
     enemy: true,
     fallSpeed: 1,
     movement: "walker",
@@ -108,6 +112,7 @@ export default {
   },
   spawner: {
     type: "spawner",
+    class: "entity",
     enemy: true,
     fallSpeed: 1,
     movement: "walker",
@@ -131,6 +136,7 @@ export default {
   },
   bow: {
     type: "bow",
+    class: "entity",
     attack: "projectile",
     projectile: "arrow",
     fallSpeed: 1,
@@ -165,6 +171,7 @@ export default {
   },
   mage: {
     type: "mage",
+    class: "entity",
     fallSpeed: 1,
     breathes: true,
     attack: "enemyExists",
@@ -182,6 +189,7 @@ export default {
   },
   well: {
     type: "well",
+    class: "entity",
     fallSpeed: 1,
     attack: "automatic",
     projectile: "water",
@@ -197,6 +205,7 @@ export default {
   },
   dropper: {
     type: "dropper",
+    class: "entity",
     fallSpeed: 1,
     attack: "enemyExists",
     projectile: "barrel",
@@ -213,6 +222,7 @@ export default {
   },
   knight: {
     type: "knight",
+    class: "entity",
     attack: "melee",
     fallSpeed: 1,
     breathes: true,
@@ -246,6 +256,7 @@ export default {
   },
   wall: {
     type: "wall",
+    class: "entity",
     fallSpeed: 1,
     style: {},
     lvls: {
@@ -277,6 +288,7 @@ export default {
   },
   bomb: {
     type: "bomb",
+    class: "entity",
     fallSpeed: 1,
     death: "explodes",
     style: {},
@@ -309,6 +321,7 @@ export default {
   },
   king: {
     type: "king",
+    class: "entity",
     attack: "melee",
     fallSpeed: 0,
     breathes: true,

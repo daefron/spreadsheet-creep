@@ -1,6 +1,7 @@
 export default {
   arrow: {
     type: "arrow",
+    class: "projectile",
     friendlySymbol: ">-<>",
     enemySymbol: "<>-<",
     projectile: true,
@@ -9,6 +10,7 @@ export default {
   },
   missile: {
     type: "missile",
+    class: "projectile",
     upSymbol: "^^^",
     rightSymbol: ">>>",
     downSymbol: "vvv",
@@ -17,6 +19,7 @@ export default {
   },
   barrel: {
     type: "barrel",
+    class: "projectile",
     symbol: "(II)",
     projectile: true,
     speed: 10,

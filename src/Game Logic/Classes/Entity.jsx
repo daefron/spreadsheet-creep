@@ -2,6 +2,7 @@ export class Entity {
   constructor(type, lvl, position, ID) {
     this.name = ID;
     this.type = type.type;
+    this.class = type.class;
     this.position = position;
     this.lvl = lvl.lvl;
     this.hp = lvl.hp;
