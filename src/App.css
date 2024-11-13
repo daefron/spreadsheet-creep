@@ -1,7 +1,6 @@
 body {
   width: 100vw;
   height: 90vh;
-  color: black;
   background-color: #cacaca;
   margin: 20px;
   display: flex;
@@ -68,6 +67,10 @@ td {
 .purchasableRow {
   display: flex;
   justify-content: space-between;
+}
+input,
+p {
+  color: black;
 }
 input,
 select,
