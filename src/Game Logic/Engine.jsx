@@ -240,14 +240,35 @@ export function engine(newRound, gameState) {
         ) {
           currentEntity.hp--;
           inRight.entity.hp++;
-        } else if (
-          inLeft.entity !== undefined &&
-          inLeft.entity.type === currentEntity.type &&
-          inLeft.entity.hp < currentEntity.hp / 2
-        ) {
-          let hpDiff = parseInt((currentEntity.hp - inLeft.entity.hp) / 2);
+        }
+        leftOrDown();
+
+        function leftOrDown() {
+          let targets = [];
+          if (
+            inLeft.entity !== undefined &&
+            inLeft.entity.type === currentEntity.type
+          ) {
+            targets.push(inLeft.entity);
+          }
+          if (
+            inBelow.entity !== undefined &&
+            inBelow.entity.type === currentEntity.type
+          ) {
+            targets.push(inBelow.entity);
+          }
+          if (targets.length === 0) {
+            return;
+          }
+          let lowestHpEntity = { hp: Infinity };
+          targets.forEach((entity) => {
+            if (entity.hp < lowestHpEntity.hp) {
+              lowestHpEntity = entity;
+            }
+          });
+          let hpDiff = parseInt((currentEntity.hp - lowestHpEntity.hp) / 2);
           currentEntity.hp -= hpDiff;
-          inLeft.hp += hpDiff;
+          lowestHpEntity.hp += hpDiff;
         }
       }
 
@@ -393,10 +414,10 @@ export function engine(newRound, gameState) {
             enemySpawnCount.current += 2;
           }
           currentEntity.hp = 0;
-        } else if (gameMode.current === "blob") {
-          entityKiller(currentEntity);
-          blobAtEnd = true;
         }
+      } else if (gameMode.current === "blob" && newPosition[0] === 0) {
+        entityKiller(currentEntity);
+        blobAtEnd = true;
       }
     }
   }
@@ -1304,7 +1325,6 @@ export function engine(newRound, gameState) {
       });
     }
 
-    //checks to see if the king died
     function victoryChecker() {
       if (gameMode.current === "king") {
         let kingAlive =

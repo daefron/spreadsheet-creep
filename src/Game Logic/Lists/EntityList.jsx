@@ -348,7 +348,7 @@ export default {
       lvl1: {
         lvl: 1,
         hp: 1,
-        speed: 30,
+        speed: 60,
       },
     },
   },
