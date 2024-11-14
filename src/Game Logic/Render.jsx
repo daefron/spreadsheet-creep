@@ -328,7 +328,7 @@ export default function engineOutput() {
   function healthBar(currentEntity) {
     let percentage;
     if (currentEntity.type === "blob") {
-      percentage = 1 - currentEntity.hp / 5;
+      percentage = 1 - currentEntity.hp / 10;
     } else if (currentEntity.class === "entity") {
       percentage =
         currentEntity.hp /
@@ -339,9 +339,9 @@ export default function engineOutput() {
     let color;
     if (currentEntity.type === "blob") {
       if (currentEntity.enemy) {
-        color = "rgb(139 0 0 /" + (1 - percentage - 0.2) + ")";
+        color = "rgb(139 0 0 /" + (1 - percentage) + ")";
       } else {
-        color = "rgb(2 48 32 /" + (1 - percentage - 0.2) + ")";
+        color = "rgb(2 48 32 /" + (1 - percentage) + ")";
       }
     } else {
       color = "rgb(200 200 200 /" + (1 - percentage) + ")";
@@ -471,11 +471,10 @@ export default function engineOutput() {
 
     function entityCell(entity, id, key) {
       attackBar(entity);
-      healthBar(entity);
       if (entity.type === "blob") {
         blobLine(entity);
-        healthBar(entity);
       }
+      healthBar(entity);
       let style = {
         width: cellWidth.current + "px",
         height: cellHeight.current + "px",
