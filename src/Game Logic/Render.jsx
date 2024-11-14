@@ -332,7 +332,16 @@ export default function engineOutput() {
     } else if (currentEntity.class === "ground") {
       percentage = currentEntity.hp / groundList[currentEntity.type].hp;
     }
-    let color = "rgb(200 200 200 /" + (1 - percentage) + ")";
+    let color;
+    if (currentEntity.type === "blob") {
+      if (currentEntity.enemy) {
+        color = "rgb(139 0 0 /" + (1 - percentage - 0.2) + ")";
+      } else {
+        color = "rgb(2 48 32 /" + (1 - percentage - 0.2) + ")";
+      }
+    } else {
+      color = "rgb(200 200 200 /" + (1 - percentage) + ")";
+    }
     if (currentEntity.class === "ground" || currentEntity.type === "blob") {
       if (currentEntity.style.boxShadow === "") {
         currentEntity.style.boxShadow = "inset 157px 21px 0px 0px " + color;
