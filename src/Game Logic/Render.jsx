@@ -323,7 +323,9 @@ export default function engineOutput() {
 
   function healthBar(currentEntity) {
     let percentage;
-    if (currentEntity.class === "entity") {
+    if (currentEntity.type === "blob") {
+      percentage = 1 - currentEntity.hp / 5;
+    } else if (currentEntity.class === "entity") {
       percentage =
         currentEntity.hp /
         entityList[currentEntity.type].lvls["lvl" + currentEntity.lvl].hp;
@@ -331,7 +333,7 @@ export default function engineOutput() {
       percentage = currentEntity.hp / groundList[currentEntity.type].hp;
     }
     let color = "rgb(200 200 200 /" + (1 - percentage) + ")";
-    if (currentEntity.class === "ground") {
+    if (currentEntity.class === "ground" || currentEntity.type === "blob") {
       if (currentEntity.style.boxShadow === "") {
         currentEntity.style.boxShadow = "inset 157px 21px 0px 0px " + color;
         return;
@@ -448,6 +450,7 @@ export default function engineOutput() {
       healthBar(entity);
       if (entity.type === "blob") {
         blobLine(entity);
+        healthBar(entity);
       }
       let style = {
         width: cellWidth.current + "px",
