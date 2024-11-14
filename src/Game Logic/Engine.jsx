@@ -203,7 +203,7 @@ export function engine(newRound, gameState) {
       if (blobBelow()) {
         return;
       }
-      if (currentEntity.hp < 4) {
+      if (currentEntity.hp < 3) {
         return;
       }
       if (blobSide()) {
@@ -233,6 +233,21 @@ export function engine(newRound, gameState) {
         ) {
           currentEntity.hp--;
           inBelow.entity.hp++;
+        } else if (
+          inRight.entity !== undefined &&
+          inRight.entity.type === currentEntity.type &&
+          inRight.entity.hp < currentEntity.hp
+        ) {
+          currentEntity.hp--;
+          inRight.entity.hp++;
+        } else if (
+          inLeft.entity !== undefined &&
+          inLeft.entity.type === currentEntity.type &&
+          inLeft.entity.hp < currentEntity.hp / 2
+        ) {
+          let hpDiff = parseInt((currentEntity.hp - inLeft.entity.hp) / 2);
+          currentEntity.hp -= hpDiff;
+          inLeft.hp += hpDiff;
         }
       }
 
@@ -286,7 +301,7 @@ export function engine(newRound, gameState) {
         let newPosition = blobDirection();
         if (newPosition !== undefined) {
           let inNewPosition = cellContents(newPosition, active);
-          if (Math.random() < 0.5) {
+          if (Math.random() < 0.7) {
             return;
           }
           if (newBlobChecker(inNewPosition, newPosition)) {
@@ -295,39 +310,36 @@ export function engine(newRound, gameState) {
         }
 
         function blobDirection() {
-          let leftFree, rightFree, direction, newPosition;
-          if (inLeft.ground === undefined || inLeft.entity === undefined) {
-            leftFree = true;
-          }
-          if (inRight.ground === undefined || inRight.entity === undefined) {
-            rightFree = true;
-          }
+          let leftFree =
+            inLeft.ground === undefined || inLeft.entity === undefined;
+          let rightFree =
+            inRight.ground === undefined || inRight.entity === undefined;
           if (positionRight[0] > gameboardWidth.current) {
             rightFree = false;
           }
-          if (Math.random() > 0.5) {
-            direction = "left";
-          } else direction = "right";
-          if (direction === "left") {
+          let direction = Math.random() > 0.5;
+          if (direction) {
             if (leftFree) {
-              newPosition = positionLeft;
+              return positionLeft;
             } else if (rightFree) {
-              newPosition = positionRight;
+              return positionRight;
             }
           } else {
             if (rightFree) {
-              newPosition = positionRight;
+              return positionRight;
             } else if (rightFree) {
-              newPosition = positionLeft;
+              return positionLeft;
             }
           }
-          return newPosition;
         }
       }
 
       function blobAbove() {
-        if (currentEntity.hp > 1) {
+        if (currentEntity.hp > 2) {
           if (Math.random() < 0.2) {
+            return;
+          }
+          if (positionAbove[1] === 0) {
             return;
           }
           if (newBlobChecker(inAbove, positionAbove)) {
@@ -347,7 +359,7 @@ export function engine(newRound, gameState) {
       }
 
       function newBlob(position) {
-        currentEntity.hp -= 3;
+        currentEntity.hp -= 2;
         let entityType = entityList["blob"];
         let entityLvl = entityType.lvls["lvl" + 1];
         let entityID = "blob" + enemySpawnCount.current;
