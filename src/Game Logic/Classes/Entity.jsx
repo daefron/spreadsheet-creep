@@ -28,6 +28,7 @@ export class Entity {
       this.explosionRange = lvl.explosionRange;
       this.armed = true;
     }
+    this.sponge = type.sponge;
   }
 }
 

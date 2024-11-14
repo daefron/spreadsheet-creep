@@ -337,4 +337,19 @@ export default {
       },
     },
   },
+  blob: {
+    type: "blob",
+    class: "entity",
+    enemy: true,
+    sponge: true,
+    attack: "blob",
+    style: {},
+    lvls: {
+      lvl1: {
+        lvl: 1,
+        hp: 10,
+        speed: 100,
+      },
+    },
+  },
 };

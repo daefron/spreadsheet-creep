@@ -39,7 +39,7 @@ export default function engineOutput() {
   const totalSpawns = useRef(30);
   const spawnSpeed = useRef(1);
   const kingHP = useRef(20);
-  const gameMode = useRef("king");
+  const gameMode = useRef("blob");
   const friendlyCount = useRef(1);
   const terrainIsFalling = useRef(false);
   const projectileCount = useRef(0);
@@ -847,6 +847,7 @@ export default function engineOutput() {
             >
               <option value="king">king</option>
               <option value="battle">battle</option>
+              <option value="blob">blob</option>
               <option value="sandbox">sandbox</option>
             </select>
           </div>
