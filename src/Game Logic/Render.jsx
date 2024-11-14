@@ -229,6 +229,79 @@ export default function engineOutput() {
     }
   }
 
+  function blobLine(blob) {
+    blob.style.boxShadow = "";
+    let made = false;
+    let cellAbove = cellContents(
+      [blob.position[0], blob.position[1] - 1],
+      activeHolder.current
+    );
+    let cellLeft = cellContents(
+      [blob.position[0] - 1, blob.position[1]],
+      activeHolder.current
+    );
+    let cellRight = cellContents(
+      [blob.position[0] + 1, blob.position[1]],
+      activeHolder.current
+    );
+    let cellBelow = cellContents(
+      [blob.position[0], blob.position[1] + 1],
+      activeHolder.current
+    );
+    if (cellAbove.entity === undefined || cellAbove.entity.type !== blob.type) {
+      blob.style.boxShadow = "inset 0px 2px 0px green";
+      made = true;
+    }
+    if (
+      (cellLeft.entity === undefined || cellLeft.entity.type !== blob.type) &&
+      cellLeft.ground === undefined &&
+      blob.position[0] - 1 !== 0 &&
+      !made
+    ) {
+      blob.style.boxShadow = "inset 2px 0px 0px green";
+      made = true;
+    } else if (
+      (cellLeft.entity === undefined || cellLeft.entity.type !== blob.type) &&
+      cellLeft.ground === undefined &&
+      blob.position[0] - 1 !== 0 &&
+      made
+    ) {
+      blob.style.boxShadow = blob.style.boxShadow + ",inset 2px 0px 0px green";
+    }
+    if (
+      (cellRight.entity === undefined || cellRight.entity.type !== blob.type) &&
+      cellRight.ground === undefined &&
+      blob.position[0] < gameboardWidth.current &&
+      !made
+    ) {
+      blob.style.boxShadow = "inset -2px 0px 0px green";
+      made = true;
+    } else if (
+      (cellRight.entity === undefined || cellRight.entity.type !== blob.type) &&
+      cellRight.ground === undefined &&
+      blob.position[0] < gameboardWidth.current &&
+      made
+    ) {
+      blob.style.boxShadow = blob.style.boxShadow + ",inset -2px 0px 0px green";
+    }
+    if (
+      (cellBelow.entity === undefined || cellBelow.entity.type !== blob.type) &&
+      cellBelow.ground === undefined &&
+      blob.position[0] < gameboardWidth.current &&
+      !made
+    ) {
+      blob.style.boxShadow = "inset 0px -3px 0px green";
+      made = true;
+    } else if (
+      (cellBelow.entity === undefined || cellBelow.entity.type !== blob.type) &&
+      cellBelow.ground === undefined &&
+      blob.position[0] < gameboardWidth.current &&
+      made
+    ) {
+      blob.style.boxShadow = blob.style.boxShadow + ",inset 0px -3px 0px green";
+    }
+  }
+
   //gives entities an attack bar
   function attackBar(currentEntity) {
     let maxWidth = 157;
@@ -353,6 +426,9 @@ export default function engineOutput() {
     function entityCell(entity, id, key) {
       attackBar(entity);
       healthBar(entity);
+      if (entity.type === "blob") {
+        blobLine(entity);
+      }
       let style = {
         boxShadow: entity.style.boxShadow,
       };

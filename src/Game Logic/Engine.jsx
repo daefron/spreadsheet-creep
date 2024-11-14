@@ -166,8 +166,7 @@ export function engine(newRound, gameState) {
     liquidChecker(currentEntity);
     if (currentEntity.type === "blob") {
       if (blobTurn(currentEntity)) {
-        currentEntity.stuck = false;
-        currentEntity.speedCharge = 0;
+        currentEntity.hp--;
       }
       return;
     }
@@ -188,10 +187,16 @@ export function engine(newRound, gameState) {
     }
 
     function blobTurn(currentEntity) {
-      if (Math.random() < 0.8) {
-        currentEntity.speedCharge++;
+      currentEntity.speedCharge++;
+      if (
+        currentEntity.speedCharge > currentEntity.speed &&
+        currentEntity.hp < 5 &&
+        Math.random() < 0.5
+      ) {
+        currentEntity.hp++;
+        currentEntity.speedCharge = 0;
       }
-      if (currentEntity.speedCharge <= currentEntity.speed / 1.5) {
+      if (currentEntity.hp < 3) {
         return;
       }
       let x = currentEntity.position[0];
@@ -203,7 +208,7 @@ export function engine(newRound, gameState) {
           return true;
         }
       }
-      if (currentEntity.speedCharge <= currentEntity.speed) {
+      if (currentEntity.hp < 4) {
         return;
       }
       let positionLeft = [x - 1, y];
@@ -249,20 +254,61 @@ export function engine(newRound, gameState) {
       }
       if (newPosition !== undefined) {
         let inNewPosition = cellContents(newPosition, active);
+        if (Math.random() < 0.5) {
+          return;
+        }
         if (blobPositionChecker(inNewPosition, newPosition)) {
           return true;
         }
       }
-      currentEntity.stuck = true;
-      let blobs = activeEntities.current.filter(
-        (entity) => entity.type === "blob"
-      );
-      let stuckBlobs = blobs.filter((entity) => entity.stuck);
-      if (blobs.length === stuckBlobs.length) {
+      if (currentEntity.hp >= 5) {
+        let inBelow = cellContents(positionBelow, active);
+        if (inBelow.entity !== undefined) {
+          if (
+            inBelow.entity.type === currentEntity.type &&
+            inBelow.entity.hp < 4
+          ) {
+            inBelow.entity.hp++;
+            return true;
+          }
+        }
+        let inLeft = cellContents(positionLeft, active);
+        if (inLeft.entity !== undefined) {
+          if (
+            inLeft.entity.type === currentEntity.type &&
+            inLeft.entity.hp < 4
+          ) {
+            inLeft.entity.hp++;
+            return true;
+          }
+        }
+        let inRight = cellContents(positionRight, active);
+        if (inRight.entity !== undefined) {
+          if (
+            inRight.entity.type === currentEntity.type &&
+            inRight.entity.hp < 4
+          ) {
+            inRight.entity.hp++;
+            return true;
+          }
+        }
         let positionAbove = [x, y - 1];
         let inAbove = cellContents(positionAbove, active);
-        if (blobPositionChecker(inAbove, positionAbove)) {
-          return true;
+        if (inAbove.entity !== undefined) {
+          if (
+            inAbove.entity.type === currentEntity.type &&
+            inAbove.entity.hp < 4
+          ) {
+            inAbove.entity.hp++;
+            return true;
+          }
+        } else {
+          if (Math.random() < 0.2) {
+            return;
+          }
+          if (blobPositionChecker(inAbove, positionAbove)) {
+            return true;
+          }
         }
       }
 
