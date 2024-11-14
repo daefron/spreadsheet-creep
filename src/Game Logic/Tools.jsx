@@ -8,8 +8,8 @@ export function cellContents(position, active) {
   let fluidInCell = active.activeFluid.current.find((fluid) =>
     comparePosition(fluid.position, position)
   );
-  let projectileInCell = active.activeProjectiles.current.find(
-    (projectile) => comparePosition(projectile.position, position)
+  let projectileInCell = active.activeProjectiles.current.find((projectile) =>
+    comparePosition(projectile.position, position)
   );
   let effectInCell = active.activeEffects.current.find((effect) =>
     comparePosition(effect.position, position)
@@ -40,5 +40,10 @@ export function comparePosition(position1, position2) {
 
 export function toLetter(position) {
   const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  return letters[position];
+  if (position / letters.length >= 1) {
+    let firstLetter = letters[parseInt(position / letters.length) - 1];
+    let secondLetter =
+      letters[position - parseInt(position / letters.length) * letters.length];
+    return firstLetter + secondLetter;
+  } else return letters[position];
 }
