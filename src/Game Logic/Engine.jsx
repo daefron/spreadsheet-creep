@@ -1272,7 +1272,11 @@ export function engine(newRound, gameState) {
   //sets amount of turns to play
   function amountOfTurns(finished) {
     let gameFinished = finished;
-    if (gameMode.current === "blob") {
+    if (
+      gameMode.current === "blob" ||
+      gameMode.current === "blob gog" ||
+      gameMode.current == "blob fight"
+    ) {
       totalSpawns.current = 1;
     }
     if (!gameFinished) {
@@ -1294,6 +1298,15 @@ export function engine(newRound, gameState) {
         lastEnemySpawnTime.current++;
         if (lastEnemySpawnTime.current === 200) {
           entitySpawner(["blob", 1], true);
+        }
+      }
+      if (gameMode.current === "blob fight") {
+        lastEnemySpawnTime.current++;
+        if (lastEnemySpawnTime === 200) {
+          entitySpawner(["blob", 1], true);
+        }
+        if (lastEnemySpawnTime === 201) {
+          entitySpawner(["blob", 1], false);
         }
       }
 
@@ -1346,6 +1359,8 @@ export function engine(newRound, gameState) {
         if (blobAtEnd) {
           return false;
         } else return true;
+      } else if (gameMode.current === "blob fight") {
+        return true;
       }
     }
 

@@ -30,7 +30,7 @@ export default function engineOutput() {
   const gameTimer = useRef();
   const renderTimer = useRef();
   const gameboardWidth = useRef(11);
-  const gameboardHeight = useRef(32);
+  const gameboardHeight = useRef(31);
   const groundLevel = useRef(15);
   const groundRoughness = useRef(5);
   const waterLevel = useRef(1);
@@ -368,7 +368,8 @@ export default function engineOutput() {
       let id = w + "x" + h;
       let cell = cellContents([w, h], activeHolder.current);
       let key = id;
-      if (selectedCell.current !== undefined) {
+
+      if (selectedCell.current !== undefined && currentInput.current !== "") {
         let inputPosition = selectedCell.current.id.split("x");
         inputPosition[0] = parseInt(inputPosition[0]);
         inputPosition[1] = parseInt(inputPosition[1]);
@@ -406,6 +407,8 @@ export default function engineOutput() {
       let style = {
         width: cellWidth.current + "px",
         height: cellHeight.current + "px",
+        "--cell-select-width": cellWidth.current - 2 + "px",
+        "--cell-select-height": cellHeight.current - 2 + "px",
       };
       return [key, id, "", style];
     }
@@ -416,6 +419,8 @@ export default function engineOutput() {
         let style = {
           width: "50px",
           height: cellHeight.current + "px",
+          "--cell-select-width": 50 - 2 + "px",
+          "--cell-select-height": cellHeight.current - 2 + "px",
           position: "sticky",
           boxShadow: "inset -1px 0px 0px #404040, inset 0px -2px 0px #404040",
         };
@@ -425,6 +430,8 @@ export default function engineOutput() {
           textAlign: "center",
           width: "50px",
           height: cellHeight.current + "px",
+          "--cell-select-width": 50 - 2 + "px",
+          "--cell-select-height": cellHeight.current - 2 + "px",
           boxShadow: "inset -1px 0px 0px #404040",
           color: "#404040",
         };
@@ -436,6 +443,8 @@ export default function engineOutput() {
       let style = {
         width: cellWidth.current + "px",
         height: cellHeight.current + "px",
+        "--cell-select-width": cellWidth.current - 2 + "px",
+        "--cell-select-height": cellHeight.current - 2 + "px",
         textAlign: "center",
         color: "#404040",
         position: "sticky",
@@ -448,6 +457,8 @@ export default function engineOutput() {
       let style = {
         width: cellWidth.current + "px",
         height: cellHeight.current + "px",
+        "--cell-select-width": cellWidth.current - 2 + "px",
+        "--cell-select-height": cellHeight.current - 2 + "px",
         backgroundColor: effect.style.backgroundColor,
         color: effect.style.color,
       };
@@ -464,6 +475,8 @@ export default function engineOutput() {
       let style = {
         width: cellWidth.current + "px",
         height: cellHeight.current + "px",
+        "--cell-select-width": cellWidth.current - 2 + "px",
+        "--cell-select-height": cellHeight.current - 2 + "px",
         boxShadow: entity.style.boxShadow,
       };
       let cellText = entity.type + entity.lvl + " (hp: " + entity.hp + ")";
@@ -487,6 +500,8 @@ export default function engineOutput() {
       let style = {
         width: cellWidth.current + "px",
         height: cellHeight.current + "px",
+        "--cell-select-width": cellWidth.current - 2 + "px",
+        "--cell-select-height": cellHeight.current - 2 + "px",
         boxShadow: ground.style.boxShadow,
         backgroundColor: ground.style.backgroundColor,
         color: "black",
@@ -503,6 +518,8 @@ export default function engineOutput() {
         let style = {
           width: cellWidth.current + "px",
           height: cellHeight.current + "px",
+          "--cell-select-width": cellWidth.current - 2 + "px",
+          "--cell-select-height": cellHeight.current - 2 + "px",
         };
         inFluid(projectile, style);
         return [key, id, projectile.symbol, style];
@@ -516,6 +533,8 @@ export default function engineOutput() {
       let style = {
         width: cellWidth.current + "px",
         height: cellHeight.current + "px",
+        "--cell-select-width": cellWidth.current - 2 + "px",
+        "--cell-select-height": cellHeight.current - 2 + "px",
         boxShadow: fluid.style.boxShadow,
         fontStyle: "italic",
         color: "black",
@@ -1165,6 +1184,8 @@ export default function engineOutput() {
               <option value="king">king</option>
               <option value="battle">battle</option>
               <option value="blob">blob</option>
+              <option value="blob fight">blob fight</option>
+              <option value="blob">blob gob</option>
               <option value="sandbox">sandbox</option>
             </select>
           </div>
