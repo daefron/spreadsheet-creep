@@ -66,12 +66,12 @@ body {
 }
 td {
   padding: 0;
-  height: 21px;
+  line-height:0px;
 }
 .boardRow,
 .purchasableRow {
   display: flex;
-  justify-content: space-between;
+  align-items: start;
 }
 input,
 p {

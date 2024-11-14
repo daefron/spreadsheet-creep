@@ -753,11 +753,11 @@ export default function engineOutput() {
     } else setSettingsState("flex");
   }
   function xDown() {
-    cellWidth.current--;
+    cellWidth.current -= 10;
     updateGameboardEntities();
   }
   function xUp() {
-    cellWidth.current++;
+    cellWidth.current +- 10;
     updateGameboardEntities();
   }
   function yDown() {
