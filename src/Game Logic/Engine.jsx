@@ -233,23 +233,43 @@ export function engine(newRound, gameState) {
         ) {
           currentEntity.hp--;
           inBelow.entity.hp++;
-        } else if (
-          inRight.entity !== undefined &&
-          inRight.entity.type === currentEntity.type &&
-          inRight.entity.hp < currentEntity.hp
-        ) {
-          currentEntity.hp--;
-          inRight.entity.hp++;
-        }
-        leftOrDown();
-
-        function leftOrDown() {
-          let targets = [];
+        } else if (currentEntity.enemy) {
+          if (
+            inRight.entity !== undefined &&
+            inRight.entity.type === currentEntity.type &&
+            inRight.entity.hp < currentEntity.hp
+          ) {
+            currentEntity.hp--;
+            inRight.entity.hp++;
+          }
+        } else if (!currentEntity.enemy) {
           if (
             inLeft.entity !== undefined &&
-            inLeft.entity.type === currentEntity.type
+            inLeft.entity.type === currentEntity.type &&
+            inLeft.entity.hp < currentEntity.hp
           ) {
-            targets.push(inLeft.entity);
+            currentEntity.hp--;
+            inLeft.entity.hp++;
+          }
+        }
+        downAndForward();
+
+        function downAndForward() {
+          let targets = [];
+          if (currentEntity.enemy) {
+            if (
+              inLeft.entity !== undefined &&
+              inLeft.entity.type === currentEntity.type
+            ) {
+              targets.push(inLeft.entity);
+            }
+          } else {
+            if (
+              inRight.entity !== undefined &&
+              inRight.entity.type === currentEntity.type
+            ) {
+              targets.push(inRight.entity);
+            }
           }
           if (
             inBelow.entity !== undefined &&
@@ -288,22 +308,22 @@ export function engine(newRound, gameState) {
             inRight.ground.hp--;
           }
           if (inAbove.entity !== undefined) {
-            if (inAbove.entity.type !== currentEntity.type) {
+            if (inAbove.entity.enemy !== currentEntity.enemy) {
               inAbove.entity.hp--;
             }
           }
           if (inBelow.entity !== undefined) {
-            if (inBelow.entity.type !== currentEntity.type) {
+            if (inBelow.entity.enemy !== currentEntity.enemy) {
               inBelow.entity.hp--;
             }
           }
           if (inLeft.entity !== undefined) {
-            if (inLeft.entity.type !== currentEntity.type) {
+            if (inLeft.entity.enemy !== currentEntity.enemy) {
               inLeft.entity.hp--;
             }
           }
           if (inRight.entity !== undefined) {
-            if (inRight.entity.type !== currentEntity.type) {
+            if (inRight.entity.enemy !== currentEntity.enemy) {
               inRight.entity.hp--;
             }
           }
@@ -337,6 +357,9 @@ export function engine(newRound, gameState) {
             inRight.ground === undefined || inRight.entity === undefined;
           if (positionRight[0] > gameboardWidth.current) {
             rightFree = false;
+          }
+          if (positionLeft[0] < 1) {
+            leftFree = false;
           }
           let direction = Math.random() > 0.5;
           if (direction) {
@@ -385,6 +408,9 @@ export function engine(newRound, gameState) {
         let entityLvl = entityType.lvls["lvl" + 1];
         let entityID = "blob" + enemySpawnCount.current;
         entityID = new Entity(entityType, entityLvl, position, entityID);
+        if (!currentEntity.enemy) {
+          entityID.enemy = false;
+        }
         activeEntities.current.push(entityID);
         enemySpawnCount.current++;
       }
@@ -1302,14 +1328,13 @@ export function engine(newRound, gameState) {
       }
       if (gameMode.current === "blob fight") {
         lastEnemySpawnTime.current++;
-        if (lastEnemySpawnTime === 200) {
+        if (lastEnemySpawnTime.current === 200) {
           entitySpawner(["blob", 1], true);
         }
-        if (lastEnemySpawnTime === 201) {
+        if (lastEnemySpawnTime.current === 201) {
           entitySpawner(["blob", 1], false);
         }
       }
-
       nextTurn();
       if (gameMode.current !== "sandbox") {
         if (!victoryChecker()) {

@@ -232,6 +232,10 @@ export default function engineOutput() {
   }
 
   function blobLine(blob) {
+    let color;
+    if (blob.enemy) {
+      color = "darkRed";
+    } else color = "darkGreen";
     blob.style.boxShadow = "";
     let made = false;
     let cellAbove = cellContents(
@@ -251,7 +255,7 @@ export default function engineOutput() {
       activeHolder.current
     );
     if (cellAbove.entity === undefined || cellAbove.entity.type !== blob.type) {
-      blob.style.boxShadow = "inset 0px 2px 0px darkRed";
+      blob.style.boxShadow = "inset 0px 2px 0px " + color;
       made = true;
     }
     if (
@@ -260,7 +264,7 @@ export default function engineOutput() {
       blob.position[0] - 1 !== 0 &&
       !made
     ) {
-      blob.style.boxShadow = "inset 2px 0px 0px darkRed";
+      blob.style.boxShadow = "inset 2px 0px 0px " + color;
       made = true;
     } else if (
       (cellLeft.entity === undefined || cellLeft.entity.type !== blob.type) &&
@@ -269,7 +273,7 @@ export default function engineOutput() {
       made
     ) {
       blob.style.boxShadow =
-        blob.style.boxShadow + ",inset 2px 0px 0px darkRed";
+        blob.style.boxShadow + ",inset 2px 0px 0px " + color;
     }
     if (
       (cellRight.entity === undefined || cellRight.entity.type !== blob.type) &&
@@ -277,7 +281,7 @@ export default function engineOutput() {
       blob.position[0] < gameboardWidth.current &&
       !made
     ) {
-      blob.style.boxShadow = "inset -2px 0px 0px darkRed";
+      blob.style.boxShadow = "inset -2px 0px 0px " + color;
       made = true;
     } else if (
       (cellRight.entity === undefined || cellRight.entity.type !== blob.type) &&
@@ -286,7 +290,7 @@ export default function engineOutput() {
       made
     ) {
       blob.style.boxShadow =
-        blob.style.boxShadow + ",inset -2px 0px 0px darkRed";
+        blob.style.boxShadow + ",inset -2px 0px 0px " + color;
     }
     if (
       (cellBelow.entity === undefined || cellBelow.entity.type !== blob.type) &&
@@ -294,7 +298,7 @@ export default function engineOutput() {
       blob.position[0] < gameboardWidth.current &&
       !made
     ) {
-      blob.style.boxShadow = "inset 0px -3px 0px darkRed";
+      blob.style.boxShadow = "inset 0px -3px 0px " + color;
       made = true;
     } else if (
       (cellBelow.entity === undefined || cellBelow.entity.type !== blob.type) &&
@@ -303,7 +307,7 @@ export default function engineOutput() {
       made
     ) {
       blob.style.boxShadow =
-        blob.style.boxShadow + ",inset 0px -3px 0px darkRed";
+        blob.style.boxShadow + ",inset 0px -3px 0px " + color;
     }
   }
 
