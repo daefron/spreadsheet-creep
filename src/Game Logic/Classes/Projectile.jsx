@@ -19,7 +19,6 @@ class Projectile {
       if (this.enemy) {
         this.symbol = type.enemySymbol;
       } else this.symbol = type.friendlySymbol;
-      this.position = [direction(parent), parent.position[1]];
     }
     if (type.type === "missile") {
       this.direction = "up";
