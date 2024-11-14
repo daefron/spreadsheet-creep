@@ -28,12 +28,17 @@ body {
 #below {
   overflow: scroll;
 }
-
 #stats {
   display: flex;
 }
 #gameboard {
   display: flex;
+}
+#gameboard > tbody {
+  display:flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  justify-content: start;
 }
 .statTitle {
   overflow: hidden;
@@ -81,8 +86,6 @@ select,
   font-size: 13px;
   margin: 0;
   margin-right: -1px;
-  height: 21px;
-  width: 150px;
   padding: 0;
   padding-left: 5px;
   border-width: 1px;
@@ -93,13 +96,13 @@ select,
 }
 .boardCell:focus {
   outline: none;
-  width: 148px;
-  height: 17px;
   padding-top: 1px;
   border: solid;
   border-width: 2px;
   border-color: rgb(0, 128, 32);
   z-index: 1000;
+  width: var(--cell-select-width) !important;
+  height: var(--cell-select-height) !important;
 }
 .purchasableCell:focus {
   outline: none;
@@ -144,6 +147,34 @@ button {
   width: 146px;
   border-bottom: solid 1px grey;
   border-right: solid 1px grey;
+}
+#bottom {
+  display: flex;
+  height: 60px;
+  gap: 5px;
+}
+#dimensions {
+  display: flex;
+  flex-direction: column;
+  margin-top: 5px;
+}
+.dimensionButtonHolder {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 5px;
+  height: 50%;
+}
+.dimensionButton {
+  border: solid 1px;
+  border-radius: 3px;
+  width: 30px;
+  height: 25px;
+  padding: 0px;
+  margin: 0px;
+}
+#newButton {
+  width: 90%;
 }
 ::-webkit-scrollbar {
   width: 10px;

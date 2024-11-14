@@ -46,6 +46,8 @@ export default function engineOutput() {
   const selectedCell = useRef();
   const cellTyping = useRef(false);
   const currentInput = useRef("");
+  const cellWidth = useRef(150);
+  const cellHeight = useRef(21);
   const [gameboardEntities, setGameboardEntities] = useState([]);
   const [settingsState, setSettingsState] = useState("none");
   let entityList = EntityList;
@@ -266,7 +268,8 @@ export default function engineOutput() {
       blob.position[0] - 1 !== 0 &&
       made
     ) {
-      blob.style.boxShadow = blob.style.boxShadow + ",inset 2px 0px 0px darkRed";
+      blob.style.boxShadow =
+        blob.style.boxShadow + ",inset 2px 0px 0px darkRed";
     }
     if (
       (cellRight.entity === undefined || cellRight.entity.type !== blob.type) &&
@@ -282,7 +285,8 @@ export default function engineOutput() {
       blob.position[0] < gameboardWidth.current &&
       made
     ) {
-      blob.style.boxShadow = blob.style.boxShadow + ",inset -2px 0px 0px darkRed";
+      blob.style.boxShadow =
+        blob.style.boxShadow + ",inset -2px 0px 0px darkRed";
     }
     if (
       (cellBelow.entity === undefined || cellBelow.entity.type !== blob.type) &&
@@ -298,7 +302,8 @@ export default function engineOutput() {
       blob.position[0] < gameboardWidth.current &&
       made
     ) {
-      blob.style.boxShadow = blob.style.boxShadow + ",inset 0px -3px 0px darkRed";
+      blob.style.boxShadow =
+        blob.style.boxShadow + ",inset 0px -3px 0px darkRed";
     }
   }
 
@@ -352,12 +357,18 @@ export default function engineOutput() {
       let id = w + "x" + h;
       let cell = cellContents([w, h], activeHolder.current);
       let key = id;
-      if (selectedCell.current !== undefined && currentInput.current !== "") {
+      if (selectedCell.current !== undefined) {
         let inputPosition = selectedCell.current.id.split("x");
         inputPosition[0] = parseInt(inputPosition[0]);
         inputPosition[1] = parseInt(inputPosition[1]);
         if (comparePosition(inputPosition, [w, h])) {
-          return [key, id, currentInput.current];
+          let style = {
+            width: cellWidth.current + "px",
+            height: cellHeight.current + "px",
+            "--cell-select-width": cellWidth.current - 2 + "px",
+            "--cell-select-height": cellHeight.current - 2 + "px",
+          };
+          return [key, id, currentInput.current, style];
         }
       }
       if (w === 0) {
@@ -381,7 +392,10 @@ export default function engineOutput() {
       if (cell.fluid !== undefined) {
         return fluidCell(cell.fluid, id, key);
       }
-      let style = {};
+      let style = {
+        width: cellWidth.current + "px",
+        height: cellHeight.current + "px",
+      };
       return [key, id, "", style];
     }
 
@@ -390,6 +404,7 @@ export default function engineOutput() {
       if (h === 0) {
         let style = {
           width: "50px",
+          height: cellHeight.current + "px",
           position: "sticky",
           boxShadow: "inset -1px 0px 0px #404040, inset 0px -2px 0px #404040",
         };
@@ -398,6 +413,7 @@ export default function engineOutput() {
         let style = {
           textAlign: "center",
           width: "50px",
+          height: cellHeight.current + "px",
           boxShadow: "inset -1px 0px 0px #404040",
           color: "#404040",
         };
@@ -407,6 +423,8 @@ export default function engineOutput() {
 
     function firstRowCell(w, id, key) {
       let style = {
+        width: cellWidth.current + "px",
+        height: cellHeight.current + "px",
         textAlign: "center",
         color: "#404040",
         position: "sticky",
@@ -417,6 +435,8 @@ export default function engineOutput() {
 
     function effectCell(effect, id, key) {
       let style = {
+        width: cellWidth.current + "px",
+        height: cellHeight.current + "px",
         backgroundColor: effect.style.backgroundColor,
         color: effect.style.color,
       };
@@ -430,6 +450,8 @@ export default function engineOutput() {
         blobLine(entity);
       }
       let style = {
+        width: cellWidth.current + "px",
+        height: cellHeight.current + "px",
         boxShadow: entity.style.boxShadow,
       };
       let cellText = entity.type + entity.lvl + " (hp: " + entity.hp + ")";
@@ -451,6 +473,8 @@ export default function engineOutput() {
       groundLine(ground);
       healthBar(ground);
       let style = {
+        width: cellWidth.current + "px",
+        height: cellHeight.current + "px",
         boxShadow: ground.style.boxShadow,
         backgroundColor: ground.style.backgroundColor,
         color: "black",
@@ -464,9 +488,11 @@ export default function engineOutput() {
           comparePosition(entity.position, projectile.position)
         ) === undefined
       ) {
-        let style = {};
+        let style = {
+          width: cellWidth.current + "px",
+          height: cellHeight.current + "px",
+        };
         inFluid(projectile, style);
-
         return [key, id, projectile.symbol, style];
       }
     }
@@ -476,6 +502,8 @@ export default function engineOutput() {
         fluidLine(fluid);
       }
       let style = {
+        width: cellWidth.current + "px",
+        height: cellHeight.current + "px",
         boxShadow: fluid.style.boxShadow,
         fontStyle: "italic",
         color: "black",
@@ -584,6 +612,17 @@ export default function engineOutput() {
         cell.push(style);
       }
     });
+    parsedFriendlyEntityArray.forEach((row) => {
+      row.forEach((cell) => {
+        if (cell[2] === undefined) {
+          cell.push({});
+        }
+        if (cell[2].width === undefined) {
+          cell[2].width = cellWidth.current + "px";
+        }
+        cell[2].height = cellHeight.current + "px";
+      });
+    });
     return (
       <table id="purchasables">
         <tbody>
@@ -674,11 +713,26 @@ export default function engineOutput() {
     gameMode.current = e.target.value;
     updateGameboardEntities();
   }
-
   function toggleSettings() {
     if (settingsState === "flex") {
       setSettingsState("none");
     } else setSettingsState("flex");
+  }
+  function xDown() {
+    cellWidth.current--;
+    updateGameboardEntities();
+  }
+  function xUp() {
+    cellWidth.current++;
+    updateGameboardEntities();
+  }
+  function yDown() {
+    cellHeight.current--;
+    updateGameboardEntities();
+  }
+  function yUp() {
+    cellHeight.current++;
+    updateGameboardEntities();
   }
 
   //renders the gameboard once on page load
@@ -690,28 +744,115 @@ export default function engineOutput() {
     <>
       <div id="above">
         <div id="stats">
-          <p className="statTitle" id="firstStat"></p>
-          <p className="statTitle">Money:</p>
-          <p className="stat">{bank}</p>
+          <p
+            className="statTitle"
+            id="firstStat"
+            style={{
+              height: cellHeight.current + "px",
+            }}
+          ></p>
+          <p
+            className="statTitle"
+            style={{
+              width: cellWidth.current + "px",
+              height: cellHeight.current + "px",
+            }}
+          >
+            Money:
+          </p>
+          <p
+            className="stat"
+            style={{
+              width: cellWidth.current + "px",
+              height: cellHeight.current + "px",
+            }}
+          >
+            {bank}
+          </p>
 
-          <p className="statTitle">Friendly deaths: </p>
-          <p className="stat">{friendlyGraveyard.current.length}</p>
+          <p
+            className="statTitle"
+            style={{
+              width: cellWidth.current + "px",
+              height: cellHeight.current + "px",
+            }}
+          >
+            Friendly deaths:{" "}
+          </p>
+          <p
+            className="stat"
+            style={{
+              width: cellWidth.current + "px",
+              height: cellHeight.current + "px",
+            }}
+          >
+            {friendlyGraveyard.current.length}
+          </p>
 
-          <p className="statTitle">Enemy deaths: </p>
-          <p className="stat">{enemyGraveyard.current.length}</p>
+          <p
+            className="statTitle"
+            style={{
+              width: cellWidth.current + "px",
+              height: cellHeight.current + "px",
+            }}
+          >
+            Enemy deaths:{" "}
+          </p>
+          <p
+            className="stat"
+            style={{
+              width: cellWidth.current + "px",
+              height: cellHeight.current + "px",
+            }}
+          >
+            {enemyGraveyard.current.length}
+          </p>
 
-          <p className="statTitle">Terrain destroyed: </p>
-          <p className="stat">{groundGraveyard.current.length}</p>
+          <p
+            className="statTitle"
+            style={{
+              width: cellWidth.current + "px",
+              height: cellHeight.current + "px",
+            }}
+          >
+            Terrain destroyed:{" "}
+          </p>
+          <p
+            className="stat"
+            style={{
+              width: cellWidth.current + "px",
+              height: cellHeight.current + "px",
+            }}
+          >
+            {groundGraveyard.current.length}
+          </p>
 
-          <p className="statTitle">Enemies remaining: </p>
-          <p className="stat">
+          <p
+            className="statTitle"
+            style={{
+              width: cellWidth.current + "px",
+              height: cellHeight.current + "px",
+            }}
+          >
+            Enemies remaining:{" "}
+          </p>
+          <p
+            className="stat"
+            style={{
+              width: cellWidth.current + "px",
+              height: cellHeight.current + "px",
+            }}
+          >
             {totalSpawns.current - enemySpawnCount.current}/
             {totalSpawns.current}
           </p>
           <button
             className="statTitle"
             id="settingsButton"
-            style={{ color: "black" }}
+            style={{
+              width: cellWidth.current + 7 + "px",
+              height: cellHeight.current + 2 + "px",
+            }}
             onClick={toggleSettings}
           >
             Settings/Entities &nbsp;
@@ -761,7 +902,15 @@ export default function engineOutput() {
             ></input>
           </div>
           <div className="settingHolder">
-            <p className="settingTitle">Gameboard width:</p>
+            <p
+              style={{
+                width: cellWidth.current + "px",
+                height: cellHeight.current + "px",
+              }}
+              className="settingTitle"
+            >
+              Gameboard width:
+            </p>
             <div>
               <p>{gameboardWidth.current}</p>
               <input
@@ -776,7 +925,15 @@ export default function engineOutput() {
             </div>
           </div>
           <div className="settingHolder">
-            <p className="settingTitle">Gameboard height:</p>
+            <p
+              style={{
+                width: cellWidth.current + "px",
+                height: cellHeight.current + "px",
+              }}
+              className="settingTitle"
+            >
+              Gameboard height:
+            </p>
             <div>
               <p>{gameboardHeight.current}</p>
               <input
@@ -791,7 +948,15 @@ export default function engineOutput() {
             </div>
           </div>
           <div className="settingHolder">
-            <p className="settingTitle">Ground height:</p>
+            <p
+              style={{
+                width: cellWidth.current + "px",
+                height: cellHeight.current + "px",
+              }}
+              className="settingTitle"
+            >
+              Ground height:
+            </p>
             <div>
               <p>{groundLevel.current}</p>
               <input
@@ -806,7 +971,15 @@ export default function engineOutput() {
             </div>
           </div>{" "}
           <div className="settingHolder">
-            <p className="settingTitle">Water level:</p>
+            <p
+              style={{
+                width: cellWidth.current + "px",
+                height: cellHeight.current + "px",
+              }}
+              className="settingTitle"
+            >
+              Water level:
+            </p>
             <div>
               <p>{waterLevel.current}</p>
               <input
@@ -821,7 +994,15 @@ export default function engineOutput() {
             </div>
           </div>
           <div className="settingHolder">
-            <p className="settingTitle">Ground roughness:</p>
+            <p
+              style={{
+                width: cellWidth.current + "px",
+                height: cellHeight.current + "px",
+              }}
+              className="settingTitle"
+            >
+              Ground roughness:
+            </p>
             <div>
               <p>{groundRoughness.current}</p>
               <input
@@ -836,7 +1017,15 @@ export default function engineOutput() {
             </div>
           </div>
           <div className="settingHolder">
-            <p className="settingTitle">Game speed:</p>
+            <p
+              style={{
+                width: cellWidth.current + "px",
+                height: cellHeight.current + "px",
+              }}
+              className="settingTitle"
+            >
+              Game speed:
+            </p>
             <div>
               <p>{gameSpeed.current}</p>
               <input
@@ -851,7 +1040,15 @@ export default function engineOutput() {
             </div>
           </div>
           <div className="settingHolder">
-            <p className="settingTitle">Render speed:</p>
+            <p
+              style={{
+                width: cellWidth.current + "px",
+                height: cellHeight.current + "px",
+              }}
+              className="settingTitle"
+            >
+              Render speed:
+            </p>
             <div>
               <p>{renderSpeed.current}</p>
               <input
@@ -866,7 +1063,15 @@ export default function engineOutput() {
             </div>
           </div>
           <div className="settingHolder">
-            <p className="settingTitle">Total spawns:</p>
+            <p
+              style={{
+                width: cellWidth.current + "px",
+                height: cellHeight.current + "px",
+              }}
+              className="settingTitle"
+            >
+              Total spawns:
+            </p>
             <div>
               <p>{totalSpawns.current}</p>
               <input
@@ -881,7 +1086,15 @@ export default function engineOutput() {
             </div>
           </div>
           <div className="settingHolder">
-            <p className="settingTitle">Spawn speed:</p>
+            <p
+              style={{
+                width: cellWidth.current + "px",
+                height: cellHeight.current + "px",
+              }}
+              className="settingTitle"
+            >
+              Spawn speed:
+            </p>
             <div>
               <p>{spawnSpeed.current}</p>
               <input
@@ -896,7 +1109,15 @@ export default function engineOutput() {
             </div>
           </div>
           <div className="settingHolder">
-            <p className="settingTitle">King HP:</p>
+            <p
+              style={{
+                width: cellWidth.current + "px",
+                height: cellHeight.current + "px",
+              }}
+              className="settingTitle"
+            >
+              King HP:
+            </p>
             <div>
               <p>{kingHP.current}</p>
               <input
@@ -914,7 +1135,15 @@ export default function engineOutput() {
             className="settingHolder"
             style={{ display: "flex", alignItems: "center" }}
           >
-            <p className="settingTitle">Gamemode:</p>
+            <p
+              style={{
+                width: cellWidth.current + "px",
+                height: cellHeight.current + "px",
+              }}
+              className="settingTitle"
+            >
+              Gamemode:
+            </p>
             <select
               id="gamemode.currentSelect"
               defaultValue={gameMode.current}
@@ -929,13 +1158,35 @@ export default function engineOutput() {
           </div>
         </div>
       </div>
-      <button
-        id="newButton"
-        onClick={newButton}
-        style={{ color: "black", backgroundColor: "white" }}
-      >
-        New Round
-      </button>
+      <div id="bottom">
+        <div id="dimensions">
+          <div className="dimensionButtonHolder">
+            <button className="dimensionButton" onClick={xDown}>
+              -
+            </button>
+            <p>X = {cellWidth.current}</p>
+            <button className="dimensionButton" onClick={xUp}>
+              +
+            </button>
+          </div>
+          <div className="dimensionButtonHolder">
+            <button className="dimensionButton" onClick={yDown}>
+              -
+            </button>
+            <p>Y = {cellHeight.current}</p>
+            <button className="dimensionButton" onClick={yUp}>
+              +
+            </button>
+          </div>
+        </div>
+        <button
+          id="newButton"
+          onClick={newButton}
+          style={{ color: "black", backgroundColor: "white" }}
+        >
+          New Round
+        </button>
+      </div>
     </>
   );
 }
