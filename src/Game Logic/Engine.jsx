@@ -1484,8 +1484,8 @@ export function engine(newRound, gameState) {
       } else if (gameMode.current === "blob") {
         lastEnemySpawnTime.current++;
         if (lastEnemySpawnTime.current === 200) {
-          entitySpawner(["blob", 1], true);
-          activeEntities.current[0].hp = activeEntities.current[0].maxHp;
+          let firstBlob = entitySpawner(["blob", 1], true);
+          firstBlob.hp = firstBlob.maxHp;
         }
       } else if (gameMode.current === "blob fight") {
         lastEnemySpawnTime.current++;
@@ -1493,16 +1493,16 @@ export function engine(newRound, gameState) {
           lastEnemySpawnTime.current > 200 / gameSpeed.current &&
           activeEntities.current.length === 0
         ) {
-          entitySpawner(["blob", 1], true);
-          activeEntities.current[0].hp = activeEntities.current[0].maxHp;
-          entitySpawner(["blob", 1], false);
-          activeEntities.current[1].hp = activeEntities.current[1].maxHp;
+          let firstBlob = entitySpawner(["blob", 1], true);
+          firstBlob.hp = firstBlob.maxHp;
+          let secondBlob = entitySpawner(["blob", 1], false);
+          secondBlob.hp = secondBlob.maxHp;
         }
       } else if (gameMode.current === "blob gob") {
         lastEnemySpawnTime.current++;
         if (lastEnemySpawnTime.current === 50 / gameSpeed.current) {
-          entitySpawner(["blob", 1], true);
-          activeEntities.current[0].hp = activeEntities.current[0].maxHp * 5;
+          let firstBlob = entitySpawner(["blob", 1], true);
+          firstBlob.hp = firstBlob.maxHp * 5;
         }
         spawnChecker(false);
       }
@@ -1643,6 +1643,7 @@ export function engine(newRound, gameState) {
         entityID.enemy = false;
       }
       activeEntities.current.push(entityID);
+      return entityID;
     }
 
     //finds the position above the highest entity in the final column
