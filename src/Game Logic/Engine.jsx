@@ -45,7 +45,7 @@ export function engine(newRound, gameState) {
   let terrainIsFalling = gameState.engine.terrainIsFalling;
   let projectileCount = gameState.engine.projectileCount;
   let blobAtEnd = false;
-  let blobTouchingGround = 0;
+  let activeBlobs = [];
 
   function explosion(currentEntity) {
     let w = currentEntity.explosionRange;
@@ -234,12 +234,15 @@ export function engine(newRound, gameState) {
       }
 
       function blobFall() {
-        if (inBelow.ground !== undefined || inBelow.entity !== undefined) {
+        if (
+          inBelow.ground !== undefined ||
+          inBelow.entity !== undefined ||
+          positionBelow[1] === gameboardHeight.current + 1
+        ) {
           return;
         }
         let touchingGround = 0;
         let blobGroup = blobGrouper();
-        console.log(blobGroup);
         blobGroup.forEach((entity) => {
           let x = entity.position[0];
           let y = entity.position[1];
@@ -254,19 +257,18 @@ export function engine(newRound, gameState) {
           if (
             inAbove.ground !== undefined ||
             inBelow.ground !== undefined ||
+            positionBelow[1] === gameboardHeight.current + 1 ||
             inLeft.ground !== undefined ||
             inRight.ground !== undefined
           ) {
             touchingGround++;
+            return;
           }
         });
         if (touchingGround !== 0) {
           return;
         }
-        currentEntity.position = [
-          currentEntity.position[0],
-          currentEntity.position[1] + 1,
-        ];
+        currentEntity.position = positionBelow;
       }
 
       function blobGrouper() {
