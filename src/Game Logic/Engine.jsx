@@ -314,7 +314,7 @@ export function engine(newRound, gameState) {
       }
 
       function blobSorter() {
-        if (currentEntity.hp < currentEntity.maxHp && currentEntity.hp !== 1) {
+        if (currentEntity.hp < currentEntity.maxHp) {
           if (
             inBelow.entity !== undefined &&
             inBelow.entity.hp === currentEntity.hp &&
@@ -323,8 +323,15 @@ export function engine(newRound, gameState) {
             inAbove.entity.hp === currentEntity.hp &&
             inAbove.entity.enemy === currentEntity.enemy
           ) {
-            currentEntity.hp--;
-            inBelow.entity.hp++;
+            if (currentEntity.hp === 1) {
+              if (blobGrouper().length > 10) {
+                currentEntity.hp--;
+                inBelow.entity.hp++;
+              }
+            } else {
+              currentEntity.hp--;
+              inBelow.entity.hp++;
+            }
           }
         }
         if (
@@ -1500,7 +1507,7 @@ export function engine(newRound, gameState) {
         }
       } else if (gameMode.current === "blob gob") {
         lastEnemySpawnTime.current++;
-        if (lastEnemySpawnTime.current === 50 / gameSpeed.current) {
+        if (lastEnemySpawnTime.current === 100 / gameSpeed.current) {
           let firstBlob = entitySpawner(["blob", 1], true);
           firstBlob.hp = firstBlob.maxHp * 5;
         }
