@@ -61,8 +61,6 @@ body {
 #settings {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: start;
 }
 td {
   padding: 0;
@@ -139,12 +137,10 @@ button {
 }
 .settingHolder > div {
   padding-inline: 5px;
-  height: 21px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 2px;
-  width: 146px;
   border-bottom: solid 1px grey;
   border-right: solid 1px grey;
 }
@@ -177,7 +173,8 @@ button {
   width: 90%;
 }
 ::-webkit-scrollbar {
-  width: 10px;
+  width: 3px;
+  height: 3px;
 }
 
 ::-webkit-scrollbar-track {

@@ -483,6 +483,9 @@ export default function engineOutput() {
         boxShadow: entity.style.boxShadow,
       };
       let cellText = entity.type + entity.lvl + " (hp: " + entity.hp + ")";
+      if (entity.type === "blob") {
+        cellText = entity.type + entity.lvl;
+      }
       if (entity.enemy === true) {
         style.color = "darkRed";
       } else {
@@ -757,7 +760,7 @@ export default function engineOutput() {
     updateGameboardEntities();
   }
   function xUp() {
-    cellWidth.current +- 10;
+    cellWidth.current += 10;
     updateGameboardEntities();
   }
   function yDown() {
@@ -926,13 +929,21 @@ export default function engineOutput() {
           >
             <p
               className="settingTitle"
-              style={{ boxShadow: "inset 0px -2px 0px 0px black" }}
+              style={{
+                boxShadow: "inset 0px -2px 0px 0px black",
+                width: cellWidth.current + "px",
+                height: cellHeight.current + "px",
+              }}
             >
               Settings:
             </p>
             <input
               id="settingTitle"
-              style={{ boxShadow: "inset 0px -2px 0px 0px black" }}
+              style={{
+                boxShadow: "inset 0px -2px 0px 0px black",
+                width: cellWidth.current + "px",
+                height: cellHeight.current + "px",
+              }}
             ></input>
           </div>
           <div className="settingHolder">
@@ -945,7 +956,12 @@ export default function engineOutput() {
             >
               Gameboard width:
             </p>
-            <div>
+            <div
+              style={{
+                width: cellWidth.current - 4 + "px",
+                height: cellHeight.current + "px",
+              }}
+            >
               <p>{gameboardWidth.current}</p>
               <input
                 id="boardWidth"
@@ -968,7 +984,12 @@ export default function engineOutput() {
             >
               Gameboard height:
             </p>
-            <div>
+            <div
+              style={{
+                width: cellWidth.current - 4 + "px",
+                height: cellHeight.current + "px",
+              }}
+            >
               <p>{gameboardHeight.current}</p>
               <input
                 id="boardHeight"
@@ -991,7 +1012,12 @@ export default function engineOutput() {
             >
               Ground height:
             </p>
-            <div>
+            <div
+              style={{
+                width: cellWidth.current - 4 + "px",
+                height: cellHeight.current + "px",
+              }}
+            >
               <p>{groundLevel.current}</p>
               <input
                 id="groundLevel.current"
@@ -1014,7 +1040,12 @@ export default function engineOutput() {
             >
               Water level:
             </p>
-            <div>
+            <div
+              style={{
+                width: cellWidth.current - 4 + "px",
+                height: cellHeight.current + "px",
+              }}
+            >
               <p>{waterLevel.current}</p>
               <input
                 id="waterLevel.current"
@@ -1037,7 +1068,12 @@ export default function engineOutput() {
             >
               Ground roughness:
             </p>
-            <div>
+            <div
+              style={{
+                width: cellWidth.current - 4 + "px",
+                height: cellHeight.current + "px",
+              }}
+            >
               <p>{groundRoughness.current}</p>
               <input
                 id="groundRoughness.current"
@@ -1060,7 +1096,12 @@ export default function engineOutput() {
             >
               Game speed:
             </p>
-            <div>
+            <div
+              style={{
+                width: cellWidth.current - 4 + "px",
+                height: cellHeight.current + "px",
+              }}
+            >
               <p>{gameSpeed.current}</p>
               <input
                 id="gameSpeed.current"
@@ -1083,7 +1124,12 @@ export default function engineOutput() {
             >
               Render speed:
             </p>
-            <div>
+            <div
+              style={{
+                width: cellWidth.current - 4 + "px",
+                height: cellHeight.current + "px",
+              }}
+            >
               <p>{renderSpeed.current}</p>
               <input
                 id="renderSpeed.current"
@@ -1106,7 +1152,12 @@ export default function engineOutput() {
             >
               Total spawns:
             </p>
-            <div>
+            <div
+              style={{
+                width: cellWidth.current - 4 + "px",
+                height: cellHeight.current + "px",
+              }}
+            >
               <p>{totalSpawns.current}</p>
               <input
                 id="totalSpawns.current"
@@ -1129,7 +1180,12 @@ export default function engineOutput() {
             >
               Spawn speed:
             </p>
-            <div>
+            <div
+              style={{
+                width: cellWidth.current - 4 + "px",
+                height: cellHeight.current + "px",
+              }}
+            >
               <p>{spawnSpeed.current}</p>
               <input
                 id="spawnSpeed.current"
@@ -1152,7 +1208,12 @@ export default function engineOutput() {
             >
               King HP:
             </p>
-            <div>
+            <div
+              style={{
+                width: cellWidth.current - 4 + "px",
+                height: cellHeight.current + "px",
+              }}
+            >
               <p>{kingHP.current}</p>
               <input
                 id="kingHP.current"
@@ -1188,7 +1249,7 @@ export default function engineOutput() {
               <option value="battle">battle</option>
               <option value="blob">blob</option>
               <option value="blob fight">blob fight</option>
-              <option value="blob">blob gob</option>
+              <option value="blob gob">blob gob</option>
               <option value="sandbox">sandbox</option>
             </select>
           </div>

@@ -96,12 +96,19 @@ export function engine(newRound, gameState) {
     }
   }
 
+  function statUpdate(currentEntity) {
+    currentEntity.rate /= gameSpeed.current;
+    currentEntity.speed /= gameSpeed.current;
+    currentEntity.fallSpeed /= gameSpeed.current;
+  }
+
   function spawn(entity) {
     let entityID = entity.name;
     let entityType = entityList[entity.spawnType];
     let entityLvl = entityType.lvls["lvl" + entity.lvl];
     entityID = new Entity(entityType, entityLvl, entity.position, entityID);
     entityID.enemy = entity.enemy;
+    statUpdate(entityID);
     activeEntities.current.push(entityID);
   }
 
@@ -395,7 +402,8 @@ export function engine(newRound, gameState) {
       function newBlobChecker(inPosition, position) {
         if (
           inPosition.ground === undefined &&
-          inPosition.entity === undefined
+          inPosition.entity === undefined &&
+          position[1] > 0
         ) {
           newBlob(position);
           return true;
@@ -405,12 +413,13 @@ export function engine(newRound, gameState) {
       function newBlob(position) {
         currentEntity.hp -= 2;
         let entityType = entityList["blob"];
-        let entityLvl = entityType.lvls["lvl" + 1];
+        let entityLvl = entityType.lvls["lvl" + currentEntity.lvl];
         let entityID = "blob" + enemySpawnCount.current;
         entityID = new Entity(entityType, entityLvl, position, entityID);
         if (!currentEntity.enemy) {
           entityID.enemy = false;
         }
+        statUpdate(entityID);
         activeEntities.current.push(entityID);
         enemySpawnCount.current++;
       }
@@ -1298,13 +1307,6 @@ export function engine(newRound, gameState) {
   //sets amount of turns to play
   function amountOfTurns(finished) {
     let gameFinished = finished;
-    if (
-      gameMode.current === "blob" ||
-      gameMode.current === "blob gog" ||
-      gameMode.current == "blob fight"
-    ) {
-      totalSpawns.current = 1;
-    }
     if (!gameFinished) {
       timer.current = setInterval(() => {
         turnCycler();
@@ -1315,18 +1317,15 @@ export function engine(newRound, gameState) {
     function turnCycler() {
       if (gameMode.current === "king") {
         spawnChecker(true);
-      }
-      if (gameMode.current === "battle") {
+      } else if (gameMode.current === "battle") {
         spawnChecker(true);
         spawnChecker(false);
-      }
-      if (gameMode.current === "blob") {
+      } else if (gameMode.current === "blob") {
         lastEnemySpawnTime.current++;
         if (lastEnemySpawnTime.current === 200) {
           entitySpawner(["blob", 1], true);
         }
-      }
-      if (gameMode.current === "blob fight") {
+      } else if (gameMode.current === "blob fight") {
         lastEnemySpawnTime.current++;
         if (lastEnemySpawnTime.current === 200) {
           entitySpawner(["blob", 1], true);
@@ -1334,6 +1333,12 @@ export function engine(newRound, gameState) {
         if (lastEnemySpawnTime.current === 201) {
           entitySpawner(["blob", 1], false);
         }
+      } else if (gameMode.current === "blob gob") {
+        lastEnemySpawnTime.current++;
+        if (lastEnemySpawnTime.current === 100) {
+          entitySpawner(["blob", 2], true);
+        }
+        spawnChecker(false);
       }
       nextTurn();
       if (gameMode.current !== "sandbox") {
@@ -1384,7 +1389,10 @@ export function engine(newRound, gameState) {
         if (blobAtEnd) {
           return false;
         } else return true;
-      } else if (gameMode.current === "blob fight") {
+      } else if (
+        gameMode.current === "blob fight" ||
+        gameMode.current === "blob gob"
+      ) {
         return true;
       }
     }

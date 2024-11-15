@@ -350,6 +350,11 @@ export default {
         hp: 1,
         speed: 60,
       },
+      lvl2: {
+        lvl: 2,
+        hp: 1,
+        speed: 35,
+      },
     },
   },
 };
