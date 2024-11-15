@@ -35,7 +35,7 @@ export default function engineOutput() {
   const groundRoughness = useRef(5);
   const waterLevel = useRef(1);
   const renderSpeed = useRef(5);
-  const gameSpeed = useRef(0.5);
+  const gameSpeed = useRef(1);
   const totalSpawns = useRef(30);
   const spawnSpeed = useRef(1);
   const kingHP = useRef(20);
@@ -1110,8 +1110,8 @@ export default function engineOutput() {
                 id="gameSpeed.current"
                 className="settingSlider"
                 type="range"
-                min="1"
-                max="100"
+                min="0"
+                max="10"
                 value={gameSpeed.current}
                 onChange={updateGameSpeed}
               ></input>

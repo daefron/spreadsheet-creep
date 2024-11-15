@@ -29,6 +29,7 @@ export class Entity {
       this.armed = true;
     }
     this.sponge = type.sponge;
+    this.maxHp = lvl.maxHp;
   }
 }
 
