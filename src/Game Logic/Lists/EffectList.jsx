@@ -9,4 +9,11 @@ export default {
       color: "white",
     },
   },
+  aura: {
+    type: "aura",
+    class: "effect",
+    symbol: "",
+    duration: 20,
+    style: { backgroundColor: "rgb(233 233 233)", fontStyle: "italic" },
+  },
 };

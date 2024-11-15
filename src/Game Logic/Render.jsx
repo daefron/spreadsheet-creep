@@ -394,7 +394,7 @@ export default function engineOutput() {
         return firstRowCell(w, id, key);
       }
       if (cell.effect !== undefined) {
-        return effectCell(cell.effect, id, key);
+        return effectCell(cell.effect, id, key, cell);
       }
       if (cell.entity !== undefined) {
         return entityCell(cell.entity, id, key);
@@ -457,7 +457,7 @@ export default function engineOutput() {
       return [key, id, toLetter(w - 1) + " ", style];
     }
 
-    function effectCell(effect, id, key) {
+    function effectCell(effect, id, key, cell) {
       let style = {
         width: cellWidth.current + "px",
         height: cellHeight.current + "px",
@@ -465,7 +465,19 @@ export default function engineOutput() {
         "--cell-select-height": cellHeight.current - 2 + "px",
         backgroundColor: effect.style.backgroundColor,
         color: effect.style.color,
+        fontStyle: effect.style.fontStyle,
       };
+      if (effect.symbol === "") {
+        if (cell.entity !== undefined) {
+          cell.entity.style.backgroundColor = effect.style.backgroundColor;
+          return entityCell(cell.entity, id, key);
+        }
+        if (cell.fluid !== undefined) {
+          cell.fluid.style.backgroundColor = effect.style.backgroundColor;
+          console.log(cell.fluid);
+          return fluidCell(cell.fluid, id, key);
+        }
+      }
       return [key, id, effect.symbol, style];
     }
 
@@ -481,6 +493,7 @@ export default function engineOutput() {
         "--cell-select-width": cellWidth.current - 2 + "px",
         "--cell-select-height": cellHeight.current - 2 + "px",
         boxShadow: entity.style.boxShadow,
+        backgroundColor: entity.style.backgroundColor,
       };
       let cellText = entity.type + entity.lvl + " (hp: " + entity.hp + ")";
       if (entity.enemy === true) {
@@ -546,7 +559,7 @@ export default function engineOutput() {
         "--cell-select-height": cellHeight.current - 2 + "px",
         boxShadow: fluid.style.boxShadow,
         fontStyle: "italic",
-        color: "black",
+        backgroundColor: fluid.style.backgroundColor,
       };
       return [key, id, fluid.type, style];
     }

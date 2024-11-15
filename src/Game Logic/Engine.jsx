@@ -815,12 +815,27 @@ export function engine(newRound, gameState) {
             [currentEntity.position[0] + w, currentEntity.position[1] + h],
             active
           );
-          if (inCell.ground === undefined) {
-            if (
-              inCell.entity !== undefined &&
-              inCell.entity.enemy !== currentEntity.enemy
-            ) {
-              inCell.entity.hp -= currentEntity.dmg;
+          if (inCell.entity !== currentEntity) {
+            if (inCell.ground === undefined) {
+              if (
+                inCell.entity !== undefined &&
+                inCell.entity.enemy !== currentEntity.enemy
+              ) {
+                inCell.entity.hp -= currentEntity.dmg;
+              }
+              let effectType = effectList["aura"];
+              let effectPosition = [
+                currentEntity.position[0] + w,
+                currentEntity.position[1] + h,
+              ];
+              let effectID =
+                "aura" +
+                currentEntity.position[0] +
+                w +
+                currentEntity.position[1] +
+                h;
+              effectID = new Effect(effectType, effectPosition, effectID);
+              activeEffects.current.push(effectID);
             }
           }
           h--;
