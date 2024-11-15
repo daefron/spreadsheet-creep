@@ -688,6 +688,12 @@ export function engine(newRound, gameState) {
         return true;
       }
     }
+    if (currentEntity.attack === "radius") {
+      if (entityCanAttack(currentEntity, true)) {
+        radiusAttack(currentEntity);
+        return true;
+      }
+    }
 
     //function to determine if entity can attack this turn
     function entityCanAttack(currentEntity, targetEntity) {
@@ -750,62 +756,89 @@ export function engine(newRound, gameState) {
       currentEntity.speedCharge = 0;
       currentEntity.idle = 0;
     }
-  }
 
-  function projectileTargetter(currentEntity) {
-    let target;
-    let rangeLetter = direction(currentEntity);
-    for (let i = currentEntity.range; i > 0; i--) {
-      let targetCell = cellContents(
-        [rangeLetter, currentEntity.position[1]],
-        active
-      );
-      if (targetCell.ground !== undefined) {
-        i = 0;
-      }
-      if (targetCell.entity !== undefined) {
-        if (targetCell.entity.enemy !== currentEntity.enemy) {
-          target = targetCell.entity;
+    function projectileTargetter(currentEntity) {
+      let target;
+      let rangeLetter = direction(currentEntity);
+      for (let i = currentEntity.range; i > 0; i--) {
+        let targetCell = cellContents(
+          [rangeLetter, currentEntity.position[1]],
+          active
+        );
+        if (targetCell.ground !== undefined) {
+          i = 0;
+        }
+        if (targetCell.entity !== undefined) {
+          if (targetCell.entity.enemy !== currentEntity.enemy) {
+            target = targetCell.entity;
+          }
+        }
+        if (currentEntity.enemy) {
+          rangeLetter--;
+        } else {
+          rangeLetter++;
         }
       }
-      if (currentEntity.enemy) {
-        rangeLetter--;
+      return target;
+    }
+
+    //function to spawn projectile
+    function rangedAttack(currentEntity) {
+      let projectileID =
+        currentEntity.projectile + projectileCount.current + currentEntity.name;
+      projectileCount.current++;
+      let type = projectileList[currentEntity.projectile];
+      if (currentEntity.projectile === "water") {
+        projectileID = new Fluid(
+          fluidList["water"],
+          [currentEntity.position[0], currentEntity.position[1] - 3],
+          projectileID
+        );
+        activeFluid.current.push(projectileID);
       } else {
-        rangeLetter++;
+        projectileID = new Projectile(currentEntity, projectileID, type);
+        activeProjectiles.current.push(projectileID);
       }
+      currentEntity.rateCharge = 0;
+      currentEntity.speedCharge = 0;
+      currentEntity.idle = 0;
     }
-    return target;
-  }
 
-  //function to spawn projectile
-  function rangedAttack(currentEntity) {
-    let projectileID =
-      currentEntity.projectile + projectileCount.current + currentEntity.name;
-    projectileCount.current++;
-    let type = projectileList[currentEntity.projectile];
-    if (currentEntity.projectile === "water") {
-      projectileID = new Fluid(
-        fluidList["water"],
-        [currentEntity.position[0], currentEntity.position[1] - 3],
-        projectileID
+    function radiusAttack(currentEntity) {
+      let w = currentEntity.range;
+      let h = currentEntity.range;
+      let initialW = w;
+      let initialH = h;
+      while (w >= -initialW) {
+        while (h >= -initialH) {
+          let inCell = cellContents(
+            [currentEntity.position[0] + w, currentEntity.position[1] + h],
+            active
+          );
+          if (inCell.ground === undefined) {
+            if (
+              inCell.entity !== undefined &&
+              inCell.entity.enemy !== currentEntity.enemy
+            ) {
+              inCell.entity.hp -= currentEntity.dmg;
+            }
+          }
+          h--;
+        }
+        h = initialH;
+        w--;
+      }
+      currentEntity.rateCharge = 0;
+    }
+
+    //checks to see if any enemies exist
+    function enemyChecker() {
+      let enemies = activeEntities.current.filter(
+        (entity) => entity.enemy === true
       );
-      activeFluid.current.push(projectileID);
-    } else {
-      projectileID = new Projectile(currentEntity, projectileID, type);
-      activeProjectiles.current.push(projectileID);
-    }
-    currentEntity.rateCharge = 0;
-    currentEntity.speedCharge = 0;
-    currentEntity.idle = 0;
-  }
-
-  //checks to see if any enemies exist
-  function enemyChecker() {
-    let enemies = activeEntities.current.filter(
-      (entity) => entity.enemy === true
-    );
-    if (enemies.length > 0) {
-      return true;
+      if (enemies.length > 0) {
+        return true;
+      }
     }
   }
 
