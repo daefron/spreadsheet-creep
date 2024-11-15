@@ -1090,7 +1090,19 @@ export function engine(newRound, gameState) {
 
     function missileMovement(projectile) {
       if (projectile.direction === "up") {
-        if (projectile.position[1] > projectile.parent.position[1] - 8) {
+        let enemies = activeEntities.current.filter((entity) => entity.enemy);
+        let highest = { position: [1, Infinity] };
+        activeGround.current.forEach((ground) => {
+          if (ground.position[1] < highest.position[1]) {
+            highest = ground;
+          }
+        });
+        enemies.forEach((entity) => {
+          if (entity.position[1] < highest.position[1]) {
+            highest = entity;
+          }
+        });
+        if (projectile.position[1] > highest.position[1] - 2) {
           let newPosition = [
             projectile.position[0],
             projectile.position[1] - 1,
