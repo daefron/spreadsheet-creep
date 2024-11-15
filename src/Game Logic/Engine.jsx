@@ -318,15 +318,15 @@ export function engine(newRound, gameState) {
           if (
             inBelow.entity !== undefined &&
             inBelow.entity.hp === currentEntity.hp &&
+            inBelow.entity.enemy === currentEntity.enemy &&
             inAbove.entity !== undefined &&
-            inAbove.entity.hp === currentEntity.hp
+            inAbove.entity.hp === currentEntity.hp &&
+            inAbove.entity.enemy === currentEntity.enemy
           ) {
             currentEntity.hp--;
             inBelow.entity.hp++;
-            return;
           }
         }
-
         if (
           inBelow.entity !== undefined &&
           inBelow.entity.type === currentEntity.type &&
@@ -335,7 +335,8 @@ export function engine(newRound, gameState) {
         ) {
           currentEntity.hp--;
           inBelow.entity.hp++;
-        } else if (currentEntity.enemy) {
+        }
+        if (currentEntity.enemy) {
           if (
             inRight.entity !== undefined &&
             inRight.entity.type === currentEntity.type &&
