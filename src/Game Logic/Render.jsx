@@ -489,7 +489,7 @@ export default function engineOutput() {
         style.color = "darkGreen";
       }
       if (entity.type === "blob") {
-        cellText = entity.type + entity.lvl;
+        cellText = "";
         if (entity.hp > 6) {
           style.color = "white";
         }
@@ -515,7 +515,7 @@ export default function engineOutput() {
         backgroundColor: ground.style.backgroundColor,
         color: "black",
       };
-      return [key, id, ground.type + " (hp: " + ground.hp + ")", style];
+      return [key, id, ground.type, style];
     }
 
     function projectileCell(projectile, id, key) {

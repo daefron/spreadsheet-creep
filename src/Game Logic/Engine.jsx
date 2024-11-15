@@ -314,6 +314,19 @@ export function engine(newRound, gameState) {
       }
 
       function blobSorter() {
+        if (currentEntity.hp < currentEntity.maxHp && currentEntity.hp !== 1) {
+          if (
+            inBelow.entity !== undefined &&
+            inBelow.entity.hp === currentEntity.hp &&
+            inAbove.entity !== undefined &&
+            inAbove.entity.hp === currentEntity.hp
+          ) {
+            currentEntity.hp--;
+            inBelow.entity.hp++;
+            return;
+          }
+        }
+
         if (
           inBelow.entity !== undefined &&
           inBelow.entity.type === currentEntity.type &&
