@@ -537,7 +537,7 @@ export function engine(newRound, gameState) {
           }
           currentEntity.hp = 0;
         }
-      } else if (gameMode.current === "blob" && newPosition[0] === 0) {
+      } else if (gameMode.current === "blob" && newPosition[0] === -1) {
         entityKiller(currentEntity);
         blobAtEnd = true;
       }
@@ -1012,7 +1012,7 @@ export function engine(newRound, gameState) {
         return;
       }
     }
-    if (projectile.type === "arrow") {
+    if (projectile.type === "arrow" || projectile.type === "laser") {
       if (arrowCanMove(projectile)) {
         arrowMovement(projectile);
         return;
@@ -1179,21 +1179,26 @@ export function engine(newRound, gameState) {
     function arrowMovement(projectile) {
       let newPosition = [direction(projectile), projectile.position[1]];
       let cellAtPosition = cellContents(newPosition, active);
-      if (
-        cellAtPosition.entity !== undefined &&
-        cellAtPosition.entity.enemy !== projectile.enemy
-      ) {
-        cellAtPosition.entity.hp -= projectile.dmg;
-        activeProjectiles.current.splice(
-          activeProjectiles.current.indexOf(projectile),
-          1
-        );
+      if (cellAtPosition.entity !== undefined) {
+        if (projectile.type === "laser") {
+          cellAtPosition.entity.hp -= projectile.dmg;
+        } else if (cellAtPosition.entity.enemy === projectile.enemy) {
+          cellAtPosition.entity.hp -= projectile.dmg;
+        }
+        if (!projectile.piercing) {
+          activeProjectiles.current.splice(
+            activeProjectiles.current.indexOf(projectile),
+            1
+          );
+        } else projectile.position = newPosition;
       } else if (cellAtPosition.ground !== undefined) {
         cellAtPosition.ground.hp -= projectile.dmg;
-        activeProjectiles.current.splice(
-          activeProjectiles.current.indexOf(projectile),
-          1
-        );
+        if (!projectile.piercing) {
+          activeProjectiles.current.splice(
+            activeProjectiles.current.indexOf(projectile),
+            1
+          );
+        } else projectile.position = newPosition;
       } else {
         projectile.speedCharge = 0;
         projectile.position = newPosition;

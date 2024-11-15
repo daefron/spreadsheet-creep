@@ -15,6 +15,8 @@ class Projectile {
     this.distance = parent.range;
     this.name = name;
     this.death = type.death;
+    this.piercing = type.piercing;
+    this.symbol = type.symbol;
     if (type.type === "arrow") {
       if (this.enemy) {
         this.symbol = type.enemySymbol;
@@ -25,7 +27,6 @@ class Projectile {
       this.symbol = type.upSymbol;
     }
     if (type.type === "barrel") {
-      this.symbol = type.symbol;
       this.position = [direction(parent), parent.position[1]];
     }
     if (type.death === "explodes") {

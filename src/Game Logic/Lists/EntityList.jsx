@@ -254,6 +254,33 @@ export default {
       },
     },
   },
+  laser: {
+    type: "laser",
+    class: "entity",
+    attack: "projectile",
+    projectile: "laser",
+    fallSpeed: 1,
+    breathes: true,
+    style: {},
+    lvls: {
+      lvl1: {
+        lvl: 1,
+        hp: 10,
+        dmg: 2,
+        range: 100,
+        rate: 120,
+        value: 30,
+      },
+      lvl2: {
+        lvl: 2,
+        hp: 20,
+        dmg: 2,
+        range: 100,
+        rate: 1,
+        value: 100,
+      },
+    },
+  },
   wall: {
     type: "wall",
     class: "entity",

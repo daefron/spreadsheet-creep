@@ -26,4 +26,13 @@ export default {
     fallSpeed: 1,
     death: "explodes",
   },
+  laser: {
+    type: "laser",
+    class: "projectile",
+    symbol: "====================================",
+    projectile: true,
+    piercing: true,
+    speed: 0,
+    distance: 100,
+  },
 };
