@@ -483,13 +483,16 @@ export default function engineOutput() {
         boxShadow: entity.style.boxShadow,
       };
       let cellText = entity.type + entity.lvl + " (hp: " + entity.hp + ")";
-      if (entity.type === "blob") {
-        cellText = entity.type + entity.lvl;
-      }
       if (entity.enemy === true) {
         style.color = "darkRed";
       } else {
         style.color = "darkGreen";
+      }
+      if (entity.type === "blob") {
+        cellText = entity.type + entity.lvl;
+        if (entity.hp > 6) {
+          style.color = "white";
+        }
       }
       if (entity.inLiquid) {
         style.fontStyle = "italic";

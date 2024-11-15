@@ -224,7 +224,7 @@ export function engine(newRound, gameState) {
         currentEntity.speedCharge++;
         if (
           currentEntity.speedCharge > currentEntity.speed &&
-          currentEntity.hp < 5 &&
+          currentEntity.hp < 10 &&
           Math.random() < 0.5
         ) {
           currentEntity.hp++;
