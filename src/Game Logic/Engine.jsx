@@ -45,7 +45,13 @@ export function engine(newRound, gameState) {
   let terrainIsFalling = gameState.engine.terrainIsFalling;
   let projectileCount = gameState.engine.projectileCount;
   let blobAtEnd = false;
-  let activeBlobs = [];
+
+  let entityTime = gameState.test.entityTime;
+  let projectileTime = gameState.test.projectileTime;
+  let groundTime = gameState.test.groundTime;
+  let fluidTime = gameState.test.fluidTime;
+  let effectTime = gameState.test.effectTime;
+  let testTime = gameState.test.testTime;
 
   function explosion(currentEntity) {
     let w = currentEntity.explosionRange;
@@ -1523,22 +1529,37 @@ export function engine(newRound, gameState) {
 
     //makes all entities take turn
     function nextTurn() {
+      let initialTime = Date.now();
       activeEntities.current.forEach((entity) => {
         entityTurn(entity);
       });
+      let timeElapsed = Date.now() - initialTime;
+      entityTime.current += timeElapsed;
+      initialTime = Date.now();
       activeProjectiles.current.forEach((projectile) => {
         projectileTurn(projectile);
       });
+      timeElapsed = Date.now() - initialTime;
+      projectileTime.current += timeElapsed;
       terrainIsFalling.current = false;
+      initialTime = Date.now();
       activeGround.current.forEach((ground) => {
         groundTurn(ground);
       });
+      timeElapsed = Date.now() - initialTime;
+      groundTime.current += timeElapsed;
+      initialTime = Date.now();
       activeFluid.current.forEach((fluid) => {
         fluidTurn(fluid);
       });
+      timeElapsed = Date.now() - initialTime;
+      fluidTime.current += timeElapsed;
+      initialTime = Date.now();
       activeEffects.current.forEach((effect) => {
         effectTurn(effect);
       });
+      timeElapsed = Date.now() - initialTime;
+      effectTime.current += timeElapsed;
     }
 
     function victoryChecker() {

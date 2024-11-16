@@ -24,6 +24,32 @@ export function cellContents(position, active) {
   return inCell;
 }
 
+export function cellGround(position, active) {
+  return active.activeGround.current.find((ground) =>
+    comparePosition(ground.position, position)
+  );
+}
+export function cellEntity(position, active) {
+  return active.activeEntities.current.find((entity) =>
+    comparePosition(entity.position, position)
+  );
+}
+export function cellProjectile(position, active) {
+  return active.activeProjectiles.current.find((projectile) =>
+    comparePosition(projectile.position, position)
+  );
+}
+export function cellFluid(position, active) {
+  return active.activeFluid.current.find((fluid) =>
+    comparePosition(fluid.position, position)
+  );
+}
+export function cellEffect(position, active) {
+  return active.activeEffects.current.find((effect) =>
+    comparePosition(effect.position, position)
+  );
+}
+
 export function direction(currentEntity) {
   if (currentEntity.enemy) {
     return currentEntity.position[0] - 1;
