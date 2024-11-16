@@ -1478,53 +1478,101 @@ export function engine(newRound, gameState) {
     }
   }
 
-  //sets amount of turns to play
-  function amountOfTurns(finished) {
+  function gamemode(finished) {
     let gameFinished = finished;
     if (!gameFinished) {
-      timer.current = setInterval(() => {
-        turnCycler();
-      }, renderSpeed.current * 4);
+      if (gameMode.current === "king") {
+        timer.current = setInterval(() => {
+          kingTurn();
+        }, renderSpeed.current * 4);
+      } else if (gameMode.current === "battle") {
+        timer.current = setInterval(() => {
+          battleTurn();
+        }, renderSpeed.current * 4);
+      } else if (gameMode.current === "blob") {
+        timer.current = setInterval(() => {
+          blobTurn();
+        }, renderSpeed.current * 4);
+      } else if (gameMode.current === "blob fight") {
+        timer.current = setInterval(() => {
+          blobFightTurn();
+        }, renderSpeed.current * 4);
+      } else if (gameMode.current === "blob gob") {
+        timer.current = setInterval(() => {
+          blobGobTurn();
+        }, renderSpeed.current * 4);
+      } else if (gameMode.current === "sandbox") {
+        timer.current = setInterval(() => {
+          sandboxTurn();
+        }, renderSpeed.current * 4);
+      }
     }
 
-    //runs through turn actions
-    function turnCycler() {
-      if (gameMode.current === "king") {
-        spawnChecker(true);
-      } else if (gameMode.current === "battle") {
-        spawnChecker(true);
-        spawnChecker(false);
-      } else if (gameMode.current === "blob") {
+    function kingTurn() {
+      spawnChecker(true);
+      nextTurn();
+      if (!victoryChecker()) {
+        clearInterval(timer.current);
+      }
+    }
+
+    function battleTurn() {
+      spawnChecker(true);
+      spawnChecker(false);
+      nextTurn();
+      if (!victoryChecker()) {
+        clearInterval(timer.current);
+      }
+    }
+
+    function blobTurn() {
+      if (lastEnemySpawnTime.current < 201) {
         lastEnemySpawnTime.current++;
-        if (lastEnemySpawnTime.current === 200) {
-          let firstBlob = entitySpawner(["blob", 1], true);
-          firstBlob.hp = firstBlob.maxHp;
-        }
-      } else if (gameMode.current === "blob fight") {
-        lastEnemySpawnTime.current++;
-        if (
-          lastEnemySpawnTime.current > 200 / gameSpeed.current &&
-          activeEntities.current.length === 0
-        ) {
-          let firstBlob = entitySpawner(["blob", 1], true);
-          firstBlob.hp = firstBlob.maxHp;
-          let secondBlob = entitySpawner(["blob", 1], false);
-          secondBlob.hp = secondBlob.maxHp;
-        }
-      } else if (gameMode.current === "blob gob") {
-        lastEnemySpawnTime.current++;
-        if (lastEnemySpawnTime.current === 100 / gameSpeed.current) {
-          let firstBlob = entitySpawner(["blob", 1], true);
-          firstBlob.hp = firstBlob.maxHp * 5;
-        }
-        spawnChecker(false);
+      }
+      if (lastEnemySpawnTime.current === 200) {
+        let firstBlob = entitySpawner(["blob", 1], true);
+        firstBlob.hp = firstBlob.maxHp;
       }
       nextTurn();
-      if (gameMode.current !== "sandbox") {
-        if (!victoryChecker()) {
-          clearInterval(timer.current);
-        }
+      if (!victoryChecker()) {
+        clearInterval(timer.current);
       }
+    }
+
+    function blobFightTurn() {
+      if (lastEnemySpawnTime.current < 200) {
+        lastEnemySpawnTime.current++;
+      }
+      if (
+        lastEnemySpawnTime.current > 200 / gameSpeed.current &&
+        activeEntities.current.length === 0
+      ) {
+        let firstBlob = entitySpawner(["blob", 1], true);
+        firstBlob.hp = firstBlob.maxHp;
+        let secondBlob = entitySpawner(["blob", 1], false);
+        secondBlob.hp = secondBlob.maxHp;
+      }
+      nextTurn();
+      if (!victoryChecker()) {
+        clearInterval(timer.current);
+      }
+    }
+
+    function blobGobTurn() {
+      lastEnemySpawnTime.current++;
+      if (lastEnemySpawnTime.current === 100 / gameSpeed.current) {
+        let firstBlob = entitySpawner(["blob", 1], true);
+        firstBlob.hp = firstBlob.maxHp * 5;
+      }
+      spawnChecker(false);
+      nextTurn();
+      if (!victoryChecker()) {
+        clearInterval(timer.current);
+      }
+    }
+
+    function sandboxTurn() {
+      nextTurn();
     }
 
     //makes all entities take turn
@@ -1742,5 +1790,5 @@ export function engine(newRound, gameState) {
       activeEntities.current.push(entityID);
     }
   }
-  amountOfTurns(false);
+  gamemode(false);
 }
