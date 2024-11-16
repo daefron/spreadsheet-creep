@@ -161,250 +161,6 @@ export default function engineOutput() {
     };
   }, []);
 
-  //gives the ground entities a thicker outline if groundline
-  function groundLine(ground) {
-    if (!ground.falling) {
-      if (ground.fallSpeed > ground.fallCharge) {
-        return;
-      }
-      ground.style.boxShadow = "";
-      let made;
-      let initialTime = Date.now();
-      let groundAbove = cellGround(
-        [ground.position[0], ground.position[1] - 1],
-        activeHolder.current
-      );
-      let groundLeft = cellGround(
-        [ground.position[0] - 1, ground.position[1]],
-        activeHolder.current
-      );
-      let groundRight = cellGround(
-        [ground.position[0] + 1, ground.position[1]],
-        activeHolder.current
-      );
-      let timeElapsed = Date.now() - initialTime;
-      testTime.current += timeElapsed;
-      if (groundAbove === undefined) {
-        ground.style.boxShadow = "inset 0px 2px 0px grey";
-        made = true;
-      }
-      if (groundLeft === undefined && ground.position[0] - 1 !== 0 && !made) {
-        ground.style.boxShadow = "inset 2px 0px 0px grey";
-        made = true;
-      } else if (
-        groundLeft === undefined &&
-        ground.position[0] - 1 !== 0 &&
-        made
-      ) {
-        ground.style.boxShadow =
-          ground.style.boxShadow + ",inset 2px 0px 0px grey";
-      }
-      if (
-        groundRight === undefined &&
-        ground.position[0] < gameboardWidth.current &&
-        !made
-      ) {
-        ground.style.boxShadow = "inset -2px 0px 0px grey";
-        made = true;
-      } else if (
-        groundRight === undefined &&
-        ground.position[0] < gameboardWidth.current &&
-        made
-      ) {
-        ground.style.boxShadow =
-          ground.style.boxShadow + ",inset -2px 0px 0px grey";
-      }
-    } else {
-      ground.style.boxShadow = false;
-    }
-  }
-
-  function fluidLine(fluid) {
-    if (!fluid.falling) {
-      if (fluid.fallSpeed > fluid.fallCharge) {
-        return;
-      }
-      fluid.style.boxShadow = "";
-      let made = false;
-      let fluidAbove = cellFluid(
-        [fluid.position[0], fluid.position[1] - 1],
-        activeHolder.current
-      );
-      let fluidLeft = cellFluid(
-        [fluid.position[0] - 1, fluid.position[1]],
-        activeHolder.current
-      );
-      let fluidRight = cellFluid(
-        [fluid.position[0] + 1, fluid.position[1]],
-        activeHolder.current
-      );
-      let groundAbove = cellGround(
-        [fluid.position[0], fluid.position[1] - 1],
-        activeHolder.current
-      );
-      let groundLeft = cellGround(
-        [fluid.position[0] - 1, fluid.position[1]],
-        activeHolder.current
-      );
-      let groundRight = cellGround(
-        [fluid.position[0] + 1, fluid.position[1]],
-        activeHolder.current
-      );
-      if (fluidAbove === undefined) {
-        fluid.style.boxShadow = "inset 0px 1px 0px blue";
-        made = true;
-      }
-      if (fluidLeft === undefined && groundLeft === undefined && !made) {
-        fluid.style.boxShadow = "inset 1px 0px 0px blue";
-        made = true;
-      } else if (fluidLeft === undefined && groundLeft === undefined && made) {
-        fluid.style.boxShadow =
-          fluid.style.boxShadow + ",inset 1px 0px 0px blue";
-      }
-      if (fluidRight === undefined && groundRight === undefined && !made) {
-        fluid.style.boxShadow = "inset -1px 0px 0px blue";
-        made = true;
-      } else if (
-        fluidRight === undefined &&
-        groundRight === undefined &&
-        made
-      ) {
-        fluid.style.boxShadow =
-          fluid.style.boxShadow + ",inset -1px 0px 0px blue";
-      }
-    } else {
-      fluid.style.boxShadow = false;
-    }
-  }
-
-  function blobLine(blob) {
-    let color;
-    if (blob.enemy) {
-      color = "darkRed";
-    } else color = "darkGreen";
-    blob.style.boxShadow = "";
-    let made = false;
-    let cellAbove = cellContents(
-      [blob.position[0], blob.position[1] - 1],
-      activeHolder.current
-    );
-    let cellLeft = cellContents(
-      [blob.position[0] - 1, blob.position[1]],
-      activeHolder.current
-    );
-    let cellRight = cellContents(
-      [blob.position[0] + 1, blob.position[1]],
-      activeHolder.current
-    );
-    let cellBelow = cellContents(
-      [blob.position[0], blob.position[1] + 1],
-      activeHolder.current
-    );
-    if (cellAbove.entity === undefined || cellAbove.entity.type !== blob.type) {
-      blob.style.boxShadow = "inset 0px 2px 0px " + color;
-      made = true;
-    }
-    if (
-      (cellLeft.entity === undefined || cellLeft.entity.type !== blob.type) &&
-      cellLeft.ground === undefined &&
-      blob.position[0] - 1 !== 0 &&
-      !made
-    ) {
-      blob.style.boxShadow = "inset 2px 0px 0px " + color;
-      made = true;
-    } else if (
-      (cellLeft.entity === undefined || cellLeft.entity.type !== blob.type) &&
-      cellLeft.ground === undefined &&
-      blob.position[0] - 1 !== 0 &&
-      made
-    ) {
-      blob.style.boxShadow =
-        blob.style.boxShadow + ",inset 2px 0px 0px " + color;
-    }
-    if (
-      (cellRight.entity === undefined || cellRight.entity.type !== blob.type) &&
-      cellRight.ground === undefined &&
-      blob.position[0] < gameboardWidth.current &&
-      !made
-    ) {
-      blob.style.boxShadow = "inset -2px 0px 0px " + color;
-      made = true;
-    } else if (
-      (cellRight.entity === undefined || cellRight.entity.type !== blob.type) &&
-      cellRight.ground === undefined &&
-      blob.position[0] < gameboardWidth.current &&
-      made
-    ) {
-      blob.style.boxShadow =
-        blob.style.boxShadow + ",inset -2px 0px 0px " + color;
-    }
-    if (
-      (cellBelow.entity === undefined || cellBelow.entity.type !== blob.type) &&
-      cellBelow.ground === undefined &&
-      blob.position[0] < gameboardWidth.current &&
-      !made
-    ) {
-      blob.style.boxShadow = "inset 0px -3px 0px " + color;
-      made = true;
-    } else if (
-      (cellBelow.entity === undefined || cellBelow.entity.type !== blob.type) &&
-      cellBelow.ground === undefined &&
-      blob.position[0] < gameboardWidth.current &&
-      made
-    ) {
-      blob.style.boxShadow =
-        blob.style.boxShadow + ",inset 0px -3px 0px " + color;
-    }
-  }
-
-  //gives entities an attack bar
-  function attackBar(currentEntity) {
-    let maxWidth = 157;
-    let percentage = currentEntity.rateCharge / currentEntity.rate;
-    let currentWidth = maxWidth * percentage;
-    if (currentEntity.enemy) {
-      currentEntity.style.boxShadow =
-        "inset " + -currentWidth + "px 0px 0px 0px #0000001e";
-    } else {
-      currentEntity.style.boxShadow =
-        "inset " + currentWidth + "px 0px 0px 0px #0000001e";
-    }
-  }
-
-  function groundHealthBar(ground) {
-    let percentage = ground.hp / groundList[ground.type].hp;
-    let color = "rgb(200 200 200 /" + (1 - percentage) + ")";
-    if (ground.style.boxShadow === "") {
-      ground.style.boxShadow = "inset 157px 21px 0px 0px " + color;
-    } else ground.style.boxShadow += ",inset 157px 21px 0px 0px " + color;
-  }
-
-  function entityHealthBar(entity) {
-    let percentage =
-      entity.hp / entityList[entity.type].lvls["lvl" + entity.lvl].hp;
-    let color;
-    if (entity.enemy) {
-      color = "rgb(139 0 0 /" + (1 - percentage) + ")";
-    } else {
-      color = "rgb(2 48 32 /" + (1 - percentage) + ")";
-    }
-    entity.style.boxShadow += ",inset 157px 21px 0px 0px " + color;
-  }
-
-  function blobHealthBar(entity) {
-    let percentage = 1 - entity.hp / 10;
-    let color;
-    if (entity.enemy) {
-      color = "rgb(139 0 0 /" + (1 - percentage) + ")";
-    } else {
-      color = "rgb(2 48 32 /" + (1 - percentage) + ")";
-    }
-    if (entity.style.boxShadow === "") {
-      entity.style.boxShadow = "inset 157px 21px 0px 0px " + color;
-      return;
-    } else entity.style.boxShadow += ",inset 157px 21px 0px 0px " + color;
-  }
-
   //handles making a usable array for the grid renderer
   function updateGameboardEntities() {
     let grid = [];
@@ -477,7 +233,6 @@ export default function engineOutput() {
           height: cellHeight.current + "px",
           "--cell-select-width": 50 - 2 + "px",
           "--cell-select-height": cellHeight.current - 2 + "px",
-          position: "sticky",
           boxShadow: "inset -1px 0px 0px #404040, inset 0px -2px 0px #404040",
         };
         return [id, "", style];
@@ -503,7 +258,6 @@ export default function engineOutput() {
         "--cell-select-height": cellHeight.current - 2 + "px",
         textAlign: "center",
         color: "#404040",
-        position: "sticky",
         boxShadow: "inset 0px -2px 0px #404040",
       };
       return [id, toLetter(w - 1) + " ", style];
@@ -533,113 +287,324 @@ export default function engineOutput() {
     }
 
     function entityCell(entity, id) {
-      attackBar(entity);
-      if (entity.type === "blob") {
-        blobLine(entity);
-        blobHealthBar(entity);
-      } else {
-        entityHealthBar(entity);
-      }
+      let cellText;
       let style = {
         width: cellWidth.current + "px",
         height: cellHeight.current + "px",
         "--cell-select-width": cellWidth.current - 2 + "px",
         "--cell-select-height": cellHeight.current - 2 + "px",
-        boxShadow: entity.style.boxShadow,
-        backgroundColor: entity.style.backgroundColor,
       };
-      let cellText = entity.type + entity.lvl + " (hp: " + entity.hp + ")";
+      if (entity.type === "blob") {
+        blobLine(entity, style);
+        blobHealthBar(entity, style);
+        cellText = "";
+      } else {
+        attackBar(entity, style);
+        entityHealthBar(entity, style);
+        cellText = entity.type + entity.lvl + " (hp: " + entity.hp + ")";
+        if (entity.inLiquid) {
+          style.fontStyle = "italic";
+          inFluid(entity, style);
+        } else {
+          style.fontStyle = "normal";
+        }
+      }
+      let initialTime = Date.now();
+      let timeElapsed = Date.now() - initialTime;
+      testTime.current += timeElapsed;
       if (entity.enemy === true) {
         style.color = "darkRed";
       } else {
         style.color = "darkGreen";
       }
-      if (entity.type === "blob") {
-        cellText = "";
-        if (entity.hp > 6) {
-          style.color = "white";
+      return [id, cellText, style];
+
+      function attackBar(currentEntity, style) {
+        let maxWidth = 157;
+        let percentage = currentEntity.rateCharge / currentEntity.rate;
+        let currentWidth = maxWidth * percentage;
+        if (currentEntity.enemy) {
+          style.boxShadow =
+            "inset " + -currentWidth + "px 0px 0px 0px #0000001e";
+        } else {
+          style.boxShadow =
+            "inset " + currentWidth + "px 0px 0px 0px #0000001e";
         }
       }
-      if (entity.inLiquid) {
-        style.fontStyle = "italic";
-        inFluid(entity, style);
-      } else {
-        style.fontStyle = "normal";
+
+      function entityHealthBar(entity, style) {
+        let percentage =
+          entity.hp / entityList[entity.type].lvls["lvl" + entity.lvl].hp;
+        let color;
+        if (entity.enemy) {
+          color = "rgb(139 0 0 /" + (1 - percentage) + ")";
+        } else {
+          color = "rgb(2 48 32 /" + (1 - percentage) + ")";
+        }
+        style.boxShadow += ",inset 157px 21px 0px 0px " + color;
       }
-      return [id, cellText, style];
+
+      function blobLine(blob, style) {
+        let color, made;
+        if (blob.enemy) {
+          color = "darkRed";
+        } else color = "darkGreen";
+        let entityAbove = cellEntity(
+          [blob.position[0], blob.position[1] - 1],
+          activeHolder.current
+        );
+        let entityLeft = cellEntity(
+          [blob.position[0] - 1, blob.position[1]],
+          activeHolder.current
+        );
+        let entityRight = cellEntity(
+          [blob.position[0] + 1, blob.position[1]],
+          activeHolder.current
+        );
+        let entityBelow = cellEntity(
+          [blob.position[0], blob.position[1] + 1],
+          activeHolder.current
+        );
+        let groundLeft = cellGround(
+          [blob.position[0] - 1, blob.position[1]],
+          activeHolder.current
+        );
+        let groundRight = cellGround(
+          [blob.position[0] + 1, blob.position[1]],
+          activeHolder.current
+        );
+        let groundBelow = cellGround(
+          [blob.position[0], blob.position[1] + 1],
+          activeHolder.current
+        );
+        if (entityAbove === undefined || entityAbove.type !== blob.type) {
+          style.boxShadow = "inset 0px 2px 0px " + color;
+          made = true;
+        }
+        if (
+          (entityLeft === undefined || entityLeft.type !== blob.type) &&
+          groundLeft === undefined &&
+          blob.position[0] - 1 !== 0
+        ) {
+          if (!made) {
+            style.boxShadow = "inset 2px 0px 0px " + color;
+            made = true;
+          } else {
+            style.boxShadow += ",inset 2px 0px 0px " + color;
+          }
+        }
+        if (
+          (entityRight === undefined || entityRight.type !== blob.type) &&
+          groundRight === undefined &&
+          blob.position[0] < gameboardWidth.current
+        ) {
+          if (!made) {
+            style.boxShadow = "inset -2px 0px 0px " + color;
+            made = true;
+          } else {
+            style.boxShadow += ",inset -2px 0px 0px " + color;
+          }
+        }
+        if (
+          (entityBelow === undefined || entityBelow.type !== blob.type) &&
+          groundBelow === undefined &&
+          blob.position[0] < gameboardWidth.current
+        ) {
+          if (!made) {
+            style.boxShadow = "inset 0px -3px 0px " + color;
+            made = true;
+          } else {
+            style.boxShadow += ",inset 0px -3px 0px " + color;
+          }
+        }
+      }
+
+      function blobHealthBar(entity, style) {
+        let percentage = 1 - entity.hp / 10;
+        let color;
+        if (entity.enemy) {
+          color = "rgb(139 0 0 /" + (1 - percentage) + ")";
+        } else {
+          color = "rgb(2 48 32 /" + (1 - percentage) + ")";
+        }
+        if (style.boxShadow === undefined) {
+          style.boxShadow = "inset 157px 21px 0px 0px " + color;
+        } else style.boxShadow += ",inset 157px 21px 0px 0px " + color;
+      }
     }
 
     function groundCell(ground, id) {
-      groundLine(ground);
-      groundHealthBar(ground);
       let style = {
         width: cellWidth.current + "px",
         height: cellHeight.current + "px",
         "--cell-select-width": cellWidth.current - 2 + "px",
         "--cell-select-height": cellHeight.current - 2 + "px",
-        boxShadow: ground.style.boxShadow,
-        backgroundColor: ground.style.backgroundColor,
-        color: "black",
       };
+      groundLine(ground, style);
+      groundHealthBar(ground, style);
       return [id, ground.type, style];
+
+      function groundLine(ground, style) {
+        if (!ground.falling) {
+          if (ground.fallSpeed > ground.fallCharge) {
+            return;
+          }
+          style.boxShadow = "";
+          let made;
+          let groundAbove = cellGround(
+            [ground.position[0], ground.position[1] - 1],
+            activeHolder.current
+          );
+          let groundLeft = cellGround(
+            [ground.position[0] - 1, ground.position[1]],
+            activeHolder.current
+          );
+          let groundRight = cellGround(
+            [ground.position[0] + 1, ground.position[1]],
+            activeHolder.current
+          );
+          if (groundAbove === undefined) {
+            style.boxShadow = "inset 0px 2px 0px grey";
+            made = true;
+          }
+          if (groundLeft === undefined && ground.position[0] - 1 !== 0) {
+            if (!made) {
+              style.boxShadow = "inset 2px 0px 0px grey";
+              made = true;
+            } else {
+              style.boxShadow += ",inset 2px 0px 0px grey";
+            }
+          }
+          if (
+            groundRight === undefined &&
+            ground.position[0] < gameboardWidth.current
+          ) {
+            if (!made) {
+              style.boxShadow = "inset -2px 0px 0px grey";
+              made = true;
+            } else {
+              style.boxShadow += ",inset -2px 0px 0px grey";
+            }
+          }
+        } else {
+          style.boxShadow = false;
+        }
+      }
+
+      function groundHealthBar(ground, style) {
+        let percentage = ground.hp / groundList[ground.type].hp;
+        let color = "rgb(200 200 200 /" + (1 - percentage) + ")";
+        if (style.boxShadow === "") {
+          style.boxShadow = "inset 157px 21px 0px 0px " + color;
+        } else style.boxShadow += ",inset 157px 21px 0px 0px " + color;
+      }
     }
 
     function projectileCell(projectile, id) {
-      if (
-        activeEntities.current.find((entity) =>
-          comparePosition(entity.position, projectile.position)
-        ) === undefined
-      ) {
-        let style = {
-          width: cellWidth.current + "px",
-          height: cellHeight.current + "px",
-          "--cell-select-width": cellWidth.current - 2 + "px",
-          "--cell-select-height": cellHeight.current - 2 + "px",
-        };
-        inFluid(projectile, style);
-        return [id, projectile.symbol, style];
-      }
-    }
-
-    function fluidCell(fluid, id) {
-      if (terrainIsFalling.current) {
-        fluidLine(fluid);
-      }
       let style = {
         width: cellWidth.current + "px",
         height: cellHeight.current + "px",
         "--cell-select-width": cellWidth.current - 2 + "px",
         "--cell-select-height": cellHeight.current - 2 + "px",
-        boxShadow: fluid.style.boxShadow,
-        fontStyle: "italic",
-        backgroundColor: fluid.style.backgroundColor,
       };
+      inFluid(projectile, style);
+      return [id, projectile.symbol, style];
+    }
+
+    function fluidCell(fluid, id) {
+      let style = {
+        width: cellWidth.current + "px",
+        height: cellHeight.current + "px",
+        "--cell-select-width": cellWidth.current - 2 + "px",
+        "--cell-select-height": cellHeight.current - 2 + "px",
+        fontStyle: "italic",
+      };
+      fluidLine(fluid, style);
       return [id, fluid.type, style];
+
+      function fluidLine(fluid, style) {
+        if (!fluid.falling) {
+          if (fluid.fallSpeed > fluid.fallCharge) {
+            return;
+          }
+          style.boxShadow = "";
+          let made;
+          let fluidAbove = cellFluid(
+            [fluid.position[0], fluid.position[1] - 1],
+            activeHolder.current
+          );
+          let fluidLeft = cellFluid(
+            [fluid.position[0] - 1, fluid.position[1]],
+            activeHolder.current
+          );
+          let fluidRight = cellFluid(
+            [fluid.position[0] + 1, fluid.position[1]],
+            activeHolder.current
+          );
+          let groundLeft = cellGround(
+            [fluid.position[0] - 1, fluid.position[1]],
+            activeHolder.current
+          );
+          let groundRight = cellGround(
+            [fluid.position[0] + 1, fluid.position[1]],
+            activeHolder.current
+          );
+          if (fluidAbove === undefined) {
+            style.boxShadow = "inset 0px 1px 0px blue";
+            made = true;
+          }
+          if (fluidLeft === undefined && groundLeft === undefined) {
+            if (!made) {
+              style.boxShadow = "inset 1px 0px 0px blue";
+              made = true;
+            } else {
+              style.boxShadow += ",inset 1px 0px 0px blue";
+            }
+          }
+          if (fluidRight === undefined && groundRight === undefined) {
+            if (!made) {
+              style.boxShadow = "inset -1px 0px 0px blue";
+              made = true;
+            } else {
+              style.boxShadow += ",inset -1px 0px 0px blue";
+            }
+          }
+        } else {
+          style.boxShadow = false;
+        }
+      }
     }
 
     function inFluid(entity, style) {
-      let cellAbove = cellContents(
+      let fluidAbove = cellFluid(
         [entity.position[0], entity.position[1] - 1],
         activeHolder.current
       );
-      let cellLeft = cellContents(
+      let fluidLeft = cellFluid(
         [entity.position[0] - 1, entity.position[1]],
         activeHolder.current
       );
-      let cellRight = cellContents(
+      let fluidRight = cellFluid(
         [entity.position[0] + 1, entity.position[1]],
         activeHolder.current
       );
-      if (cellAbove.fluid === undefined) {
-        style.boxShadow = style.boxShadow + ",inset 0px 1px 0px blue";
+      let groundLeft = cellGround(
+        [entity.position[0] - 1, entity.position[1]],
+        activeHolder.current
+      );
+      let groundRight = cellGround(
+        [entity.position[0] + 1, entity.position[1]],
+        activeHolder.current
+      );
+      if (fluidAbove === undefined) {
+        style.boxShadow += ",inset 0px 1px 0px blue";
       }
-      if (cellLeft.fluid === undefined && cellLeft.ground === undefined) {
-        style.boxShadow = style.boxShadow + ",inset 1px 0px 0px blue";
+      if (fluidLeft === undefined && groundLeft === undefined) {
+        style.boxShadow += ",inset 1px 0px 0px blue";
       }
-      if (cellRight.fluid === undefined && cellRight.ground === undefined) {
-        style.boxShadow = style.boxShadow + ",inset -1px 0px 0px blue";
+      if (fluidRight === undefined && groundRight === undefined) {
+        style.boxShadow += ",inset -1px 0px 0px blue";
       }
-      return style;
     }
   }
 

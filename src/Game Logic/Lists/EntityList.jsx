@@ -7,7 +7,6 @@ export default {
     movement: "walker",
     attack: "melee",
     breathes: true,
-    style: {},
     lvls: {
       lvl1: {
         lvl: 1,
@@ -39,7 +38,6 @@ export default {
     attack: "projectile",
     projectile: "arrow",
     fallSpeed: 1,
-    style: {},
     lvls: {
       lvl1: {
         lvl: 1,
@@ -71,7 +69,6 @@ export default {
     movement: "scaler",
     attack: "melee",
     breathes: true,
-    style: {},
     lvls: {
       lvl1: {
         lvl: 1,
@@ -94,7 +91,6 @@ export default {
     attack: "melee",
     breathes: true,
     death: "explodes",
-    style: {},
     lvls: {
       lvl1: {
         lvl: 1,
@@ -120,7 +116,6 @@ export default {
     breathes: true,
     death: "spawn",
     spawnType: "goblin",
-    style: {},
     lvls: {
       lvl1: {
         lvl: 1,
@@ -141,7 +136,6 @@ export default {
     projectile: "arrow",
     fallSpeed: 1,
     breathes: true,
-    style: {},
     lvls: {
       lvl1: {
         lvl: 1,
@@ -176,7 +170,6 @@ export default {
     breathes: true,
     attack: "enemyExists",
     projectile: "missile",
-    style: {},
     lvls: {
       lvl1: {
         lvl: 1,
@@ -193,7 +186,6 @@ export default {
     fallSpeed: 1,
     attack: "automatic",
     projectile: "water",
-    style: {},
     lvls: {
       lvl1: {
         lvl: 1,
@@ -209,7 +201,6 @@ export default {
     fallSpeed: 1,
     attack: "enemyExists",
     projectile: "barrel",
-    style: {},
     lvls: {
       lvl1: {
         lvl: 1,
@@ -226,7 +217,6 @@ export default {
     attack: "melee",
     fallSpeed: 1,
     breathes: true,
-    style: {},
     lvls: {
       lvl1: {
         lvl: 1,
@@ -261,7 +251,6 @@ export default {
     projectile: "laser",
     fallSpeed: 1,
     breathes: true,
-    style: {},
     lvls: {
       lvl1: {
         lvl: 1,
@@ -285,7 +274,6 @@ export default {
     type: "wall",
     class: "entity",
     fallSpeed: 1,
-    style: {},
     lvls: {
       lvl1: {
         lvl: 1,
@@ -318,7 +306,6 @@ export default {
     class: "entity",
     attack: "radius",
     fallSpeed: 1,
-    style: {},
     lvls: {
       lvl1: {
         lvl: 1,
@@ -351,7 +338,6 @@ export default {
     class: "entity",
     fallSpeed: 1,
     death: "explodes",
-    style: {},
     lvls: {
       lvl1: {
         lvl: 1,
@@ -385,7 +371,6 @@ export default {
     attack: "melee",
     fallSpeed: 0,
     breathes: true,
-    style: {},
     lvls: {
       lvl1: {
         lvl: 1,
@@ -403,7 +388,6 @@ export default {
     enemy: true,
     sponge: true,
     attack: "blob",
-    style: {},
     lvls: {
       lvl1: {
         lvl: 1,

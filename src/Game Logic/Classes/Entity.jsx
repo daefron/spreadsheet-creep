@@ -20,7 +20,6 @@ export class Entity {
     this.attack = type.attack;
     this.breathes = type.breathes;
     this.projectile = type.projectile;
-    this.style = type.style;
     this.death = type.death;
     this.spawnType = type.spawnType;
     if (type.death === "explodes") {
