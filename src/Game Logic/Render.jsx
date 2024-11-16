@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import {
-  cellContents,
   cellEntity,
   cellProjectile,
   cellGround,
@@ -161,7 +160,6 @@ export default function engineOutput() {
     };
   }, []);
 
-  //handles making a usable array for the grid renderer
   function updateGameboardEntities() {
     let grid = [];
     for (let h = 0; h <= gameboardHeight.current; h++) {
@@ -171,50 +169,53 @@ export default function engineOutput() {
       }
       grid.push(subGrid);
     }
+    let initialTime = Date.now();
     setGameboardEntities(grid);
+    let timeElapsed = Date.now() - initialTime;
+    testTime.current += timeElapsed;
 
-    //determines what type function to call
     function cellType(w, h) {
-      let id = w + "x" + h;
-      if (selectedCell.current !== undefined && currentInput.current !== "") {
-        let inputPosition = selectedCell.current.id.split("x");
-        inputPosition[0] = parseInt(inputPosition[0]);
-        inputPosition[1] = parseInt(inputPosition[1]);
-        if (comparePosition(inputPosition, [w, h])) {
-          let style = {
-            width: cellWidth.current + "px",
-            height: cellHeight.current + "px",
-            "--cell-select-width": cellWidth.current - 2 + "px",
-            "--cell-select-height": cellHeight.current - 2 + "px",
-          };
-          return [id, currentInput.current, style];
+      if (selectedCell.current !== undefined) {
+        if (currentInput.current !== "") {
+          let inputPosition = selectedCell.current.id.split("x");
+          inputPosition[0] = parseInt(inputPosition[0]);
+          inputPosition[1] = parseInt(inputPosition[1]);
+          if (comparePosition(inputPosition, [w, h])) {
+            let style = {
+              width: cellWidth.current + "px",
+              height: cellHeight.current + "px",
+              "--cell-select-width": cellWidth.current - 2 + "px",
+              "--cell-select-height": cellHeight.current - 2 + "px",
+            };
+            return [w + "x" + h, currentInput.current, style];
+          }
         }
       }
       if (w === 0) {
-        return firstColumnCell(h, id);
+        return firstColumnCell(w, h);
       }
       if (h === 0) {
-        return firstRowCell(w, id);
+        return firstRowCell(w, h);
       }
-      let cell = cellEffect([w, h], activeHolder.current);
+      let cell = cellEffect([w, h], activeEffects.current);
       if (cell !== undefined) {
-        return effectCell(cell, id, cell);
+        return effectCell(cell, w, h);
       }
-      cell = cellEntity([w, h], activeHolder.current);
+      cell = cellEntity([w, h], activeEntities.current);
       if (cell !== undefined) {
-        return entityCell(cell, id);
+        return entityCell(cell, w, h);
       }
-      cell = cellGround([w, h], activeHolder.current);
+      cell = cellGround([w, h], activeGround.current);
       if (cell !== undefined) {
-        return groundCell(cell, id);
+        return groundCell(cell, w, h);
       }
-      cell = cellProjectile([w, h], activeHolder.current);
+      cell = cellProjectile([w, h], activeProjectiles.current);
       if (cell !== undefined) {
-        return projectileCell(cell, id);
+        return projectileCell(cell, w, h);
       }
-      cell = cellFluid([w, h], activeHolder.current);
+      cell = cellFluid([w, h], activeFluid.current);
       if (cell !== undefined) {
-        return fluidCell(cell, id);
+        return fluidCell(cell, w, h);
       }
       let style = {
         width: cellWidth.current + "px",
@@ -222,11 +223,11 @@ export default function engineOutput() {
         "--cell-select-width": cellWidth.current - 2 + "px",
         "--cell-select-height": cellHeight.current - 2 + "px",
       };
-      return [id, "", style];
+      return [w + "x" + h, "", style];
     }
 
     //below functions return what is to be rendered in cell
-    function firstColumnCell(h, id) {
+    function firstColumnCell(w, h) {
       if (h === 0) {
         let style = {
           width: "50px",
@@ -235,7 +236,7 @@ export default function engineOutput() {
           "--cell-select-height": cellHeight.current - 2 + "px",
           boxShadow: "inset -1px 0px 0px #404040, inset 0px -2px 0px #404040",
         };
-        return [id, "", style];
+        return [w + "x" + h, "", style];
       } else {
         let style = {
           textAlign: "center",
@@ -246,11 +247,11 @@ export default function engineOutput() {
           boxShadow: "inset -1px 0px 0px #404040",
           color: "#404040",
         };
-        return [id, h + " ", style];
+        return [w + "x" + h, h + " ", style];
       }
     }
 
-    function firstRowCell(w, id) {
+    function firstRowCell(w, h) {
       let style = {
         width: cellWidth.current + "px",
         height: cellHeight.current + "px",
@@ -260,10 +261,10 @@ export default function engineOutput() {
         color: "#404040",
         boxShadow: "inset 0px -2px 0px #404040",
       };
-      return [id, toLetter(w - 1) + " ", style];
+      return [w + "x" + h, toLetter(w - 1) + " ", style];
     }
 
-    function effectCell(effect, id, cell) {
+    function effectCell(effect, w, h) {
       let style = {
         width: cellWidth.current + "px",
         height: cellHeight.current + "px",
@@ -274,19 +275,25 @@ export default function engineOutput() {
         fontStyle: effect.style.fontStyle,
       };
       if (effect.symbol === "") {
-        if (cellEntity(effect.position, activeHolder.current) !== undefined) {
-          cell.entity.style.backgroundColor = effect.style.backgroundColor;
-          return entityCell(cell.entity, id);
+        if (cellEntity(effect.position, activeEntities.current) !== undefined) {
+          cellEntity(
+            effect.position,
+            activeEntities.current
+          ).style.backgroundColor = effect.style.backgroundColor;
+          return entityCell(cellEntity(effect.position, activeHolder.current));
         }
-        if (cellFluid(effect.position, activeHolder.current) !== undefined) {
-          cell.fluid.style.backgroundColor = effect.style.backgroundColor;
-          return fluidCell(cell.fluid, id);
+        if (cellFluid(effect.position, activeFluid.current) !== undefined) {
+          cellFluid(
+            effect.position,
+            activeFluid.current
+          ).style.backgroundColor = effect.style.backgroundColor;
+          return fluidCell(cellFluid(effect.position, activeFluid.current));
         }
       }
-      return [id, effect.symbol, style];
+      return [w + "x" + h, effect.symbol, style];
     }
 
-    function entityCell(entity, id) {
+    function entityCell(entity, w, h) {
       let cellText;
       let style = {
         width: cellWidth.current + "px",
@@ -309,15 +316,13 @@ export default function engineOutput() {
           style.fontStyle = "normal";
         }
       }
-      let initialTime = Date.now();
-      let timeElapsed = Date.now() - initialTime;
-      testTime.current += timeElapsed;
       if (entity.enemy === true) {
         style.color = "darkRed";
       } else {
         style.color = "darkGreen";
       }
-      return [id, cellText, style];
+
+      return [w + "x" + h, cellText, style];
 
       function attackBar(currentEntity, style) {
         let maxWidth = 157;
@@ -351,31 +356,31 @@ export default function engineOutput() {
         } else color = "darkGreen";
         let entityAbove = cellEntity(
           [blob.position[0], blob.position[1] - 1],
-          activeHolder.current
+          activeEntities.current
         );
         let entityLeft = cellEntity(
           [blob.position[0] - 1, blob.position[1]],
-          activeHolder.current
+          activeEntities.current
         );
         let entityRight = cellEntity(
           [blob.position[0] + 1, blob.position[1]],
-          activeHolder.current
+          activeEntities.current
         );
         let entityBelow = cellEntity(
           [blob.position[0], blob.position[1] + 1],
-          activeHolder.current
+          activeEntities.current
         );
         let groundLeft = cellGround(
           [blob.position[0] - 1, blob.position[1]],
-          activeHolder.current
+          activeGround.current
         );
         let groundRight = cellGround(
           [blob.position[0] + 1, blob.position[1]],
-          activeHolder.current
+          activeGround.current
         );
         let groundBelow = cellGround(
           [blob.position[0], blob.position[1] + 1],
-          activeHolder.current
+          activeGround.current
         );
         if (entityAbove === undefined || entityAbove.type !== blob.type) {
           style.boxShadow = "inset 0px 2px 0px " + color;
@@ -433,7 +438,7 @@ export default function engineOutput() {
       }
     }
 
-    function groundCell(ground, id) {
+    function groundCell(ground, w, h) {
       let style = {
         width: cellWidth.current + "px",
         height: cellHeight.current + "px",
@@ -442,26 +447,26 @@ export default function engineOutput() {
       };
       groundLine(ground, style);
       groundHealthBar(ground, style);
-      return [id, ground.type, style];
+
+      return [w + "x" + h, ground.type, style];
 
       function groundLine(ground, style) {
         if (!ground.falling) {
           if (ground.fallSpeed > ground.fallCharge) {
             return;
           }
-          style.boxShadow = "";
           let made;
           let groundAbove = cellGround(
             [ground.position[0], ground.position[1] - 1],
-            activeHolder.current
+            activeGround.current
           );
           let groundLeft = cellGround(
             [ground.position[0] - 1, ground.position[1]],
-            activeHolder.current
+            activeGround.current
           );
           let groundRight = cellGround(
             [ground.position[0] + 1, ground.position[1]],
-            activeHolder.current
+            activeGround.current
           );
           if (groundAbove === undefined) {
             style.boxShadow = "inset 0px 2px 0px grey";
@@ -494,13 +499,13 @@ export default function engineOutput() {
       function groundHealthBar(ground, style) {
         let percentage = ground.hp / groundList[ground.type].hp;
         let color = "rgb(200 200 200 /" + (1 - percentage) + ")";
-        if (style.boxShadow === "") {
+        if (style.boxShadow === undefined) {
           style.boxShadow = "inset 157px 21px 0px 0px " + color;
         } else style.boxShadow += ",inset 157px 21px 0px 0px " + color;
       }
     }
 
-    function projectileCell(projectile, id) {
+    function projectileCell(projectile) {
       let style = {
         width: cellWidth.current + "px",
         height: cellHeight.current + "px",
@@ -508,10 +513,10 @@ export default function engineOutput() {
         "--cell-select-height": cellHeight.current - 2 + "px",
       };
       inFluid(projectile, style);
-      return [id, projectile.symbol, style];
+      return [w + "x" + h, projectile.symbol, style];
     }
 
-    function fluidCell(fluid, id) {
+    function fluidCell(fluid, w, h) {
       let style = {
         width: cellWidth.current + "px",
         height: cellHeight.current + "px",
@@ -520,7 +525,7 @@ export default function engineOutput() {
         fontStyle: "italic",
       };
       fluidLine(fluid, style);
-      return [id, fluid.type, style];
+      return [w + "x" + h, fluid.type, style];
 
       function fluidLine(fluid, style) {
         if (!fluid.falling) {
@@ -531,23 +536,23 @@ export default function engineOutput() {
           let made;
           let fluidAbove = cellFluid(
             [fluid.position[0], fluid.position[1] - 1],
-            activeHolder.current
+            activeFluid.current
           );
           let fluidLeft = cellFluid(
             [fluid.position[0] - 1, fluid.position[1]],
-            activeHolder.current
+            activeFluid.current
           );
           let fluidRight = cellFluid(
             [fluid.position[0] + 1, fluid.position[1]],
-            activeHolder.current
+            activeFluid.current
           );
           let groundLeft = cellGround(
             [fluid.position[0] - 1, fluid.position[1]],
-            activeHolder.current
+            activeGround.current
           );
           let groundRight = cellGround(
             [fluid.position[0] + 1, fluid.position[1]],
-            activeHolder.current
+            activeGround.current
           );
           if (fluidAbove === undefined) {
             style.boxShadow = "inset 0px 1px 0px blue";
@@ -578,23 +583,23 @@ export default function engineOutput() {
     function inFluid(entity, style) {
       let fluidAbove = cellFluid(
         [entity.position[0], entity.position[1] - 1],
-        activeHolder.current
+        activeFluid.current
       );
       let fluidLeft = cellFluid(
         [entity.position[0] - 1, entity.position[1]],
-        activeHolder.current
+        activeFluid.current
       );
       let fluidRight = cellFluid(
         [entity.position[0] + 1, entity.position[1]],
-        activeHolder.current
+        activeFluid.current
       );
       let groundLeft = cellGround(
         [entity.position[0] - 1, entity.position[1]],
-        activeHolder.current
+        activeGround.current
       );
       let groundRight = cellGround(
         [entity.position[0] + 1, entity.position[1]],
-        activeHolder.current
+        activeGround.current
       );
       if (fluidAbove === undefined) {
         style.boxShadow += ",inset 0px 1px 0px blue";

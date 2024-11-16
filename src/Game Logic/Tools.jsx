@@ -25,27 +25,27 @@ export function cellContents(position, active) {
 }
 
 export function cellGround(position, active) {
-  return active.activeGround.current.find((ground) =>
+  return active.find((ground) =>
     comparePosition(ground.position, position)
   );
 }
 export function cellEntity(position, active) {
-  return active.activeEntities.current.find((entity) =>
+  return active.find((entity) =>
     comparePosition(entity.position, position)
   );
 }
 export function cellProjectile(position, active) {
-  return active.activeProjectiles.current.find((projectile) =>
+  return active.find((projectile) =>
     comparePosition(projectile.position, position)
   );
 }
 export function cellFluid(position, active) {
-  return active.activeFluid.current.find((fluid) =>
+  return active.find((fluid) =>
     comparePosition(fluid.position, position)
   );
 }
 export function cellEffect(position, active) {
-  return active.activeEffects.current.find((effect) =>
+  return active.find((effect) =>
     comparePosition(effect.position, position)
   );
 }
