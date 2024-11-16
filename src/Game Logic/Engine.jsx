@@ -1,4 +1,13 @@
-import { cellContents, direction, comparePosition } from "./Tools.jsx";
+import {
+  cellContents,
+  cellGround,
+  cellEntity,
+  cellProjectile,
+  cellFluid,
+  cellEffect,
+  direction,
+  comparePosition,
+} from "./Tools.jsx";
 import EntityList from "./Lists/EntityList.jsx";
 import ProjectileList from "./Lists/ProjectileList.jsx";
 import GroundList from "./Lists/GroundList.jsx";
@@ -126,6 +135,7 @@ export function engine(newRound, gameState) {
         bank += entity.value;
       }
       entityKiller(entity);
+      return true;
     }
   }
 
@@ -137,8 +147,7 @@ export function engine(newRound, gameState) {
           entity.armed = false;
           explosion(entity);
         }
-      }
-      if (entity.death === "spawn") {
+      } else if (entity.death === "spawn") {
         spawn(entity);
       }
     }
@@ -175,7 +184,9 @@ export function engine(newRound, gameState) {
   }
   //tells entities what to do on their turn
   function entityTurn(currentEntity) {
-    healthChecker(currentEntity);
+    if (healthChecker(currentEntity)) {
+      return;
+    }
     liquidChecker(currentEntity);
     if (entityBoundaryHandler(currentEntity)) {
       return;
@@ -204,13 +215,20 @@ export function engine(newRound, gameState) {
       let positionBelow = [x, y + 1];
       let positionLeft = [x - 1, y];
       let positionRight = [x + 1, y];
-      let inAbove = cellContents(positionAbove, active);
-      let inBelow = cellContents(positionBelow, active);
-      let inLeft = cellContents(positionLeft, active);
-      let inRight = cellContents(positionRight, active);
+      let groundAbove = cellGround(positionAbove, activeGround.current);
+      let groundBelow = cellGround(positionBelow, activeGround.current);
+      let groundLeft = cellGround(positionLeft, activeGround.current);
+      let groundRight = cellGround(positionRight, activeGround.current);
+      let entityAbove = cellEntity(positionAbove, activeEntities.current);
+      let entityBelow = cellEntity(positionBelow, activeEntities.current);
+      let entityLeft = cellEntity(positionLeft, activeEntities.current);
+      let entityRight = cellEntity(positionRight, activeEntities.current);
       blobFall();
       blobSorter();
+      let initialTime = Date.now();
       blobAttack();
+      let timeTaken = Date.now() - initialTime;
+      testTime.current += timeTaken;
       if (currentEntity.hp < 2) {
         return;
       }
@@ -230,7 +248,7 @@ export function engine(newRound, gameState) {
       function blobStatGain() {
         currentEntity.speedCharge++;
         if (
-          currentEntity.speedCharge > currentEntity.speed &&
+          currentEntity.speed < currentEntity.speedCharge &&
           currentEntity.hp < currentEntity.maxHp &&
           Math.random() < 0.5
         ) {
@@ -241,8 +259,8 @@ export function engine(newRound, gameState) {
 
       function blobFall() {
         if (
-          inBelow.ground !== undefined ||
-          inBelow.entity !== undefined ||
+          groundBelow !== undefined ||
+          entityBelow !== undefined ||
           positionBelow[1] === gameboardHeight.current + 1
         ) {
           return;
@@ -252,29 +270,18 @@ export function engine(newRound, gameState) {
         blobGroup.forEach((entity) => {
           let x = entity.position[0];
           let y = entity.position[1];
-          let positionAbove = [x, y - 1];
-          let positionBelow = [x, y + 1];
-          let positionLeft = [x - 1, y];
-          let positionRight = [x + 1, y];
-          let inAbove = cellContents(positionAbove, active);
-          let inBelow = cellContents(positionBelow, active);
-          let inLeft = cellContents(positionLeft, active);
-          let inRight = cellContents(positionRight, active);
+          let groundBelow = cellGround([x, y + 1], activeGround.current);
           if (
-            inAbove.ground !== undefined ||
-            inBelow.ground !== undefined ||
-            positionBelow[1] === gameboardHeight.current + 1 ||
-            inLeft.ground !== undefined ||
-            inRight.ground !== undefined
+            y + 1 === gameboardHeight.current + 1 ||
+            groundBelow !== undefined
           ) {
             touchingGround++;
             return;
           }
         });
-        if (touchingGround !== 0) {
-          return;
+        if (touchingGround === 0) {
+          currentEntity.position = positionBelow;
         }
-        currentEntity.position = positionBelow;
       }
 
       function blobGrouper() {
@@ -322,52 +329,52 @@ export function engine(newRound, gameState) {
       function blobSorter() {
         if (currentEntity.hp < currentEntity.maxHp) {
           if (
-            inBelow.entity !== undefined &&
-            inBelow.entity.hp === currentEntity.hp &&
-            inBelow.entity.enemy === currentEntity.enemy &&
-            inAbove.entity !== undefined &&
-            inAbove.entity.hp === currentEntity.hp &&
-            inAbove.entity.enemy === currentEntity.enemy
+            entityBelow !== undefined &&
+            entityBelow.hp === currentEntity.hp &&
+            entityBelow.enemy === currentEntity.enemy &&
+            entityAbove !== undefined &&
+            entityAbove.hp === currentEntity.hp &&
+            entityAbove.enemy === currentEntity.enemy
           ) {
             if (currentEntity.hp === 1) {
               if (blobGrouper().length > 10) {
                 currentEntity.hp--;
-                inBelow.entity.hp++;
+                entityAbove.hp++;
               }
             } else {
               currentEntity.hp--;
-              inBelow.entity.hp++;
+              entityBelow.hp++;
             }
           }
         }
         if (
-          inBelow.entity !== undefined &&
-          inBelow.entity.type === currentEntity.type &&
-          inBelow.entity.enemy === currentEntity.enemy &&
-          inBelow.entity.hp < currentEntity.hp
+          entityBelow !== undefined &&
+          entityBelow.type === currentEntity.type &&
+          entityBelow.enemy === currentEntity.enemy &&
+          entityBelow.hp < currentEntity.hp
         ) {
           currentEntity.hp--;
-          inBelow.entity.hp++;
+          entityBelow.hp++;
         }
         if (currentEntity.enemy) {
           if (
-            inRight.entity !== undefined &&
-            inRight.entity.type === currentEntity.type &&
-            inRight.entity.enemy === currentEntity.enemy &&
-            inRight.entity.hp < currentEntity.hp
+            entityRight !== undefined &&
+            entityRight.type === currentEntity.type &&
+            entityRight.enemy === currentEntity.enemy &&
+            entityRight.hp < currentEntity.hp
           ) {
             currentEntity.hp--;
-            inRight.entity.hp++;
+            entityRight.hp++;
           }
         } else if (!currentEntity.enemy) {
           if (
-            inLeft.entity !== undefined &&
-            inLeft.entity.type === currentEntity.type &&
-            inLeft.entity.enemy === currentEntity.enemy &&
-            inLeft.entity.hp < currentEntity.hp
+            entityLeft !== undefined &&
+            entityLeft.type === currentEntity.type &&
+            entityLeft.enemy === currentEntity.enemy &&
+            entityLeft.hp < currentEntity.hp
           ) {
             currentEntity.hp--;
-            inLeft.entity.hp++;
+            entityLeft.hp++;
           }
         }
         downAndForward();
@@ -376,27 +383,27 @@ export function engine(newRound, gameState) {
           let targets = [];
           if (currentEntity.enemy) {
             if (
-              inLeft.entity !== undefined &&
-              inLeft.entity.type === currentEntity.type &&
-              inLeft.entity.enemy === currentEntity.enemy
+              entityLeft !== undefined &&
+              entityLeft.type === currentEntity.type &&
+              entityLeft.enemy === currentEntity.enemy
             ) {
-              targets.push(inLeft.entity);
+              targets.push(entityLeft);
             }
           } else {
             if (
-              inRight.entity !== undefined &&
-              inRight.entity.type === currentEntity.type &&
-              inRight.entity.enemy === currentEntity.enemy
+              entityRight !== undefined &&
+              entityRight.type === currentEntity.type &&
+              entityRight.enemy === currentEntity.enemy
             ) {
-              targets.push(inRight.entity);
+              targets.push(entityRight);
             }
           }
           if (
-            inBelow.entity !== undefined &&
-            inBelow.entity.type === currentEntity.type &&
-            inBelow.entity.enemy === currentEntity.enemy
+            entityBelow !== undefined &&
+            entityBelow.type === currentEntity.type &&
+            entityBelow.enemy === currentEntity.enemy
           ) {
-            targets.push(inBelow.entity);
+            targets.push(entityBelow);
           }
           if (targets.length === 0) {
             return;
@@ -416,36 +423,32 @@ export function engine(newRound, gameState) {
       function blobAttack() {
         let chance = Math.random() < currentEntity.hp / 100;
         if (chance) {
-          if (inAbove.ground !== undefined) {
-            inAbove.ground.hp--;
-          }
-          if (inBelow.ground !== undefined) {
-            inBelow.ground.hp--;
-          }
-          if (inLeft.ground !== undefined) {
-            inLeft.ground.hp--;
-          }
-          if (inRight.ground !== undefined) {
-            inRight.ground.hp--;
-          }
-          if (inAbove.entity !== undefined) {
-            if (inAbove.entity.enemy !== currentEntity.enemy) {
-              inAbove.entity.hp -= currentEntity.hp;
+          if (groundAbove !== undefined) {
+            groundAbove.hp--;
+          } else if (entityAbove !== undefined) {
+            if (entityAbove.enemy !== currentEntity.enemy) {
+              entityAbove.hp -= currentEntity.hp;
             }
           }
-          if (inBelow.entity !== undefined) {
-            if (inBelow.entity.enemy !== currentEntity.enemy) {
-              inBelow.entity.hp -= currentEntity.hp;
+          if (groundBelow !== undefined) {
+            groundBelow.hp--;
+          } else if (entityBelow !== undefined) {
+            if (entityBelow.enemy !== currentEntity.enemy) {
+              entityBelow.hp -= currentEntity.hp;
             }
           }
-          if (inLeft.entity !== undefined) {
-            if (inLeft.entity.enemy !== currentEntity.enemy) {
-              inLeft.entity.hp -= currentEntity.hp;
+          if (groundLeft !== undefined) {
+            groundLeft.hp--;
+          } else if (entityLeft !== undefined) {
+            if (entityLeft.enemy !== currentEntity.enemy) {
+              entityLeft.hp -= currentEntity.hp;
             }
           }
-          if (inRight.entity !== undefined) {
-            if (inRight.entity.enemy !== currentEntity.enemy) {
-              inRight.entity.hp -= currentEntity.hp;
+          if (groundRight !== undefined) {
+            groundRight.hp--;
+          } else if (entityRight !== undefined) {
+            if (entityRight.enemy !== currentEntity.enemy) {
+              entityRight.hp -= currentEntity.hp;
             }
           }
         }
@@ -453,7 +456,7 @@ export function engine(newRound, gameState) {
 
       function blobBelow() {
         if (positionBelow[1] !== gameboardHeight.current + 1) {
-          if (newBlobChecker(inBelow, positionBelow)) {
+          if (newBlobChecker(groundBelow, entityBelow, positionBelow)) {
             return true;
           }
         }
@@ -462,20 +465,20 @@ export function engine(newRound, gameState) {
       function blobSide() {
         let newPosition = blobDirection();
         if (newPosition !== undefined) {
-          let inNewPosition = cellContents(newPosition, active);
+          let newGround = cellGround(newPosition, activeGround.current);
+          let newEntity = cellGround(newPosition, activeEntities.current);
           if (Math.random() < 0.7) {
             return;
           }
-          if (newBlobChecker(inNewPosition, newPosition)) {
+          if (newBlobChecker(newGround, newEntity, newPosition)) {
             return true;
           }
         }
 
         function blobDirection() {
-          let leftFree =
-            inLeft.ground === undefined || inLeft.entity === undefined;
+          let leftFree = groundLeft === undefined || entityLeft === undefined;
           let rightFree =
-            inRight.ground === undefined || inRight.entity === undefined;
+            groundRight === undefined || entityRight === undefined;
           if (positionRight[0] > gameboardWidth.current) {
             rightFree = false;
           }
@@ -492,7 +495,7 @@ export function engine(newRound, gameState) {
           } else {
             if (rightFree) {
               return positionRight;
-            } else if (rightFree) {
+            } else if (leftFree) {
               return positionLeft;
             }
           }
@@ -507,18 +510,14 @@ export function engine(newRound, gameState) {
           if (positionAbove[1] === 0) {
             return;
           }
-          if (newBlobChecker(inAbove, positionAbove)) {
+          if (newBlobChecker(groundAbove, entityAbove, positionAbove)) {
             return true;
           }
         }
       }
 
-      function newBlobChecker(inPosition, position) {
-        if (
-          inPosition.ground === undefined &&
-          inPosition.entity === undefined &&
-          position[1] > 0
-        ) {
+      function newBlobChecker(ground, entity, position) {
+        if (ground === undefined && entity === undefined && position[1] > 0) {
           newBlob(position);
           return true;
         }
@@ -543,11 +542,9 @@ export function engine(newRound, gameState) {
     function entityBoundaryHandler(currentEntity) {
       let newPosition = [direction(currentEntity), currentEntity.position[1]];
       if (
-        (newPosition[0] === 0 &&
-          currentEntity.speedCharge >=
-            currentEntity.speed / gameSpeed.current) ||
-        (newPosition[0] === gameboardWidth.current + 1 &&
-          currentEntity.speedCharge >= currentEntity.speed / gameSpeed.current)
+        (newPosition[0] === -1 ||
+          newPosition[0] === gameboardWidth.current + 1) &&
+        currentEntity.speedCharge >= currentEntity.speed / gameSpeed.current
       ) {
         if (gameMode.current === "king") {
           let king = activeEntities.current.find(
@@ -563,17 +560,18 @@ export function engine(newRound, gameState) {
             enemySpawnCount.current += 2;
           }
           currentEntity.hp = 0;
+        } else if (gameMode.current === "blob") {
+          currentEntity.hp = 0;
+          blobAtEnd = true;
         }
-      } else if (gameMode.current === "blob" && newPosition[0] === -1) {
-        entityKiller(currentEntity);
-        blobAtEnd = true;
       }
     }
   }
 
   function liquidChecker(currentEntity) {
-    let liquidInPosition = activeFluid.current.find((fluid) =>
-      comparePosition(fluid.position, currentEntity.position)
+    let liquidInPosition = cellFluid(
+      currentEntity.position,
+      activeFluid.current
     );
     if (liquidInPosition !== undefined) {
       if (currentEntity.sponge) {
@@ -1294,9 +1292,10 @@ export function engine(newRound, gameState) {
     }
   }
 
-  //initiates ground turn
   function groundTurn(ground) {
-    healthChecker(ground);
+    if (healthChecker(ground)) {
+      return;
+    }
     for (let i = gameSpeed.current; i > 0; i--) {
       if (groundCanFall(ground.position, ground)) {
         terrainIsFalling.current = true;
@@ -1308,63 +1307,56 @@ export function engine(newRound, gameState) {
       }
     }
 
-    //checks if ground can fall
     function groundCanFall(position, ground) {
       if (position[1] < gameboardHeight.current) {
-        let spaceBelow = true;
         let positionBelow = [position[0], position[1] + 1];
-        let cellBelow = cellContents(positionBelow, active);
-        if (cellBelow.entity !== undefined) {
-          groundAttack(ground, cellBelow.entity);
+        let entityBelow = cellEntity(positionBelow, activeEntities.current);
+        if (entityBelow !== undefined) {
+          groundAttack(ground, entityBelow);
         }
-        if (cellBelow.ground !== undefined) {
-          spaceBelow = false;
+        let groundBelow = cellGround(positionBelow, activeGround.current);
+        if (groundBelow !== undefined) {
+          return false;
         }
-        return spaceBelow;
+        return true;
       }
       if (ground.ghost) {
         entityKiller(ground);
       }
     }
 
-    //makes ground fall
     function groundFall(ground) {
       if (ground.fallCharge < ground.fallSpeed) {
         ground.fallCharge++;
       } else {
         ground.fallCharge = 0;
-        let newPosition = [ground.position[0], ground.position[1] + 1];
-        ground.position = newPosition;
+        ground.position = [ground.position[0], ground.position[1] + 1];
       }
     }
 
-    //kills entity ground falls onto
-    function groundAttack(ground, entityBelow) {
+    function groundAttack(entityBelow) {
       entityBelow.hp = 0;
     }
   }
 
   function fluidTurn(fluid) {
-    for (let i = gameSpeed.current; i > 0; i--) {
-      if (fluidCanFall(fluid.position, fluid)) {
-        terrainIsFalling.current = true;
-        fluid.speed = 5;
-        fluid.falling = true;
-        fluidFall(fluid);
-      } else {
-        fluid.falling = false;
-        terrainIsFalling.current = true;
-      }
-    }
-    if (!fluid.falling) {
+    if (fluidCanFall(fluid.position, fluid)) {
+      terrainIsFalling.current = true;
+      fluid.speed = 5;
+      fluid.falling = true;
+      fluidFall(fluid);
+    } else {
+      fluid.falling = false;
+      terrainIsFalling.current = true;
       fluidMovement(fluid);
     }
 
     function fluidCanFall(position, fluid) {
       if (position[1] < gameboardHeight.current) {
         let positionBelow = [position[0], position[1] + 1];
-        let cellBelow = cellContents(positionBelow, active);
-        if (cellBelow.ground !== undefined || cellBelow.fluid !== undefined) {
+        let groundBelow = cellGround(positionBelow, activeGround.current);
+        let fluidBelow = cellFluid(positionBelow, activeFluid.current);
+        if (groundBelow !== undefined || fluidBelow !== undefined) {
           return false;
         }
         return true;
@@ -1378,8 +1370,7 @@ export function engine(newRound, gameState) {
         fluid.fallCharge++;
       } else {
         fluid.fallCharge = 0;
-        let newPosition = [fluid.position[0], fluid.position[1] + 1];
-        fluid.position = newPosition;
+        fluid.position = [fluid.position[0], fluid.position[1] + 1];
       }
     }
 
@@ -1394,13 +1385,14 @@ export function engine(newRound, gameState) {
           targetPosition = [fluid.position[0] + 1, fluid.position[1]];
         }
         if (
-          targetPosition[0] === 0 ||
+          targetPosition[0] === -1 ||
           targetPosition[0] === gameboardWidth.current + 1
         ) {
           entityKiller(fluid);
         }
-        let targetCell = cellContents(targetPosition, active);
-        if (targetCell.ground === undefined && targetCell.fluid === undefined) {
+        let groundTarget = cellGround(targetPosition, activeGround.current);
+        let fluidTarget = cellFluid(targetPosition, activeFluid.current);
+        if (groundTarget === undefined && fluidTarget === undefined) {
           fluid.position = targetPosition;
           fluid.speedCharge = 0;
           fluid.speed *= 1.3;
@@ -1411,11 +1403,11 @@ export function engine(newRound, gameState) {
           } else fluid.direction = "left";
         }
       }
-      let cellBelow = cellContents(
+      let fluidBelow = cellFluid(
         [fluid.position[0], fluid.position[1] + 1],
-        active
+        activeFluid.current
       );
-      if (fluid.speed > 50 && cellBelow.fluid !== undefined) {
+      if (fluid.speed > 50 && fluidBelow !== undefined) {
         fluid.speed = Infinity;
       }
     }
