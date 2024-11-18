@@ -1290,15 +1290,14 @@ export function engine(newRound, gameState) {
     if (healthChecker(ground)) {
       return;
     }
-    if (groundCanFall(ground.position, ground)) {
-      ground.falling = true;
-      groundFall(ground);
+    if (groundCanFall(ground)) {
+      return groundFall(ground);
     } else {
-      ground.falling = false;
+       return  ground.falling = false;
     }
 
-    function groundCanFall(position, ground) {
-      let positionBelow = [position[0], position[1] + 1];
+    function groundCanFall(ground) {
+      let positionBelow = [ground.position[0], ground.position[1] + 1];
       if (positionBelow[1] > gameboardHeight.current) {
         if (ground.ghost) {
           entityKiller(ground);
@@ -1322,6 +1321,7 @@ export function engine(newRound, gameState) {
     function groundFall(ground) {
       ground.fallCharge = 0;
       ground.position = [ground.position[0], ground.position[1] + 1];
+      ground.falling = true;
     }
 
     function groundAttack(entityBelow) {

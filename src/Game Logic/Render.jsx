@@ -347,15 +347,24 @@ export default function engineOutput() {
     function entityCell(entity, w, h) {
       let initialTime = Date.now();
       let cellText = "";
+      let color;
+      if (entity.enemy) {
+        color = "darkRed";
+      } else {
+        color = "darkGreen";
+      }
       let style = {
         width: cellWidth.current + "px",
         height: cellHeight.current + "px",
         "--cell-select-width": cellWidth.current - 2 + "px",
         "--cell-select-height": cellHeight.current - 2 + "px",
+        color: color,
       };
       if (entity.type === "blob") {
-        blobLine(entity, style);
         blobHealthBar(entity, style);
+        let initialTestTime = Date.now();
+        blobLine(entity, style, color);
+        testTime.current += Date.now() - initialTestTime;
       } else {
         attackBar(entity, style);
         entityHealthBar(entity, style);
@@ -367,11 +376,7 @@ export default function engineOutput() {
           style.fontStyle = "normal";
         }
       }
-      if (entity.enemy === true) {
-        style.color = "darkRed";
-      } else {
-        style.color = "darkGreen";
-      }
+
       entityRenderTime.current += Date.now() - initialTime;
       return [w + "x" + h, cellText, style];
 
@@ -400,11 +405,21 @@ export default function engineOutput() {
         style.boxShadow += ",inset 157px 21px 0px 0px " + color;
       }
 
-      function blobLine(blob, style) {
-        let color, made;
-        if (blob.enemy) {
-          color = "darkRed";
-        } else color = "darkGreen";
+      function blobHealthBar(entity, style) {
+        let percentage = entity.hp / 10;
+        let color;
+        if (entity.enemy) {
+          color = "rgb(139 0 0 /" + percentage + ")";
+        } else {
+          color = "rgb(2 48 32 /" + percentage + ")";
+        }
+        style.boxShadow = "inset 157px 21px 0px 0px " + color;
+      }
+
+      function blobLine(blob, style, color) {
+        if (entity.hp === 10) {
+          return;
+        }
         let entityAbove = cellEntity(
           [blob.position[0], blob.position[1] - 1],
           activeEntities.current
@@ -422,55 +437,26 @@ export default function engineOutput() {
           activeEntities.current
         );
         if (entityAbove === undefined || entityAbove.type !== blob.type) {
-          style.boxShadow = "inset 0px 2px 0px " + color;
-          made = true;
+          style.boxShadow += ",inset 0px 2px 0px " + color;
         }
         if (
           (entityLeft === undefined || entityLeft.type !== blob.type) &&
           blob.position[0] - 1 !== 0
         ) {
-          if (!made) {
-            style.boxShadow = "inset 2px 0px 0px " + color;
-            made = true;
-          } else {
-            style.boxShadow += ",inset 2px 0px 0px " + color;
-          }
+          style.boxShadow += ",inset 2px 0px 0px " + color;
         }
         if (
           (entityRight === undefined || entityRight.type !== blob.type) &&
           blob.position[0] < gameboardWidth.current
         ) {
-          if (!made) {
-            style.boxShadow = "inset -2px 0px 0px " + color;
-            made = true;
-          } else {
-            style.boxShadow += ",inset -2px 0px 0px " + color;
-          }
+          style.boxShadow += ",inset -2px 0px 0px " + color;
         }
         if (
           (entityBelow === undefined || entityBelow.type !== blob.type) &&
           blob.position[1] < gameboardHeight.current
         ) {
-          if (!made) {
-            style.boxShadow = "inset 0px -3px 0px " + color;
-            made = true;
-          } else {
-            style.boxShadow += ",inset 0px -3px 0px " + color;
-          }
+          style.boxShadow += ",inset 0px -3px 0px " + color;
         }
-      }
-
-      function blobHealthBar(entity, style) {
-        let percentage = 1 - entity.hp / 10;
-        let color;
-        if (entity.enemy) {
-          color = "rgb(139 0 0 /" + (1 - percentage) + ")";
-        } else {
-          color = "rgb(2 48 32 /" + (1 - percentage) + ")";
-        }
-        if (style.boxShadow === undefined) {
-          style.boxShadow = "inset 157px 21px 0px 0px " + color;
-        } else style.boxShadow += ",inset 157px 21px 0px 0px " + color;
       }
     }
 
@@ -482,12 +468,10 @@ export default function engineOutput() {
         "--cell-select-width": cellWidth.current - 2 + "px",
         "--cell-select-height": cellHeight.current - 2 + "px",
       };
-      let initialTestTime = Date.now();
       groundLine(ground, style);
-      testTime.current += Date.now() - initialTestTime;
       groundHealthBar(ground, style);
       groundRenderTime.current += Date.now() - initialTime;
-      return [w + "x" + h, ground.type, style];
+      return [w + "x" + h, "", style];
 
       function groundLine(ground, style) {
         if (ground.falling || ground.fallSpeed > ground.fallCharge) {
@@ -532,8 +516,10 @@ export default function engineOutput() {
       }
 
       function groundHealthBar(ground, style) {
-        let percentage = ground.hp / groundList[ground.type].hp;
-        let color = "rgb(200 200 200 /" + (1 - percentage) + ")";
+        let color =
+          "rgb(150 150 150 /" +
+          (1 - ground.hp / groundList[ground.type].hp / 2) +
+          ")";
         if (style.boxShadow === undefined) {
           style.boxShadow = "inset 157px 21px 0px 0px " + color;
         } else style.boxShadow += ",inset 157px 21px 0px 0px " + color;
@@ -560,11 +546,12 @@ export default function engineOutput() {
         height: cellHeight.current + "px",
         "--cell-select-width": cellWidth.current - 2 + "px",
         "--cell-select-height": cellHeight.current - 2 + "px",
+        backgroundColor: "lightBlue",
         fontStyle: "italic",
       };
       fluidLine(fluid, style);
       fluidRenderTime.current += Date.now() - initialTime;
-      return [w + "x" + h, fluid.type, style];
+      return [w + "x" + h, "", style];
 
       function fluidLine(fluid, style) {
         if (fluid.falling || fluid.fallSpeed > fluid.fallCharge) {
