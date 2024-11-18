@@ -67,7 +67,11 @@ export default function engineOutput() {
   const groundEngineTime = useRef(0);
   const fluidEngineTime = useRef(0);
   const effectEngineTime = useRef(0);
-  const testTime = useRef(0);
+  const testTime1 = useRef(0);
+  const testTime2 = useRef(0);
+  const testTime3 = useRef(0);
+  const testTime4 = useRef(0);
+  const testTime5 = useRef(0);
   const second = useRef(0);
   const [gameboardEntities, setGameboardEntities] = useState([]);
   const [settingsState, setSettingsState] = useState("none");
@@ -123,7 +127,11 @@ export default function engineOutput() {
         groundTime: groundEngineTime,
         fluidTime: fluidEngineTime,
         effectTime: effectEngineTime,
-        testTime: testTime,
+        testTime1: testTime1,
+        testTime2: testTime2,
+        testTime3: testTime3,
+        testTime4: testTime4,
+        testTime5: testTime5,
       },
     };
   }
@@ -131,55 +139,59 @@ export default function engineOutput() {
   function timeTest() {
     setInterval(() => {
       console.log("In second " + second.current + ":");
-      console.log("Renderer total time: " + renderTime.current + "ms");
-      console.log(
-        "Entity Render time: " + entityRenderTime.current + "ms",
-        parseInt((entityRenderTime.current / renderTime.current) * 100) + "%"
-      );
-      console.log(
-        "Ground Render time: " + groundRenderTime.current + "ms",
-        parseInt((groundRenderTime.current / renderTime.current) * 100) + "%"
-      );
+      // console.log("Renderer total time: " + renderTime.current + "ms");
+      // console.log(
+      //   "Entity Render time: " + entityRenderTime.current + "ms",
+      //   parseInt((entityRenderTime.current / renderTime.current) * 100) + "%"
+      // );
+      // console.log(
+      //   "Ground Render time: " + groundRenderTime.current + "ms",
+      //   parseInt((groundRenderTime.current / renderTime.current) * 100) + "%"
+      // );
 
-      console.log(
-        "Projectile Render time: " + projectileRenderTime.current + "ms",
-        parseInt((projectileRenderTime.current / renderTime.current) * 100) +
-          "%"
-      );
+      // console.log(
+      //   "Projectile Render time: " + projectileRenderTime.current + "ms",
+      //   parseInt((projectileRenderTime.current / renderTime.current) * 100) +
+      //     "%"
+      // );
 
-      console.log(
-        "Fluid Render time: " + fluidRenderTime.current + "ms",
-        parseInt((fluidRenderTime.current / renderTime.current) * 100) + "%"
-      );
+      // console.log(
+      //   "Fluid Render time: " + fluidRenderTime.current + "ms",
+      //   parseInt((fluidRenderTime.current / renderTime.current) * 100) + "%"
+      // );
 
-      console.log(
-        "Effect Render time: " + effectRenderTime.current + "ms",
-        parseInt((effectRenderTime.current / renderTime.current) * 100) + "%"
-      );
+      // console.log(
+      //   "Effect Render time: " + effectRenderTime.current + "ms",
+      //   parseInt((effectRenderTime.current / renderTime.current) * 100) + "%"
+      // );
 
       console.log("Engine total time: " + engineTime.current + "ms");
       console.log(
         "Entity engine time: " + entityEngineTime.current + "ms",
         parseInt((entityEngineTime.current / engineTime.current) * 100) + "%"
       );
-      console.log(
-        "Ground engine time: " + groundEngineTime.current + "ms",
-        parseInt((groundEngineTime.current / engineTime.current) * 100) + "%"
-      );
-      console.log(
-        "Projectile engine time: " + projectileEngineTime.current + "ms",
-        parseInt((projectileEngineTime.current / engineTime.current) * 100) +
-          "%"
-      );
-      console.log(
-        "Fluid engine time: " + fluidEngineTime.current + "ms",
-        parseInt((fluidEngineTime.current / engineTime.current) * 100) + "%"
-      );
-      console.log(
-        "Effect engine time: " + effectEngineTime.current + "ms",
-        parseInt((effectEngineTime.current / engineTime.current) * 100) + "%"
-      );
-      console.log("Test time: " + testTime.current + "ms");
+      // console.log(
+      //   "Ground engine time: " + groundEngineTime.current + "ms",
+      //   parseInt((groundEngineTime.current / engineTime.current) * 100) + "%"
+      // );
+      // console.log(
+      //   "Projectile engine time: " + projectileEngineTime.current + "ms",
+      //   parseInt((projectileEngineTime.current / engineTime.current) * 100) +
+      //     "%"
+      // );
+      // console.log(
+      //   "Fluid engine time: " + fluidEngineTime.current + "ms",
+      //   parseInt((fluidEngineTime.current / engineTime.current) * 100) + "%"
+      // );
+      // console.log(
+      //   "Effect engine time: " + effectEngineTime.current + "ms",
+      //   parseInt((effectEngineTime.current / engineTime.current) * 100) + "%"
+      // );
+      console.log("Blob Total: " + testTime1.current + "ms");
+      console.log("Fall: " + testTime2.current + "ms");
+      console.log("Sort: " + testTime3.current + "ms");
+      console.log("Recursion: " + testTime4.current + "ms");
+      console.log("Other: " + testTime5.current + "ms");
       renderTime.current = 0;
       entityRenderTime.current = 0;
       groundRenderTime.current = 0;
@@ -192,7 +204,11 @@ export default function engineOutput() {
       projectileEngineTime.current = 0;
       fluidEngineTime.current = 0;
       effectEngineTime.current = 0;
-      testTime.current = 0;
+      testTime1.current = 0;
+      testTime2.current = 0;
+      testTime3.current = 0;
+      testTime4.current = 0;
+      testTime5.current = 0;
       second.current++;
     }, 1000);
   }
@@ -362,9 +378,7 @@ export default function engineOutput() {
       };
       if (entity.type === "blob") {
         blobHealthBar(entity, style);
-        let initialTestTime = Date.now();
         blobLine(entity, style, color);
-        testTime.current += Date.now() - initialTestTime;
       } else {
         attackBar(entity, style);
         entityHealthBar(entity, style);

@@ -59,7 +59,11 @@ export function engine(newRound, gameState) {
   let groundTime = gameState.test.groundTime;
   let fluidTime = gameState.test.fluidTime;
   let effectTime = gameState.test.effectTime;
-  let testTime = gameState.test.testTime;
+  let testTime1 = gameState.test.testTime1;
+  let testTime2 = gameState.test.testTime2;
+  let testTime3 = gameState.test.testTime3;
+  let testTime4 = gameState.test.testTime4;
+  let testTime5 = gameState.test.testTime5;
 
   function explosion(currentEntity) {
     let w = currentEntity.explosionRange;
@@ -204,45 +208,61 @@ export function engine(newRound, gameState) {
     }
 
     function blobTurn(currentEntity) {
+      let initialTestTime1 = Date.now();
+      let initialTestTime5 = Date.now();
       let x = currentEntity.position[0];
       let y = currentEntity.position[1];
-      let positionAbove = [x, y - 1];
       let positionBelow = [x, y + 1];
-      let positionLeft = [x - 1, y];
-      let positionRight = [x + 1, y];
       let groundBelow = cellGround(positionBelow, activeGround.current);
       let entityBelow = cellEntity(positionBelow, activeEntities.current);
+      testTime5.current += Date.now() - initialTestTime5;
       if (blobFall()) {
+        testTime1.current += Date.now() - initialTestTime1;
         return;
       }
-      blobStatGain();
+      if (blobStatGain()) {
+        testTime1.current += Date.now() - initialTestTime1;
+        return;
+      }
+      initialTestTime5 = Date.now();
+      if (Math.random() > 0.9) {
+        return;
+      }
+      let positionAbove = [x, y - 1];
+      let positionLeft = [x - 1, y];
+      let positionRight = [x + 1, y];
       let entityAbove = cellEntity(positionAbove, activeEntities.current);
       let entityLeft = cellEntity(positionLeft, activeEntities.current);
       let entityRight = cellEntity(positionRight, activeEntities.current);
+      testTime5.current += Date.now() - initialTestTime5;
       blobSorter();
+      initialTestTime5 = Date.now();
       let groundAbove = cellGround(positionAbove, activeGround.current);
       let groundLeft = cellGround(positionLeft, activeGround.current);
       let groundRight = cellGround(positionRight, activeGround.current);
+      testTime5.current += Date.now() - initialTestTime5;
       blobAttack();
-
       if (currentEntity.hp < 2) {
+        testTime1.current += Date.now() - initialTestTime1;
         return;
       }
       if (blobBelow()) {
+        testTime1.current += Date.now() - initialTestTime1;
         return;
       }
       if (currentEntity.hp < 3) {
+        testTime1.current += Date.now() - initialTestTime1;
         return;
       }
       if (blobSide()) {
-        return;
-      }
-      if (currentEntity.hp < 4) {
+        testTime1.current += Date.now() - initialTestTime1;
         return;
       }
       if (blobAbove()) {
+        testTime1.current += Date.now() - initialTestTime1;
         return;
       }
+      testTime1.current += Date.now() - initialTestTime1;
 
       function blobStatGain() {
         if (currentEntity.hp >= currentEntity.maxHp) {
@@ -254,7 +274,7 @@ export function engine(newRound, gameState) {
         ) {
           currentEntity.hp++;
           currentEntity.speedCharge = 0;
-          return;
+          return true;
         }
         currentEntity.speedCharge++;
       }
@@ -295,47 +315,6 @@ export function engine(newRound, gameState) {
       }
 
       function blobGrouper() {
-        let initialTestTime = Date.now();
-
-        // let allBlobs = activeEntities.current.filter(
-        //   (entity) =>
-        //     entity.type === currentEntity.type &&
-        //     entity.enemy === currentEntity.enemy
-        // );
-        // let blobGroup = allBlobs.filter(
-        //   (entity) =>
-        //     comparePosition(entity.position, positionAbove) ||
-        //     comparePosition(entity.position, positionLeft) ||
-        //     comparePosition(entity.position, positionRight) ||
-        //     comparePosition(entity.position, positionBelow)
-        // );
-        // blobGroup.push(currentEntity);
-        // let stopLoop = false;
-        // while (!stopLoop) {
-        //   let groupLength = blobGroup.length;
-        //   blobGroup.forEach((entity) => {
-        //     let x = entity.position[0];
-        //     let y = entity.position[1];
-        //     let positionAbove2 = [x, y - 1];
-        //     let positionBelow2 = [x, y + 1];
-        //     let positionLeft2 = [x - 1, y];
-        //     let positionRight2 = [x + 1, y];
-        //     let blobsNextTo = allBlobs.filter(
-        //       (entity) =>
-        //         comparePosition(entity.position, positionAbove2) ||
-        //         comparePosition(entity.position, positionLeft2) ||
-        //         comparePosition(entity.position, positionRight2) ||
-        //         comparePosition(entity.position, positionBelow2)
-        //     );
-        //     blobsNextTo.forEach((blob) => {
-        //       if (!blobGroup.includes(blob)) {
-        //         blobGroup.push(blob);
-        //       }
-        //     });
-        //   });
-        //   stopLoop = groupLength - blobGroup.length === 0;
-        // }
-
         let allBlobs = activeEntities.current.filter(
           (entity) =>
             entity.type === currentEntity.type &&
@@ -364,7 +343,6 @@ export function engine(newRound, gameState) {
             return;
           }
         }
-        testTime.current += Date.now() - initialTestTime;
         return allBlobs.filter((entity) => entity.group === currentEntity.name);
       }
 
