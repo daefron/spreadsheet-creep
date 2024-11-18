@@ -7,7 +7,6 @@ class Ground {
     this.hp = type.hp;
     this.fallSpeed = type.fallSpeed;
     this.fallCharge = 0;
-    this.style = type.style;
   }
 }
 

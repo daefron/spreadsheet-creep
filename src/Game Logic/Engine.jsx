@@ -54,7 +54,7 @@ export function engine(newRound, gameState) {
   let terrainIsFalling = gameState.engine.terrainIsFalling;
   let projectileCount = gameState.engine.projectileCount;
   let blobAtEnd = false;
-
+  let engineTime = gameState.test.engineTime;
   let entityTime = gameState.test.entityTime;
   let projectileTime = gameState.test.projectileTime;
   let groundTime = gameState.test.groundTime;
@@ -131,9 +131,6 @@ export function engine(newRound, gameState) {
   //checks to see if entity dies
   function healthChecker(entity) {
     if (entity.hp <= 0) {
-      if (entity.enemy) {
-        bank += entity.value;
-      }
       entityKiller(entity);
       return true;
     }
@@ -225,10 +222,8 @@ export function engine(newRound, gameState) {
       let entityRight = cellEntity(positionRight, activeEntities.current);
       blobFall();
       blobSorter();
-      let initialTime = Date.now();
       blobAttack();
-      let timeTaken = Date.now() - initialTime;
-      testTime.current += timeTaken;
+
       if (currentEntity.hp < 2) {
         return;
       }
@@ -1532,11 +1527,11 @@ export function engine(newRound, gameState) {
     }
 
     function blobFightTurn() {
-      if (lastEnemySpawnTime.current < 200) {
+      if (activeEntities.current.length === 0) {
         lastEnemySpawnTime.current++;
       }
       if (
-        lastEnemySpawnTime.current > 200 / gameSpeed.current &&
+        lastEnemySpawnTime.current === 200 / gameSpeed.current &&
         activeEntities.current.length === 0
       ) {
         let firstBlob = entitySpawner(["blob", 1], true);
@@ -1570,36 +1565,33 @@ export function engine(newRound, gameState) {
     //makes all entities take turn
     function nextTurn() {
       let initialTime = Date.now();
+      let engineInitialTime = Date.now();
       activeEntities.current.forEach((entity) => {
         entityTurn(entity);
       });
-      let timeElapsed = Date.now() - initialTime;
-      entityTime.current += timeElapsed;
+      entityTime.current += Date.now() - initialTime;
       initialTime = Date.now();
       activeProjectiles.current.forEach((projectile) => {
         projectileTurn(projectile);
       });
-      timeElapsed = Date.now() - initialTime;
-      projectileTime.current += timeElapsed;
+      projectileTime.current += Date.now() - initialTime;
       terrainIsFalling.current = false;
       initialTime = Date.now();
       activeGround.current.forEach((ground) => {
         groundTurn(ground);
       });
-      timeElapsed = Date.now() - initialTime;
-      groundTime.current += timeElapsed;
+      groundTime.current += Date.now() - initialTime;
       initialTime = Date.now();
       activeFluid.current.forEach((fluid) => {
         fluidTurn(fluid);
       });
-      timeElapsed = Date.now() - initialTime;
-      fluidTime.current += timeElapsed;
+      fluidTime.current += Date.now() - initialTime;
       initialTime = Date.now();
       activeEffects.current.forEach((effect) => {
         effectTurn(effect);
       });
-      timeElapsed = Date.now() - initialTime;
-      effectTime.current += timeElapsed;
+      effectTime.current += Date.now() - initialTime;
+      engineTime.current += Date.now() - engineInitialTime;
     }
 
     function victoryChecker() {

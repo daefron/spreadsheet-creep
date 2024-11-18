@@ -17,7 +17,6 @@ class Fluid {
       }
     }
     this.weight = type.weight;
-    this.style = type.style;
   }
 }
 

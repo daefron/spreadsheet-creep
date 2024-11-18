@@ -5,7 +5,6 @@ export default {
     fallSpeed: 0,
     speed: 5,
     weight: 3,
-    style: {},
   },
   blood: {
     type: "blood",
@@ -13,6 +12,5 @@ export default {
     fallSpeed: 0,
     weight: 2,
     speed: 5,
-    style: {},
   },
 };
