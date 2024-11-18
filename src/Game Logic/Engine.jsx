@@ -204,23 +204,27 @@ export function engine(newRound, gameState) {
     }
 
     function blobTurn(currentEntity) {
-      blobStatGain();
       let x = currentEntity.position[0];
       let y = currentEntity.position[1];
       let positionAbove = [x, y - 1];
       let positionBelow = [x, y + 1];
       let positionLeft = [x - 1, y];
       let positionRight = [x + 1, y];
-      let groundAbove = cellGround(positionAbove, activeGround.current);
       let groundBelow = cellGround(positionBelow, activeGround.current);
-      let groundLeft = cellGround(positionLeft, activeGround.current);
-      let groundRight = cellGround(positionRight, activeGround.current);
-      let entityAbove = cellEntity(positionAbove, activeEntities.current);
       let entityBelow = cellEntity(positionBelow, activeEntities.current);
+      if (blobFall()) {
+        return;
+      }
+      blobStatGain();
+      // let initialTestTime = Date.now();
+      let entityAbove = cellEntity(positionAbove, activeEntities.current);
       let entityLeft = cellEntity(positionLeft, activeEntities.current);
       let entityRight = cellEntity(positionRight, activeEntities.current);
-      blobFall();
       blobSorter();
+      let groundAbove = cellGround(positionAbove, activeGround.current);
+      let groundLeft = cellGround(positionLeft, activeGround.current);
+      let groundRight = cellGround(positionRight, activeGround.current);
+      // testTime.current += Date.now() - initialTestTime;
       blobAttack();
 
       if (currentEntity.hp < 2) {
@@ -240,15 +244,18 @@ export function engine(newRound, gameState) {
       }
 
       function blobStatGain() {
-        currentEntity.speedCharge++;
+        if (currentEntity.hp >= currentEntity.maxHp) {
+          return;
+        }
         if (
           currentEntity.speed < currentEntity.speedCharge &&
-          currentEntity.hp < currentEntity.maxHp &&
           Math.random() < 0.5
         ) {
           currentEntity.hp++;
           currentEntity.speedCharge = 0;
+          return;
         }
+        currentEntity.speedCharge++;
       }
 
       function blobFall() {
@@ -275,6 +282,7 @@ export function engine(newRound, gameState) {
         });
         if (touchingGround === 0) {
           currentEntity.position = positionBelow;
+          return true;
         }
       }
 
@@ -321,7 +329,19 @@ export function engine(newRound, gameState) {
       }
 
       function blobSorter() {
-        if (currentEntity.hp < currentEntity.maxHp) {
+        if (!aboveAndBelowEqual()) {
+          if (currentEntity.hp === 1) {
+            return;
+          }
+          if (!belowLess() && !directionLess()) {
+            downAndForward();
+          }
+        }
+
+        function aboveAndBelowEqual() {
+          if (currentEntity.hp >= currentEntity.maxHp) {
+            return;
+          }
           if (
             entityBelow !== undefined &&
             entityBelow.hp === currentEntity.hp &&
@@ -334,44 +354,54 @@ export function engine(newRound, gameState) {
               if (blobGrouper().length > 10) {
                 currentEntity.hp--;
                 entityAbove.hp++;
+                return true;
               }
             } else {
               currentEntity.hp--;
               entityBelow.hp++;
+              return true;
             }
           }
         }
-        if (
-          entityBelow !== undefined &&
-          entityBelow.type === currentEntity.type &&
-          entityBelow.enemy === currentEntity.enemy &&
-          entityBelow.hp < currentEntity.hp
-        ) {
-          currentEntity.hp--;
-          entityBelow.hp++;
-        }
-        if (currentEntity.enemy) {
+
+        function belowLess() {
           if (
-            entityRight !== undefined &&
-            entityRight.type === currentEntity.type &&
-            entityRight.enemy === currentEntity.enemy &&
-            entityRight.hp < currentEntity.hp
+            entityBelow !== undefined &&
+            entityBelow.type === currentEntity.type &&
+            entityBelow.enemy === currentEntity.enemy &&
+            entityBelow.hp < currentEntity.hp
           ) {
             currentEntity.hp--;
-            entityRight.hp++;
-          }
-        } else if (!currentEntity.enemy) {
-          if (
-            entityLeft !== undefined &&
-            entityLeft.type === currentEntity.type &&
-            entityLeft.enemy === currentEntity.enemy &&
-            entityLeft.hp < currentEntity.hp
-          ) {
-            currentEntity.hp--;
-            entityLeft.hp++;
+            entityBelow.hp++;
+            return true;
           }
         }
-        downAndForward();
+
+        function directionLess() {
+          if (currentEntity.enemy) {
+            if (
+              entityRight !== undefined &&
+              entityRight.type === currentEntity.type &&
+              entityRight.enemy === currentEntity.enemy &&
+              entityRight.hp < currentEntity.hp
+            ) {
+              currentEntity.hp--;
+              entityRight.hp++;
+              return true;
+            }
+          } else if (!currentEntity.enemy) {
+            if (
+              entityLeft !== undefined &&
+              entityLeft.type === currentEntity.type &&
+              entityLeft.enemy === currentEntity.enemy &&
+              entityLeft.hp < currentEntity.hp
+            ) {
+              currentEntity.hp--;
+              entityLeft.hp++;
+              return true;
+            }
+          }
+        }
 
         function downAndForward() {
           let targets = [];
@@ -1293,7 +1323,7 @@ export function engine(newRound, gameState) {
     if (groundCanFall(ground)) {
       return groundFall(ground);
     } else {
-       return  ground.falling = false;
+      return (ground.falling = false);
     }
 
     function groundCanFall(ground) {
