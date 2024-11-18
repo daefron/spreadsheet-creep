@@ -31,7 +31,7 @@ export function engine(newRound, gameState) {
   let activeFluid = gameState.active.activeFluid;
   let fluidBoard = gameState.active.fluidBoard;
   let activeEffects = gameState.active.activeEffects;
-  let effectBoard = gameState.active.activeEffects;
+  let effectBoard = gameState.active.effectBoard;
   let friendlyGraveyard = gameState.graveyard.friendlyGraveyard;
   let enemyGraveyard = gameState.graveyard.enemyGraveyard;
   let groundGraveyard = gameState.graveyard.groundGraveyard;
@@ -112,6 +112,7 @@ export function engine(newRound, gameState) {
           currentEntity.position[1] +
           h;
         effectID = new Effect(effectType, effectPosition, effectID);
+        toBoard(effectBoard.current, effectPosition, effectID);
         activeEffects.current.push(effectID);
         h--;
       }
@@ -672,7 +673,10 @@ export function engine(newRound, gameState) {
               return false;
             }
           }
-          let positionBelow = [currentEntity.position[0], currentEntity.position[1] + 1];
+          let positionBelow = [
+            currentEntity.position[0],
+            currentEntity.position[1] + 1,
+          ];
           let groundBelow = onBoard(groundBoard.current, positionBelow);
           let entityBelow = onBoard(entityBoard.current, positionBelow);
           if (groundBelow !== undefined || entityBelow !== undefined) {
@@ -1475,6 +1479,7 @@ export function engine(newRound, gameState) {
     if (effect.durationCharge < effect.duration) {
       effect.durationCharge++;
     } else {
+      toBoard(effectBoard.current, effect.position, undefined);
       activeEffects.current.splice(activeEffects.current.indexOf(effect), 1);
     }
   }
