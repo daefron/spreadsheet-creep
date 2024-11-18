@@ -889,7 +889,7 @@ export function engine(newRound, gameState) {
                 currentEntity.position[1] +
                 h;
               effectID = new Effect(effectType, position, effectID);
-              toBoard(effectBoard.current, effectID);
+              toBoard(effectBoard.current, position, effectID);
               activeEffects.current.push(effectID);
             }
           }

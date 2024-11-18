@@ -11,13 +11,6 @@ export default function engineOutput() {
   const activeGround = useRef([]);
   const activeFluid = useRef([]);
   const activeEffects = useRef([]);
-  const activeHolder = useRef({
-    activeEntities: activeEntities,
-    activeProjectiles: activeProjectiles,
-    activeGround: activeGround,
-    activeFluid: activeFluid,
-    activeEffects: activeEffects,
-  });
   const friendlyGraveyard = useRef([]);
   const enemyGraveyard = useRef([]);
   const groundGraveyard = useRef([]);
@@ -419,8 +412,6 @@ export default function engineOutput() {
       style.fontStyle = effect.style.fontStyle;
       if (effect.symbol === "") {
         if (onBoard(entityBoard.current, effect.position) !== undefined) {
-          onBoard(entityBoard.current, effect.position).style.backgroundColor =
-            effect.style.backgroundColor;
           return entityCell(
             onBoard(entityBoard.current, effect.position),
             w,
@@ -429,8 +420,6 @@ export default function engineOutput() {
           );
         }
         if (onBoard(fluidBoard.current, effect.position) !== undefined) {
-          onBoard(fluidBoard.current, effect.position).style.backgroundColor =
-            effect.style.backgroundColor;
           return fluidCell(
             onBoard(fluidBoard.current, effect.position),
             w,
@@ -459,8 +448,9 @@ export default function engineOutput() {
         attackBar(entity, style);
         entityHealthBar(entity, style);
         cellText = entity.type + entity.lvl + " (hp: " + entity.hp + ")";
-        if (entity.inLiquid) {
+        if (entity.inFluid) {
           style.fontStyle = "italic";
+          style.backgroundColor = "lightBlue";
           inFluid(entity, style);
         } else {
           style.fontStyle = "normal";
