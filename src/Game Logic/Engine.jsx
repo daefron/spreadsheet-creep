@@ -51,7 +51,6 @@ export function engine(newRound, gameState) {
   let totalSpawns = gameState.settings.totalSpawns;
   let spawnSpeed = gameState.settings.spawnSpeed;
   let gameMode = gameState.settings.gameMode;
-  let terrainIsFalling = gameState.engine.terrainIsFalling;
   let projectileCount = gameState.engine.projectileCount;
   let blobAtEnd = false;
   let engineTime = gameState.test.engineTime;
@@ -1293,12 +1292,10 @@ export function engine(newRound, gameState) {
     }
     for (let i = gameSpeed.current; i > 0; i--) {
       if (groundCanFall(ground.position, ground)) {
-        terrainIsFalling.current = true;
         ground.falling = true;
         groundFall(ground);
       } else {
         ground.falling = false;
-        terrainIsFalling.current = true;
       }
     }
 
@@ -1336,13 +1333,11 @@ export function engine(newRound, gameState) {
 
   function fluidTurn(fluid) {
     if (fluidCanFall(fluid.position, fluid)) {
-      terrainIsFalling.current = true;
       fluid.speed = 5;
       fluid.falling = true;
       fluidFall(fluid);
     } else {
       fluid.falling = false;
-      terrainIsFalling.current = true;
       fluidMovement(fluid);
     }
 
@@ -1575,7 +1570,6 @@ export function engine(newRound, gameState) {
         projectileTurn(projectile);
       });
       projectileTime.current += Date.now() - initialTime;
-      terrainIsFalling.current = false;
       initialTime = Date.now();
       activeGround.current.forEach((ground) => {
         groundTurn(ground);

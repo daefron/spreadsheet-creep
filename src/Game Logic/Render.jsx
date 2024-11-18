@@ -49,7 +49,6 @@ export default function engineOutput() {
   const kingHP = useRef(20);
   const gameMode = useRef("blob");
   const friendlyCount = useRef(1);
-  const terrainIsFalling = useRef(false);
   const projectileCount = useRef(0);
   const selectedCell = useRef();
   const cellTyping = useRef(false);
@@ -95,7 +94,6 @@ export default function engineOutput() {
         friendlySpawnCount: friendlySpawnCount,
         lastEnemySpawnTime: lastEnemySpawnTime,
         lastFriendlySpawnTime: lastFriendlySpawnTime,
-        terrainIsFalling: terrainIsFalling,
         projectileCount: projectileCount,
         friendlyCount: friendlyCount,
         bank: bank,
@@ -403,7 +401,6 @@ export default function engineOutput() {
       }
 
       function blobLine(blob, style) {
-        let initialTime = Date.now();
         let color, made;
         if (blob.enemy) {
           color = "darkRed";
@@ -461,7 +458,6 @@ export default function engineOutput() {
             style.boxShadow += ",inset 0px -3px 0px " + color;
           }
         }
-        testTime.current += Date.now() - initialTime;
       }
 
       function blobHealthBar(entity, style) {
@@ -486,7 +482,9 @@ export default function engineOutput() {
         "--cell-select-width": cellWidth.current - 2 + "px",
         "--cell-select-height": cellHeight.current - 2 + "px",
       };
+      let initialTestTime = Date.now();
       groundLine(ground, style);
+      testTime.current += Date.now() - initialTestTime;
       groundHealthBar(ground, style);
       groundRenderTime.current += Date.now() - initialTime;
       return [w + "x" + h, ground.type, style];
