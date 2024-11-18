@@ -1232,7 +1232,9 @@ export function engine(newRound, gameState) {
             highest = entity;
           }
         });
-        if (projectile.position[1] > highest.position[1] - 2) {
+        if (projectile.position[1] > highest.position[1] - 4) {
+          console.log(projectile.position);
+          console.log(projectileBoard.current);
           let newPosition = [
             projectile.position[0],
             projectile.position[1] - 1,
@@ -1280,6 +1282,11 @@ export function engine(newRound, gameState) {
             entityKiller(projectile);
             return;
           }
+        }
+        let groundInPosition = onBoard(groundBoard.current, newPosition);
+        if (groundInPosition !== undefined) {
+          entityKiller(projectile);
+          return;
         }
         moveBoard(projectileBoard.current, newPosition, projectile);
         projectile.speedCharge = 0;
