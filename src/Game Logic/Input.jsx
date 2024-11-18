@@ -1,6 +1,6 @@
 import Entity from "./Classes/Entity.jsx";
 import EntityList from "./Lists/EntityList";
-import { cellContents } from "./Tools.jsx";
+import { cellContents, toBoard } from "./Tools.jsx";
 let entityList = EntityList;
 export function clickSelect(e, gameState) {
   let selectedCell = gameState.input.selectedCell;
@@ -136,12 +136,7 @@ function friendlyInput(position, gameState) {
       parsedType = parsedType.concat(input[i]);
     } else parsedLvl = parsedLvl.concat(input[i]);
   }
-  friendlySpawner(
-    parsedType,
-    position,
-    parsedLvl,
-    gameState
-  );
+  friendlySpawner(parsedType, position, parsedLvl, gameState);
 }
 
 //runs friendly through checks before spawning
@@ -160,7 +155,8 @@ function friendlySpawner(
         friendlyPosition,
         friendlyLvl,
         gameState.engine.friendlyCount,
-        gameState.active.activeEntities
+        gameState.active.activeEntities,
+        gameState.active.entityBoard
       );
     }
   }
@@ -193,7 +189,8 @@ function friendlyEntityMaker(
   entityPosition,
   entitylvl,
   friendlyCount,
-  activeEntities
+  activeEntities,
+  entityBoard
 ) {
   let ID = friendlyCount.current + 1;
   friendlyCount.current = ID;
@@ -201,5 +198,6 @@ function friendlyEntityMaker(
   entitylvl = entityType.lvls["lvl" + entitylvl];
   let entityID = entityType.type + friendlyCount.current;
   entityID = new Entity(entityType, entitylvl, entityPosition, entityID);
+  toBoard(entityBoard.current, entityPosition, entityID);
   activeEntities.current.push(entityID);
 }

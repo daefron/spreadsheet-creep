@@ -1,13 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import {
-  cellEntity,
-  cellProjectile,
-  cellGround,
-  cellFluid,
-  cellEffect,
-  comparePosition,
-  toLetter,
-} from "./Tools.jsx";
+import { comparePosition, toLetter, onBoard } from "./Tools.jsx";
 import { keyboardSelect, clickSelect } from "./Input.jsx";
 import { engine } from "./Engine.jsx";
 import EntityList from "./Lists/EntityList.jsx";
@@ -56,10 +48,17 @@ export default function engineOutput() {
   const cellWidth = useRef(150);
   const cellHeight = useRef(21);
   const renderTime = useRef(0);
+  const blankIfTime = useRef(0);
+  const blankRenderTime = useRef(0);
+  const entityIfTime = useRef(0);
   const entityRenderTime = useRef(0);
+  const projectileIfTime = useRef(0);
   const projectileRenderTime = useRef(0);
+  const groundIfTime = useRef(0);
   const groundRenderTime = useRef(0);
+  const fluidIfTime = useRef(0);
   const fluidRenderTime = useRef(0);
+  const effectIfTime = useRef(0);
   const effectRenderTime = useRef(0);
   const engineTime = useRef(0);
   const entityEngineTime = useRef(0);
@@ -78,14 +77,38 @@ export default function engineOutput() {
   let entityList = EntityList;
   let groundList = GroundList;
 
+  const boardRef = useRef(initialGameboard());
+  const entityBoard = useRef(initialGameboard());
+  const groundBoard = useRef(initialGameboard());
+  const fluidBoard = useRef(initialGameboard());
+  const projectileBoard = useRef(initialGameboard());
+  const effectBoard = useRef(initialGameboard());
+
+  function initialGameboard() {
+    let grid = [];
+    for (let h = 0; h <= gameboardHeight.current + 1; h++) {
+      let subGrid = [];
+      for (let w = 0; w <= gameboardWidth.current; w++) {
+        subGrid.push();
+      }
+      grid.push(subGrid);
+    }
+    return grid;
+  }
+
   function gameStatePacker() {
     return {
       active: {
         activeEntities: activeEntities,
+        entityBoard: entityBoard,
         activeProjectiles: activeProjectiles,
+        projectileBoard: projectileBoard,
         activeGround: activeGround,
+        groundBoard: groundBoard,
         activeFluid: activeFluid,
+        fluidBoard: fluidBoard,
         activeEffects: activeEffects,
+        effectBoard: effectBoard,
       },
       graveyard: {
         friendlyGraveyard: friendlyGraveyard,
@@ -139,65 +162,96 @@ export default function engineOutput() {
   function timeTest() {
     setInterval(() => {
       console.log("In second " + second.current + ":");
-      // console.log("Renderer total time: " + renderTime.current + "ms");
-      // console.log(
-      //   "Entity Render time: " + entityRenderTime.current + "ms",
-      //   parseInt((entityRenderTime.current / renderTime.current) * 100) + "%"
-      // );
-      // console.log(
-      //   "Ground Render time: " + groundRenderTime.current + "ms",
-      //   parseInt((groundRenderTime.current / renderTime.current) * 100) + "%"
-      // );
-
-      // console.log(
-      //   "Projectile Render time: " + projectileRenderTime.current + "ms",
-      //   parseInt((projectileRenderTime.current / renderTime.current) * 100) +
-      //     "%"
-      // );
-
-      // console.log(
-      //   "Fluid Render time: " + fluidRenderTime.current + "ms",
-      //   parseInt((fluidRenderTime.current / renderTime.current) * 100) + "%"
-      // );
-
-      // console.log(
-      //   "Effect Render time: " + effectRenderTime.current + "ms",
-      //   parseInt((effectRenderTime.current / renderTime.current) * 100) + "%"
-      // );
-
+      console.log("Renderer total time: " + renderTime.current + "ms");
+      console.log(
+        "Blank Render time: " + blankRenderTime.current + "ms",
+        parseInt((blankRenderTime.current / renderTime.current) * 100) + "%"
+      );
+      console.log(
+        "Entity Render time: " + entityRenderTime.current + "ms",
+        parseInt((entityRenderTime.current / renderTime.current) * 100) + "%"
+      );
+      console.log(
+        "Ground Render time: " + groundRenderTime.current + "ms",
+        parseInt((groundRenderTime.current / renderTime.current) * 100) + "%"
+      );
+      console.log(
+        "Projectile Render time: " + projectileRenderTime.current + "ms",
+        parseInt((projectileRenderTime.current / renderTime.current) * 100) +
+          "%"
+      );
+      console.log(
+        "Fluid Render time: " + fluidRenderTime.current + "ms",
+        parseInt((fluidRenderTime.current / renderTime.current) * 100) + "%"
+      );
+      console.log(
+        "Effect Render time: " + effectRenderTime.current + "ms",
+        parseInt((effectRenderTime.current / renderTime.current) * 100) + "%"
+      );
+      console.log(
+        "Blank If time: " + blankIfTime.current + "ms",
+        parseInt((blankIfTime.current / renderTime.current) * 100) + "%"
+      );
+      console.log(
+        "Entity If time: " + entityIfTime.current + "ms",
+        parseInt((entityIfTime.current / renderTime.current) * 100) + "%"
+      );
+      console.log(
+        "Ground If time: " + groundIfTime.current + "ms",
+        parseInt((groundIfTime.current / renderTime.current) * 100) + "%"
+      );
+      console.log(
+        "Projectile If time: " + projectileIfTime.current + "ms",
+        parseInt((projectileIfTime.current / renderTime.current) * 100) + "%"
+      );
+      console.log(
+        "Fluid If time: " + fluidIfTime.current + "ms",
+        parseInt((fluidIfTime.current / renderTime.current) * 100) + "%"
+      );
+      console.log(
+        "Effect If time: " + effectIfTime.current + "ms",
+        parseInt((effectIfTime.current / renderTime.current) * 100) + "%"
+      );
       console.log("Engine total time: " + engineTime.current + "ms");
       console.log(
         "Entity engine time: " + entityEngineTime.current + "ms",
         parseInt((entityEngineTime.current / engineTime.current) * 100) + "%"
       );
-      // console.log(
-      //   "Ground engine time: " + groundEngineTime.current + "ms",
-      //   parseInt((groundEngineTime.current / engineTime.current) * 100) + "%"
-      // );
-      // console.log(
-      //   "Projectile engine time: " + projectileEngineTime.current + "ms",
-      //   parseInt((projectileEngineTime.current / engineTime.current) * 100) +
-      //     "%"
-      // );
-      // console.log(
-      //   "Fluid engine time: " + fluidEngineTime.current + "ms",
-      //   parseInt((fluidEngineTime.current / engineTime.current) * 100) + "%"
-      // );
-      // console.log(
-      //   "Effect engine time: " + effectEngineTime.current + "ms",
-      //   parseInt((effectEngineTime.current / engineTime.current) * 100) + "%"
-      // );
-      console.log("Blob Total: " + testTime1.current + "ms");
-      console.log("Fall: " + testTime2.current + "ms");
-      console.log("Sort: " + testTime3.current + "ms");
-      console.log("Recursion: " + testTime4.current + "ms");
-      console.log("Other: " + testTime5.current + "ms");
+      console.log(
+        "Ground engine time: " + groundEngineTime.current + "ms",
+        parseInt((groundEngineTime.current / engineTime.current) * 100) + "%"
+      );
+      console.log(
+        "Projectile engine time: " + projectileEngineTime.current + "ms",
+        parseInt((projectileEngineTime.current / engineTime.current) * 100) +
+          "%"
+      );
+      console.log(
+        "Fluid engine time: " + fluidEngineTime.current + "ms",
+        parseInt((fluidEngineTime.current / engineTime.current) * 100) + "%"
+      );
+      console.log(
+        "Effect engine time: " + effectEngineTime.current + "ms",
+        parseInt((effectEngineTime.current / engineTime.current) * 100) + "%"
+      );
+      // console.log("Select: " + testTime1.current + "ms");
+      // console.log("Fall: " + testTime2.current + "ms");
+      // console.log("Sort: " + testTime3.current + "ms");
+      // console.log("Recursion: " + testTime4.current + "ms");
+      // console.log("Other: " + testTime5.current + "ms");
       renderTime.current = 0;
+      blankRenderTime.current = 0;
       entityRenderTime.current = 0;
       groundRenderTime.current = 0;
       projectileRenderTime.current = 0;
       fluidRenderTime.current = 0;
       effectRenderTime.current = 0;
+      blankIfTime.current = 0;
+      entityIfTime.current = 0;
+      groundIfTime.current = 0;
+      projectileIfTime.current = 0;
+      fluidIfTime.current = 0;
+      effectIfTime.current = 0;
       entityEngineTime.current = 0;
       engineTime.current = 0;
       groundEngineTime.current = 0;
@@ -230,6 +284,7 @@ export default function engineOutput() {
 
   function updateGameboardEntities() {
     let grid = [];
+    let initialTime = Date.now();
     for (let h = 0; h <= gameboardHeight.current; h++) {
       let subGrid = [];
       for (let w = 0; w <= gameboardWidth.current; w++) {
@@ -237,9 +292,11 @@ export default function engineOutput() {
       }
       grid.push(subGrid);
     }
+    renderTime.current += Date.now() - initialTime;
     setGameboardEntities(grid);
 
     function cellType(w, h) {
+      let testTimeInitial = Date.now();
       if (selectedCell.current !== undefined) {
         if (currentInput.current !== "") {
           let inputPosition = selectedCell.current.id.split("x");
@@ -252,35 +309,17 @@ export default function engineOutput() {
               "--cell-select-width": cellWidth.current - 2 + "px",
               "--cell-select-height": cellHeight.current - 2 + "px",
             };
+            testTime1.current += Date.now() - testTimeInitial;
             return [w + "x" + h, currentInput.current, style];
           }
         }
       }
+      testTime1.current += Date.now() - testTimeInitial;
       if (w === 0) {
         return firstColumnCell(w, h);
       }
       if (h === 0) {
         return firstRowCell(w, h);
-      }
-      let cell = cellEffect([w, h], activeEffects.current);
-      if (cell !== undefined) {
-        return effectCell(cell, w, h);
-      }
-      cell = cellEntity([w, h], activeEntities.current);
-      if (cell !== undefined) {
-        return entityCell(cell, w, h);
-      }
-      cell = cellGround([w, h], activeGround.current);
-      if (cell !== undefined) {
-        return groundCell(cell, w, h);
-      }
-      cell = cellProjectile([w, h], activeProjectiles.current);
-      if (cell !== undefined) {
-        return projectileCell(cell, w, h);
-      }
-      cell = cellFluid([w, h], activeFluid.current);
-      if (cell !== undefined) {
-        return fluidCell(cell, w, h);
       }
       let style = {
         width: cellWidth.current + "px",
@@ -288,10 +327,44 @@ export default function engineOutput() {
         "--cell-select-width": cellWidth.current - 2 + "px",
         "--cell-select-height": cellHeight.current - 2 + "px",
       };
-      return [w + "x" + h, "", style];
+      let effectInitial = Date.now();
+      let cell = onBoard(effectBoard.current, [w, h]);
+      if (cell !== undefined) {
+        effectIfTime.current += Date.now() - effectInitial;
+        return effectCell(cell, w, h, style);
+      }
+      effectIfTime.current += Date.now() - effectInitial;
+      let entityInitial = Date.now();
+      cell = onBoard(entityBoard.current, [w, h]);
+      if (cell !== undefined) {
+        entityIfTime.current += Date.now() - entityInitial;
+        return entityCell(cell, w, h, style);
+      }
+      entityIfTime.current += Date.now() - entityInitial;
+      let groundInitial = Date.now();
+      cell = onBoard(groundBoard.current, [w, h]);
+      if (cell !== undefined) {
+        groundIfTime.current += Date.now() - groundInitial;
+        return groundCell(cell, w, h, style);
+      }
+      groundIfTime.current += Date.now() - groundInitial;
+      let fluidInitial = Date.now();
+      cell = onBoard(fluidBoard.current, [w, h]);
+      if (cell !== undefined) {
+        fluidIfTime.current += Date.now() - fluidInitial;
+        return fluidCell(cell, w, h, style);
+      }
+      fluidIfTime.current += Date.now() - fluidInitial;
+      let projectileInitial = Date.now();
+      cell = onBoard(projectileBoard.current, [w, h]);
+      if (cell !== undefined) {
+        projectileIfTime.current += Date.now() - projectileInitial;
+        return projectileCell(cell, w, h, style);
+      }
+      projectileIfTime.current += Date.now() - projectileInitial;
+      return blankCell(w, h, style);
     }
 
-    //below functions return what is to be rendered in cell
     function firstColumnCell(w, h) {
       if (h === 0) {
         let style = {
@@ -301,6 +374,7 @@ export default function engineOutput() {
           "--cell-select-height": cellHeight.current - 2 + "px",
           boxShadow: "inset -1px 0px 0px #404040, inset 0px -2px 0px #404040",
         };
+        boardRef.current[h][w] = true;
         return [w + "x" + h, "", style];
       } else {
         let style = {
@@ -312,6 +386,7 @@ export default function engineOutput() {
           boxShadow: "inset -1px 0px 0px #404040",
           color: "#404040",
         };
+        boardRef.current[h][w] = true;
         return [w + "x" + h, h + " ", style];
       }
     }
@@ -326,59 +401,60 @@ export default function engineOutput() {
         color: "#404040",
         boxShadow: "inset 0px -2px 0px #404040",
       };
+      boardRef.current[h][w] = true;
       return [w + "x" + h, toLetter(w - 1) + " ", style];
     }
 
-    function effectCell(effect, w, h) {
+    function blankCell(w, h, style) {
       let initialTime = Date.now();
-      let style = {
-        width: cellWidth.current + "px",
-        height: cellHeight.current + "px",
-        "--cell-select-width": cellWidth.current - 2 + "px",
-        "--cell-select-height": cellHeight.current - 2 + "px",
-        backgroundColor: effect.style.backgroundColor,
-        color: effect.style.color,
-        fontStyle: effect.style.fontStyle,
-      };
+      blankRenderTime.current += Date.now() - initialTime;
+      boardRef.current[h][w] = false;
+      return [w + "x" + h, "", style];
+    }
+
+    function effectCell(effect, w, h, style) {
+      let initialTime = Date.now();
+      style.backgroundColor = effect.style.backgroundColor;
+      style.color = effect.style.color;
+      style.fontStyle = effect.style.fontStyle;
       if (effect.symbol === "") {
-        if (cellEntity(effect.position, activeEntities.current) !== undefined) {
-          cellEntity(
-            effect.position,
-            activeEntities.current
-          ).style.backgroundColor = effect.style.backgroundColor;
-          return entityCell(cellEntity(effect.position, activeHolder.current));
+        if (onBoard(entityBoard.current, effect.position) !== undefined) {
+          onBoard(entityBoard.current, effect.position).style.backgroundColor =
+            effect.style.backgroundColor;
+          return entityCell(
+            onBoard(entityBoard.current, effect.position),
+            w,
+            h,
+            style
+          );
         }
-        if (cellFluid(effect.position, activeFluid.current) !== undefined) {
-          cellFluid(
-            effect.position,
-            activeFluid.current
-          ).style.backgroundColor = effect.style.backgroundColor;
-          return fluidCell(cellFluid(effect.position, activeFluid.current));
+        if (onBoard(fluidBoard.current, effect.position) !== undefined) {
+          onBoard(fluidBoard.current, effect.position).style.backgroundColor =
+            effect.style.backgroundColor;
+          return fluidCell(
+            onBoard(fluidBoard.current, effect.position),
+            w,
+            h,
+            style
+          );
         }
       }
       effectRenderTime.current += Date.now() - initialTime;
+      boardRef.current[h][w] = true;
       return [w + "x" + h, effect.symbol, style];
     }
 
-    function entityCell(entity, w, h) {
+    function entityCell(entity, w, h, style) {
       let initialTime = Date.now();
       let cellText = "";
-      let color;
       if (entity.enemy) {
-        color = "darkRed";
+        style.color = "darkRed";
       } else {
-        color = "darkGreen";
+        style.color = "darkGreen";
       }
-      let style = {
-        width: cellWidth.current + "px",
-        height: cellHeight.current + "px",
-        "--cell-select-width": cellWidth.current - 2 + "px",
-        "--cell-select-height": cellHeight.current - 2 + "px",
-        color: color,
-      };
       if (entity.type === "blob") {
         blobHealthBar(entity, style);
-        blobLine(entity, style, color);
+        blobLine(entity, style);
       } else {
         attackBar(entity, style);
         entityHealthBar(entity, style);
@@ -390,8 +466,8 @@ export default function engineOutput() {
           style.fontStyle = "normal";
         }
       }
-
       entityRenderTime.current += Date.now() - initialTime;
+      boardRef.current[h][w] = true;
       return [w + "x" + h, cellText, style];
 
       function attackBar(currentEntity, style) {
@@ -430,26 +506,27 @@ export default function engineOutput() {
         style.boxShadow = "inset 157px 21px 0px 0px " + color;
       }
 
-      function blobLine(blob, style, color) {
+      function blobLine(blob, style) {
         if (entity.hp === 10) {
           return;
         }
-        let entityAbove = cellEntity(
-          [blob.position[0], blob.position[1] - 1],
-          activeEntities.current
-        );
-        let entityLeft = cellEntity(
-          [blob.position[0] - 1, blob.position[1]],
-          activeEntities.current
-        );
-        let entityRight = cellEntity(
-          [blob.position[0] + 1, blob.position[1]],
-          activeEntities.current
-        );
-        let entityBelow = cellEntity(
-          [blob.position[0], blob.position[1] + 1],
-          activeEntities.current
-        );
+        let color = style.color;
+        let entityAbove = onBoard(entityBoard.current, [
+          blob.position[0],
+          blob.position[1] - 1,
+        ]);
+        let entityLeft = onBoard(entityBoard.current, [
+          blob.position[0] - 1,
+          blob.position[1],
+        ]);
+        let entityRight = onBoard(entityBoard.current, [
+          blob.position[0] + 1,
+          blob.position[1],
+        ]);
+        let entityBelow = onBoard(entityBoard.current, [
+          blob.position[0],
+          blob.position[1] + 1,
+        ]);
         if (entityAbove === undefined || entityAbove.type !== blob.type) {
           style.boxShadow += ",inset 0px 2px 0px " + color;
         }
@@ -474,17 +551,12 @@ export default function engineOutput() {
       }
     }
 
-    function groundCell(ground, w, h) {
+    function groundCell(ground, w, h, style) {
       let initialTime = Date.now();
-      let style = {
-        width: cellWidth.current + "px",
-        height: cellHeight.current + "px",
-        "--cell-select-width": cellWidth.current - 2 + "px",
-        "--cell-select-height": cellHeight.current - 2 + "px",
-      };
       groundLine(ground, style);
       groundHealthBar(ground, style);
       groundRenderTime.current += Date.now() - initialTime;
+      boardRef.current[h][w] = true;
       return [w + "x" + h, "", style];
 
       function groundLine(ground, style) {
@@ -492,18 +564,18 @@ export default function engineOutput() {
           return;
         }
         let made;
-        let groundAbove = cellGround(
-          [ground.position[0], ground.position[1] - 1],
-          activeGround.current
-        );
-        let groundLeft = cellGround(
-          [ground.position[0] - 1, ground.position[1]],
-          activeGround.current
-        );
-        let groundRight = cellGround(
-          [ground.position[0] + 1, ground.position[1]],
-          activeGround.current
-        );
+        let groundAbove = onBoard(groundBoard.current, [
+          ground.position[0],
+          ground.position[1] - 1,
+        ]);
+        let groundLeft = onBoard(groundBoard.current, [
+          ground.position[0] - 1,
+          ground.position[1],
+        ]);
+        let groundRight = onBoard(groundBoard.current, [
+          ground.position[0] + 1,
+          ground.position[1],
+        ]);
         if (groundAbove === undefined) {
           style.boxShadow = "inset 0px 2px 0px grey";
           made = true;
@@ -540,31 +612,21 @@ export default function engineOutput() {
       }
     }
 
-    function projectileCell(projectile) {
+    function projectileCell(projectile, w, h, style) {
       let initialTime = Date.now();
-      let style = {
-        width: cellWidth.current + "px",
-        height: cellHeight.current + "px",
-        "--cell-select-width": cellWidth.current - 2 + "px",
-        "--cell-select-height": cellHeight.current - 2 + "px",
-      };
       inFluid(projectile, style);
       projectileRenderTime.current += Date.now() - initialTime;
+      boardRef.current[h][w] = true;
       return [w + "x" + h, projectile.symbol, style];
     }
 
-    function fluidCell(fluid, w, h) {
+    function fluidCell(fluid, w, h, style) {
       let initialTime = Date.now();
-      let style = {
-        width: cellWidth.current + "px",
-        height: cellHeight.current + "px",
-        "--cell-select-width": cellWidth.current - 2 + "px",
-        "--cell-select-height": cellHeight.current - 2 + "px",
-        backgroundColor: "lightBlue",
-        fontStyle: "italic",
-      };
+      style.backgroundColor = "lightBlue";
+      style.fontStyle = "italic";
       fluidLine(fluid, style);
       fluidRenderTime.current += Date.now() - initialTime;
+      boardRef.current[h][w] = true;
       return [w + "x" + h, "", style];
 
       function fluidLine(fluid, style) {
@@ -573,26 +635,26 @@ export default function engineOutput() {
         }
         style.boxShadow = "";
         let made;
-        let fluidAbove = cellFluid(
-          [fluid.position[0], fluid.position[1] - 1],
-          activeFluid.current
-        );
-        let fluidLeft = cellFluid(
-          [fluid.position[0] - 1, fluid.position[1]],
-          activeFluid.current
-        );
-        let fluidRight = cellFluid(
-          [fluid.position[0] + 1, fluid.position[1]],
-          activeFluid.current
-        );
-        let groundLeft = cellGround(
-          [fluid.position[0] - 1, fluid.position[1]],
-          activeGround.current
-        );
-        let groundRight = cellGround(
-          [fluid.position[0] + 1, fluid.position[1]],
-          activeGround.current
-        );
+        let fluidAbove = onBoard(fluidBoard.current, [
+          fluid.position[0],
+          fluid.position[1] - 1,
+        ]);
+        let fluidLeft = onBoard(fluidBoard.current, [
+          fluid.position[0] - 1,
+          fluid.position[1],
+        ]);
+        let fluidRight = onBoard(fluidBoard.current, [
+          fluid.position[0] + 1,
+          fluid.position[1],
+        ]);
+        let groundLeft = onBoard(groundBoard.current, [
+          fluid.position[0] - 1,
+          fluid.position[1],
+        ]);
+        let groundRight = onBoard(groundBoard.current, [
+          fluid.position[0] + 1,
+          fluid.position[1],
+        ]);
         if (fluidAbove === undefined) {
           style.boxShadow = "inset 0px 1px 0px blue";
           made = true;
@@ -617,26 +679,26 @@ export default function engineOutput() {
     }
 
     function inFluid(entity, style) {
-      let fluidAbove = cellFluid(
-        [entity.position[0], entity.position[1] - 1],
-        activeFluid.current
-      );
-      let fluidLeft = cellFluid(
-        [entity.position[0] - 1, entity.position[1]],
-        activeFluid.current
-      );
-      let fluidRight = cellFluid(
-        [entity.position[0] + 1, entity.position[1]],
-        activeFluid.current
-      );
-      let groundLeft = cellGround(
-        [entity.position[0] - 1, entity.position[1]],
-        activeGround.current
-      );
-      let groundRight = cellGround(
-        [entity.position[0] + 1, entity.position[1]],
-        activeGround.current
-      );
+      let fluidAbove = onBoard(fluidBoard.current, [
+        entity.position[0],
+        entity.position[1] - 1,
+      ]);
+      let fluidLeft = onBoard(fluidBoard.current, [
+        entity.position[0] - 1,
+        entity.position[1],
+      ]);
+      let fluidRight = onBoard(fluidBoard.current, [
+        entity.position[0] + 1,
+        entity.position[1],
+      ]);
+      let groundLeft = onBoard(groundBoard.current, [
+        entity.position[0] - 1,
+        entity.position[1],
+      ]);
+      let groundRight = onBoard(groundBoard.current, [
+        entity.position[0] + 1,
+        entity.position[1],
+      ]);
       if (fluidAbove === undefined) {
         style.boxShadow += ",inset 0px 1px 0px blue";
       }
@@ -769,10 +831,7 @@ export default function engineOutput() {
     lastEnemySpawnTime.current = 0;
     lastFriendlySpawnTime.current = 0;
     renderTimer.current = setInterval(() => {
-      let initialTime = Date.now();
       updateGameboardEntities();
-      let timeElapsed = Date.now() - initialTime;
-      renderTime.current += timeElapsed;
     }, renderSpeed.current * 4);
     engine(true, gameStatePacker());
   }

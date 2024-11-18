@@ -25,14 +25,10 @@ export function cellContents(position, active) {
 }
 
 export function cellGround(position, active) {
-  return active.find((ground) =>
-    comparePosition(ground.position, position)
-  );
+  return active.find((ground) => comparePosition(ground.position, position));
 }
 export function cellEntity(position, active) {
-  return active.find((entity) =>
-    comparePosition(entity.position, position)
-  );
+  return active.find((entity) => comparePosition(entity.position, position));
 }
 export function cellProjectile(position, active) {
   return active.find((projectile) =>
@@ -40,14 +36,10 @@ export function cellProjectile(position, active) {
   );
 }
 export function cellFluid(position, active) {
-  return active.find((fluid) =>
-    comparePosition(fluid.position, position)
-  );
+  return active.find((fluid) => comparePosition(fluid.position, position));
 }
 export function cellEffect(position, active) {
-  return active.find((effect) =>
-    comparePosition(effect.position, position)
-  );
+  return active.find((effect) => comparePosition(effect.position, position));
 }
 
 export function direction(currentEntity) {
@@ -72,4 +64,18 @@ export function toLetter(position) {
       letters[position - parseInt(position / letters.length) * letters.length];
     return firstLetter + secondLetter;
   } else return letters[position];
+}
+
+export function toBoard(board, position, entity) {
+  board[position[1]][position[0]] = entity;
+}
+
+export function onBoard(board, position) {
+  return board[position[1]][position[0]];
+}
+
+export function moveBoard(board, position, entity) {
+  board[entity.position[1]][entity.position[0]] = undefined;
+  entity.position = position;
+  board[position[1]][position[0]] = entity;
 }
