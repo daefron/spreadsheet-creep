@@ -1125,6 +1125,7 @@ export function engine(newRound, gameState) {
 
   //tells the projectile what to do on its turn
   function projectileTurn(projectile) {
+    fluidChecker(projectile);
     projectile.speedCharge++;
     if (projectile.type === "missile") {
       if (missleCanMove(projectile)) {
@@ -1185,6 +1186,7 @@ export function engine(newRound, gameState) {
       let entityInCurrent = onBoard(entityBoard.current, projectile.position);
       if (entityInCurrent !== undefined) {
         entityKiller(projectile);
+        return;
       }
       let positionNextTo = [direction(projectile), projectile.position[1]];
       let entityNextTo = onBoard(entityBoard.current, positionNextTo);
@@ -1782,7 +1784,10 @@ export function engine(newRound, gameState) {
     function spawnPositionFinder(enemy) {
       let baselinePosition;
       if (enemy) {
-        baselinePosition = [gameboardWidth.current, gameboardHeight.current - 1];
+        baselinePosition = [
+          gameboardWidth.current,
+          gameboardHeight.current - 1,
+        ];
       } else if (!enemy) {
         baselinePosition = [1, gameboardHeight.current - 1];
       }

@@ -70,7 +70,6 @@ export default function engineOutput() {
   let entityList = EntityList;
   let groundList = GroundList;
 
-  const boardRef = useRef(initialGameboard());
   const entityBoard = useRef(initialGameboard());
   const groundBoard = useRef(initialGameboard());
   const fluidBoard = useRef(initialGameboard());
@@ -341,13 +340,6 @@ export default function engineOutput() {
         return groundCell(cell, w, h, style);
       }
       groundIfTime.current += Date.now() - groundInitial;
-      let fluidInitial = Date.now();
-      cell = onBoard(fluidBoard.current, [w, h]);
-      if (cell !== undefined) {
-        fluidIfTime.current += Date.now() - fluidInitial;
-        return fluidCell(cell, w, h, style);
-      }
-      fluidIfTime.current += Date.now() - fluidInitial;
       let projectileInitial = Date.now();
       cell = onBoard(projectileBoard.current, [w, h]);
       if (cell !== undefined) {
@@ -355,6 +347,13 @@ export default function engineOutput() {
         return projectileCell(cell, w, h, style);
       }
       projectileIfTime.current += Date.now() - projectileInitial;
+      let fluidInitial = Date.now();
+      cell = onBoard(fluidBoard.current, [w, h]);
+      if (cell !== undefined) {
+        fluidIfTime.current += Date.now() - fluidInitial;
+        return fluidCell(cell, w, h, style);
+      }
+      fluidIfTime.current += Date.now() - fluidInitial;
       return blankCell(w, h, style);
     }
 
@@ -367,7 +366,6 @@ export default function engineOutput() {
           "--cell-select-height": cellHeight.current - 2 + "px",
           boxShadow: "inset -1px 0px 0px #404040, inset 0px -2px 0px #404040",
         };
-        boardRef.current[h][w] = true;
         return [w + "x" + h, "", style];
       } else {
         let style = {
@@ -379,7 +377,6 @@ export default function engineOutput() {
           boxShadow: "inset -1px 0px 0px #404040",
           color: "#404040",
         };
-        boardRef.current[h][w] = true;
         return [w + "x" + h, h + " ", style];
       }
     }
@@ -394,14 +391,12 @@ export default function engineOutput() {
         color: "#404040",
         boxShadow: "inset 0px -2px 0px #404040",
       };
-      boardRef.current[h][w] = true;
       return [w + "x" + h, toLetter(w - 1) + " ", style];
     }
 
     function blankCell(w, h, style) {
       let initialTime = Date.now();
       blankRenderTime.current += Date.now() - initialTime;
-      boardRef.current[h][w] = false;
       return [w + "x" + h, "", style];
     }
 
@@ -429,7 +424,6 @@ export default function engineOutput() {
         }
       }
       effectRenderTime.current += Date.now() - initialTime;
-      boardRef.current[h][w] = true;
       return [w + "x" + h, effect.symbol, style];
     }
 
@@ -449,15 +443,12 @@ export default function engineOutput() {
         entityHealthBar(entity, style);
         cellText = entity.type + entity.lvl + " (hp: " + entity.hp + ")";
         if (entity.inFluid) {
-          style.fontStyle = "italic";
-          style.backgroundColor = "lightBlue";
           inFluid(entity, style);
         } else {
           style.fontStyle = "normal";
         }
       }
       entityRenderTime.current += Date.now() - initialTime;
-      boardRef.current[h][w] = true;
       return [w + "x" + h, cellText, style];
 
       function attackBar(currentEntity, style) {
@@ -546,7 +537,6 @@ export default function engineOutput() {
       groundLine(ground, style);
       groundHealthBar(ground, style);
       groundRenderTime.current += Date.now() - initialTime;
-      boardRef.current[h][w] = true;
       return [w + "x" + h, "", style];
 
       function groundLine(ground, style) {
@@ -604,9 +594,11 @@ export default function engineOutput() {
 
     function projectileCell(projectile, w, h, style) {
       let initialTime = Date.now();
-      inFluid(projectile, style);
+      if (projectile.inFluid) {
+        inFluid(projectile, style);
+        console.log(style);
+      }
       projectileRenderTime.current += Date.now() - initialTime;
-      boardRef.current[h][w] = true;
       return [w + "x" + h, projectile.symbol, style];
     }
 
@@ -616,7 +608,6 @@ export default function engineOutput() {
       style.fontStyle = "italic";
       fluidLine(fluid, style);
       fluidRenderTime.current += Date.now() - initialTime;
-      boardRef.current[h][w] = true;
       return [w + "x" + h, "", style];
 
       function fluidLine(fluid, style) {
@@ -698,6 +689,8 @@ export default function engineOutput() {
       if (fluidRight === undefined && groundRight === undefined) {
         style.boxShadow += ",inset -1px 0px 0px blue";
       }
+      style.fontStyle = "italic";
+      style.backgroundColor = "lightBlue";
     }
   }
 
