@@ -216,7 +216,6 @@ export function engine(newRound, gameState) {
         return;
       }
       blobStatGain();
-      // let initialTestTime = Date.now();
       let entityAbove = cellEntity(positionAbove, activeEntities.current);
       let entityLeft = cellEntity(positionLeft, activeEntities.current);
       let entityRight = cellEntity(positionRight, activeEntities.current);
@@ -224,7 +223,6 @@ export function engine(newRound, gameState) {
       let groundAbove = cellGround(positionAbove, activeGround.current);
       let groundLeft = cellGround(positionLeft, activeGround.current);
       let groundRight = cellGround(positionRight, activeGround.current);
-      // testTime.current += Date.now() - initialTestTime;
       blobAttack();
 
       if (currentEntity.hp < 2) {
@@ -237,6 +235,9 @@ export function engine(newRound, gameState) {
         return;
       }
       if (blobSide()) {
+        return;
+      }
+      if (currentEntity.hp < 4) {
         return;
       }
       if (blobAbove()) {
@@ -266,6 +267,13 @@ export function engine(newRound, gameState) {
         ) {
           return;
         }
+        if (currentEntity.ghost) {
+          if (positionBelow[1] >= gameboardHeight.current) {
+            entityKiller(currentEntity);
+          }
+          currentEntity.position = positionBelow;
+          return true;
+        }
         let touchingGround = 0;
         let blobGroup = blobGrouper();
         blobGroup.forEach((entity) => {
@@ -287,45 +295,77 @@ export function engine(newRound, gameState) {
       }
 
       function blobGrouper() {
+        let initialTestTime = Date.now();
+
+        // let allBlobs = activeEntities.current.filter(
+        //   (entity) =>
+        //     entity.type === currentEntity.type &&
+        //     entity.enemy === currentEntity.enemy
+        // );
+        // let blobGroup = allBlobs.filter(
+        //   (entity) =>
+        //     comparePosition(entity.position, positionAbove) ||
+        //     comparePosition(entity.position, positionLeft) ||
+        //     comparePosition(entity.position, positionRight) ||
+        //     comparePosition(entity.position, positionBelow)
+        // );
+        // blobGroup.push(currentEntity);
+        // let stopLoop = false;
+        // while (!stopLoop) {
+        //   let groupLength = blobGroup.length;
+        //   blobGroup.forEach((entity) => {
+        //     let x = entity.position[0];
+        //     let y = entity.position[1];
+        //     let positionAbove2 = [x, y - 1];
+        //     let positionBelow2 = [x, y + 1];
+        //     let positionLeft2 = [x - 1, y];
+        //     let positionRight2 = [x + 1, y];
+        //     let blobsNextTo = allBlobs.filter(
+        //       (entity) =>
+        //         comparePosition(entity.position, positionAbove2) ||
+        //         comparePosition(entity.position, positionLeft2) ||
+        //         comparePosition(entity.position, positionRight2) ||
+        //         comparePosition(entity.position, positionBelow2)
+        //     );
+        //     blobsNextTo.forEach((blob) => {
+        //       if (!blobGroup.includes(blob)) {
+        //         blobGroup.push(blob);
+        //       }
+        //     });
+        //   });
+        //   stopLoop = groupLength - blobGroup.length === 0;
+        // }
+
         let allBlobs = activeEntities.current.filter(
           (entity) =>
             entity.type === currentEntity.type &&
             entity.enemy === currentEntity.enemy
         );
-        let blobGroup = allBlobs.filter(
-          (entity) =>
-            comparePosition(entity.position, positionAbove) ||
-            comparePosition(entity.position, positionLeft) ||
-            comparePosition(entity.position, positionRight) ||
-            comparePosition(entity.position, positionBelow)
-        );
-        blobGroup.push(currentEntity);
-        let stopLoop = false;
-        while (!stopLoop) {
-          let groupLength = blobGroup.length;
-          blobGroup.forEach((entity) => {
+        aroundBlob(currentEntity);
+        function aroundBlob(entity) {
+          if (entity.group !== currentEntity.name) {
+            entity.group = currentEntity.name;
             let x = entity.position[0];
             let y = entity.position[1];
-            let positionAbove2 = [x, y - 1];
-            let positionBelow2 = [x, y + 1];
-            let positionLeft2 = [x - 1, y];
-            let positionRight2 = [x + 1, y];
+            let positionAbove = [x, y - 1];
+            let positionBelow = [x, y + 1];
+            let positionLeft = [x - 1, y];
+            let positionRight = [x + 1, y];
             let blobsNextTo = allBlobs.filter(
               (entity) =>
-                comparePosition(entity.position, positionAbove2) ||
-                comparePosition(entity.position, positionLeft2) ||
-                comparePosition(entity.position, positionRight2) ||
-                comparePosition(entity.position, positionBelow2)
+                comparePosition(entity.position, positionAbove) ||
+                comparePosition(entity.position, positionLeft) ||
+                comparePosition(entity.position, positionRight) ||
+                comparePosition(entity.position, positionBelow)
             );
             blobsNextTo.forEach((blob) => {
-              if (!blobGroup.includes(blob)) {
-                blobGroup.push(blob);
-              }
+              aroundBlob(blob);
             });
-          });
-          stopLoop = groupLength - blobGroup.length === 0;
+            return;
+          }
         }
-        return blobGroup;
+        testTime.current += Date.now() - initialTestTime;
+        return allBlobs.filter((entity) => entity.group === currentEntity.name);
       }
 
       function blobSorter() {
@@ -445,35 +485,38 @@ export function engine(newRound, gameState) {
       }
 
       function blobAttack() {
-        let chance = Math.random() < currentEntity.hp / 100;
-        if (chance) {
+        if (Math.random() < currentEntity.hp / 100) {
           if (groundAbove !== undefined) {
             groundAbove.hp--;
-          } else if (entityAbove !== undefined) {
-            if (entityAbove.enemy !== currentEntity.enemy) {
-              entityAbove.hp -= currentEntity.hp;
-            }
+          } else if (
+            entityAbove !== undefined &&
+            entityAbove.enemy !== currentEntity.enemy
+          ) {
+            entityAbove.hp -= currentEntity.hp;
           }
           if (groundBelow !== undefined) {
             groundBelow.hp--;
-          } else if (entityBelow !== undefined) {
-            if (entityBelow.enemy !== currentEntity.enemy) {
-              entityBelow.hp -= currentEntity.hp;
-            }
+          } else if (
+            entityBelow !== undefined &&
+            entityBelow.enemy !== currentEntity.enemy
+          ) {
+            entityBelow.hp -= currentEntity.hp;
           }
           if (groundLeft !== undefined) {
             groundLeft.hp--;
-          } else if (entityLeft !== undefined) {
-            if (entityLeft.enemy !== currentEntity.enemy) {
-              entityLeft.hp -= currentEntity.hp;
-            }
+          } else if (
+            entityLeft !== undefined &&
+            entityLeft.enemy !== currentEntity.enemy
+          ) {
+            entityLeft.hp -= currentEntity.hp;
           }
           if (groundRight !== undefined) {
             groundRight.hp--;
-          } else if (entityRight !== undefined) {
-            if (entityRight.enemy !== currentEntity.enemy) {
-              entityRight.hp -= currentEntity.hp;
-            }
+          } else if (
+            entityRight !== undefined &&
+            entityRight.enemy !== currentEntity.enemy
+          ) {
+            entityRight.hp -= currentEntity.hp;
           }
         }
       }
@@ -487,30 +530,29 @@ export function engine(newRound, gameState) {
       }
 
       function blobSide() {
+        if (Math.random() < 0.7) {
+          return;
+        }
         let newPosition = blobDirection();
         if (newPosition !== undefined) {
           let newGround = cellGround(newPosition, activeGround.current);
-          let newEntity = cellGround(newPosition, activeEntities.current);
-          if (Math.random() < 0.7) {
-            return;
-          }
+          let newEntity = cellEntity(newPosition, activeEntities.current);
           if (newBlobChecker(newGround, newEntity, newPosition)) {
             return true;
           }
         }
 
         function blobDirection() {
-          let leftFree = groundLeft === undefined || entityLeft === undefined;
-          let rightFree =
-            groundRight === undefined || entityRight === undefined;
+          let rightFree, leftFree;
           if (positionRight[0] > gameboardWidth.current) {
             rightFree = false;
-          }
+          } else
+            rightFree = groundRight === undefined || entityRight === undefined;
           if (positionLeft[0] < 1) {
             leftFree = false;
-          }
-          let direction = Math.random() > 0.5;
-          if (direction) {
+          } else
+            leftFree = groundLeft === undefined || entityLeft === undefined;
+          if (Math.random() > 0.5) {
             if (leftFree) {
               return positionLeft;
             } else if (rightFree) {
@@ -527,16 +569,11 @@ export function engine(newRound, gameState) {
       }
 
       function blobAbove() {
-        if (currentEntity.hp > 2) {
-          if (Math.random() < 0.2) {
-            return;
-          }
-          if (positionAbove[1] === 0) {
-            return;
-          }
-          if (newBlobChecker(groundAbove, entityAbove, positionAbove)) {
-            return true;
-          }
+        if (Math.random() < 0.2 || positionAbove[1] === 0) {
+          return;
+        }
+        if (newBlobChecker(groundAbove, entityAbove, positionAbove)) {
+          return true;
         }
       }
 
@@ -553,9 +590,7 @@ export function engine(newRound, gameState) {
         let entityLvl = entityType.lvls["lvl" + currentEntity.lvl];
         let entityID = "blob" + enemySpawnCount.current;
         entityID = new Entity(entityType, entityLvl, position, entityID);
-        if (!currentEntity.enemy) {
-          entityID.enemy = false;
-        }
+        entityID.enemy = currentEntity.enemy;
         statUpdate(entityID);
         activeEntities.current.push(entityID);
         enemySpawnCount.current++;
