@@ -1290,40 +1290,38 @@ export function engine(newRound, gameState) {
     if (healthChecker(ground)) {
       return;
     }
-    for (let i = gameSpeed.current; i > 0; i--) {
-      if (groundCanFall(ground.position, ground)) {
-        ground.falling = true;
-        groundFall(ground);
-      } else {
-        ground.falling = false;
-      }
+    if (groundCanFall(ground.position, ground)) {
+      ground.falling = true;
+      groundFall(ground);
+    } else {
+      ground.falling = false;
     }
 
     function groundCanFall(position, ground) {
-      if (position[1] < gameboardHeight.current) {
-        let positionBelow = [position[0], position[1] + 1];
+      let positionBelow = [position[0], position[1] + 1];
+      if (positionBelow[1] > gameboardHeight.current) {
+        if (ground.ghost) {
+          entityKiller(ground);
+        }
+        return false;
+      }
+      if (ground.fallCharge < ground.fallSpeed) {
+        ground.fallCharge++;
+        return false;
+      }
+      let groundBelow = cellGround(positionBelow, activeGround.current);
+      if (groundBelow === undefined) {
         let entityBelow = cellEntity(positionBelow, activeEntities.current);
         if (entityBelow !== undefined) {
           groundAttack(ground, entityBelow);
         }
-        let groundBelow = cellGround(positionBelow, activeGround.current);
-        if (groundBelow !== undefined) {
-          return false;
-        }
         return true;
-      }
-      if (ground.ghost) {
-        entityKiller(ground);
       }
     }
 
     function groundFall(ground) {
-      if (ground.fallCharge < ground.fallSpeed) {
-        ground.fallCharge++;
-      } else {
-        ground.fallCharge = 0;
-        ground.position = [ground.position[0], ground.position[1] + 1];
-      }
+      ground.fallCharge = 0;
+      ground.position = [ground.position[0], ground.position[1] + 1];
     }
 
     function groundAttack(entityBelow) {
