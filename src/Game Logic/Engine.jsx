@@ -615,6 +615,9 @@ export function engine(newRound, gameState) {
   }
 
   function fluidChecker(currentEntity) {
+    if (currentEntity.position[1] < 1) {
+      return;
+    }
     let fluidInPosition = onBoard(fluidBoard.current, currentEntity.position);
     if (fluidInPosition !== undefined) {
       if (currentEntity.sponge) {
@@ -651,15 +654,17 @@ export function engine(newRound, gameState) {
 
   //holds functions for entity falling
   function entityFall(currentEntity) {
-    for (let i = gameSpeed.current; i > 0; i--) {
-      if (entityCanFall(currentEntity)) {
-        entityFall(currentEntity);
-        return true;
-      }
+    if (entityCanFall(currentEntity)) {
+      entityFall(currentEntity);
+      return true;
     }
 
     //function to determine if there is anything under the current entity
     function entityCanFall(currentEntity) {
+      if (currentEntity.position[1] < 1) {
+        currentEntity.position[1]++;
+        return false;
+      }
       if (currentEntity.position[1] !== gameboardHeight.current) {
         if (!currentEntity.climbing) {
           if (currentEntity.movement === "scaler") {
@@ -708,6 +713,10 @@ export function engine(newRound, gameState) {
 
   //holds functions for entity attacks
   function entityAttack(currentEntity) {
+    if (currentEntity.position[1] < 1) {
+      currentEntity.position[1]++;
+      return false;
+    }
     if (currentEntity.attack !== undefined) {
       currentEntity.rateCharge++;
     }
@@ -795,12 +804,12 @@ export function engine(newRound, gameState) {
     function meleeAttackTargetter(currentEntity, rangeCells) {
       let target;
       rangeCells.forEach((cell) => {
-        let targetCell = onBoard(entityBoard.current, cell.position);
+        let targetCell = onBoard(entityBoard.current, cell);
         if (
           targetCell !== undefined &&
           targetCell.enemy !== currentEntity.enemy
         ) {
-          return targetCell;
+          return (target = targetCell);
         }
       });
       return target;
@@ -1108,7 +1117,7 @@ export function engine(newRound, gameState) {
         direction(currentEntity),
         currentEntity.position[1],
       ]);
-      targetGround.ground.hp -= currentEntity.dmg;
+      targetGround.hp -= currentEntity.dmg;
       currentEntity.rateCharge = 0;
       currentEntity.speedCharge = 0;
     }
@@ -1173,7 +1182,7 @@ export function engine(newRound, gameState) {
     }
 
     function barrelMovement(projectile) {
-      let entityInCurrent = onBoard(entityBoard, projectile.position);
+      let entityInCurrent = onBoard(entityBoard.current, projectile.position);
       if (entityInCurrent !== undefined) {
         entityKiller(projectile);
       }
@@ -1234,7 +1243,7 @@ export function engine(newRound, gameState) {
               return;
             }
           }
-          projectile.position = newPosition;
+          moveBoard(projectileBoard.current, newPosition, projectile);
           projectile.speedCharge = 0;
         } else {
           projectile.direction = "right";
@@ -1310,6 +1319,7 @@ export function engine(newRound, gameState) {
     function arrowMovement(projectile) {
       let newPosition = [direction(projectile), projectile.position[1]];
       let entityInPosition = onBoard(entityBoard.current, newPosition);
+      let groundInPosition = onBoard(groundBoard.current, newPosition);
       if (entityInPosition !== undefined) {
         if (projectile.type === "laser") {
           entityInPosition.hp -= projectile.dmg;
@@ -1317,18 +1327,12 @@ export function engine(newRound, gameState) {
           entityInPosition.hp -= projectile.dmg;
         }
         if (!projectile.piercing) {
-          activeProjectiles.current.splice(
-            activeProjectiles.current.indexOf(projectile),
-            1
-          );
+          entityKiller(projectile);
         } else projectile.position = newPosition;
-      } else if (cellAtPosition.ground !== undefined) {
-        cellAtPosition.ground.hp -= projectile.dmg;
+      } else if (groundInPosition !== undefined) {
+        groundInPosition.hp -= projectile.dmg;
         if (!projectile.piercing) {
-          activeProjectiles.current.splice(
-            activeProjectiles.current.indexOf(projectile),
-            1
-          );
+          entityKiller(projectile);
         } else projectile.position = newPosition;
       } else {
         projectile.speedCharge = 0;
@@ -1769,8 +1773,8 @@ export function engine(newRound, gameState) {
       if (!enemy) {
         entityID.enemy = false;
       }
-      toBoard(entityBoard.current, position, entityID);
       activeEntities.current.push(entityID);
+      toBoard(entityBoard.current, position, entityID);
       return entityID;
     }
 
@@ -1778,9 +1782,9 @@ export function engine(newRound, gameState) {
     function spawnPositionFinder(enemy) {
       let baselinePosition;
       if (enemy) {
-        baselinePosition = [gameboardWidth.current, gameboardHeight.current];
+        baselinePosition = [gameboardWidth.current, gameboardHeight.current - 1];
       } else if (!enemy) {
-        baselinePosition = [1, gameboardHeight.current];
+        baselinePosition = [1, gameboardHeight.current - 1];
       }
       let spawnPosition = baselinePosition;
       let endEntities = activeEntities.current.filter(

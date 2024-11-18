@@ -32,7 +32,7 @@ export default function engineOutput() {
   const totalSpawns = useRef(30);
   const spawnSpeed = useRef(1);
   const kingHP = useRef(20);
-  const gameMode = useRef("blob");
+  const gameMode = useRef("king");
   const friendlyCount = useRef(1);
   const projectileCount = useRef(0);
   const selectedCell = useRef();
@@ -478,9 +478,9 @@ export default function engineOutput() {
           entity.hp / entityList[entity.type].lvls["lvl" + entity.lvl].hp;
         let color;
         if (entity.enemy) {
-          color = "rgb(139 0 0 /" + (1 - percentage) + ")";
+          color = "rgb(139 0 0 /" + (1 - percentage / 1.5) + ")";
         } else {
-          color = "rgb(2 48 32 /" + (1 - percentage) + ")";
+          color = "rgb(2 48 32 /" + (1 - percentage / 1.5) + ")";
         }
         style.boxShadow += ",inset 157px 21px 0px 0px " + color;
       }
