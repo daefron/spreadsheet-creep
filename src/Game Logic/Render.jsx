@@ -22,10 +22,12 @@ export default function engineOutput() {
   const lastFriendlySpawnTime = useRef(0);
   const gameTimer = useRef();
   const renderTimer = useRef();
-  const gameboardWidth = useRef(14);
+  const gameboardWidth = useRef(25);
   const gameboardHeight = useRef(31);
   const renderWidth = useRef();
+  const renderWidthMin = useRef(0);
   const renderHeight = useRef();
+  const renderHeightMin = useRef(0);
   const groundLevel = useRef(15);
   const groundRoughness = useRef(5);
   const waterLevel = useRef(1);
@@ -277,23 +279,52 @@ export default function engineOutput() {
     };
   }, []);
 
+  useEffect(() => {
+    let board = document.getElementById("above");
+    board.addEventListener("scroll", handleScrollEnd);
+    function handleScrollEnd() {
+      let left = board.scrollLeft;
+      let width = board.offsetWidth;
+      let scrollWidth = board.scrollWidth;
+      if (scrollWidth - left < width) {
+        scrollEnd(board);
+      } else if (left === 0) {
+        scrollStart(board);
+      }
+    }
+  }, []);
+
+  function scrollEnd(board) {
+    if (renderWidth.current < gameboardWidth.current) {
+      renderWidthMin.current++;
+      autoCell();
+      board.scroll(cellWidth.current, 0);
+    }
+  }
+  function scrollStart(board) {
+    if (renderWidthMin.current > 0) {
+      renderWidthMin.current--;
+      autoCell();
+      board.scroll(cellWidth.current - 57, 0);
+    }
+  }
+
   function autoCell() {
     let board = document.getElementById("gameboard");
     let width = board.offsetWidth;
     let height = board.offsetHeight;
-    renderWidth.current = parseInt(width / (cellWidth.current + 7) + 1);
-    console.log(width, cellWidth.current, renderWidth.current);
-    renderHeight.current = parseInt(height / (cellHeight.current + 2));
-    gameboardWidth.current = renderWidth.current;
-    gameboardHeight.current = renderHeight.current;
+    renderWidth.current =
+      1 + parseInt(width / (cellWidth.current + 7)) + renderWidthMin.current;
+    renderHeight.current =
+      parseInt(height / (cellHeight.current + 2)) + renderHeightMin.current;
   }
 
   function updateGameboardEntities() {
     let grid = [];
     let initialTime = Date.now();
-    for (let h = 0; h <= renderHeight.current; h++) {
+    for (let h = renderHeightMin.current; h <= renderHeight.current; h++) {
       let subGrid = [];
-      for (let w = 0; w <= renderWidth.current; w++) {
+      for (let w = renderWidthMin.current; w <= renderWidth.current; w++) {
         subGrid.push(cellType(w, h));
       }
       grid.push(subGrid);
@@ -321,10 +352,10 @@ export default function engineOutput() {
         }
       }
       testTime1.current += Date.now() - testTimeInitial;
-      if (w === 0) {
+      if (w === renderWidthMin.current) {
         return firstColumnCell(w, h);
       }
-      if (h === 0) {
+      if (h === renderHeightMin.current) {
         return firstRowCell(w, h);
       }
       let style = {
@@ -873,7 +904,10 @@ export default function engineOutput() {
   }
 
   function updateGameboardWidth(e) {
-    gameboardWidth.current = parseInt(e.target.value);
+    // gameboardWidth.current = parseInt(e.target.value);
+    // let board = document.getElementById("gameboard");
+    // let maxWidth = gameboardWidth.current * (cellWidth.current + 7);
+    // board.style.width = maxWidth + "px";
     updateGameboardEntities();
   }
   function updateGameboardHeight(e) {
@@ -945,7 +979,7 @@ export default function engineOutput() {
 
   //renders the gameboard once on page load
   useEffect(() => {
-    timeTest();
+    // timeTest();
     if ((cellType.current = "auto")) {
       autoCell();
     }
