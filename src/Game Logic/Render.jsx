@@ -75,6 +75,7 @@ export default function engineOutput() {
   const scrollPositionX = useRef(0);
   const scrollBufferX = useRef();
   const scrollPositionY = useRef(0);
+  const scrollBufferY = useRef();
   let entityList = EntityList;
   let groundList = GroundList;
 
@@ -291,6 +292,7 @@ export default function engineOutput() {
     board.addEventListener("scroll", handleScroll);
     function handleScroll() {
       xScrollUpdate();
+      yScrollUpdate();
       let left = board.scrollLeft;
       let width = board.offsetWidth;
       let scrollWidth = board.scrollWidth;
@@ -368,6 +370,21 @@ export default function engineOutput() {
     let marginPercentage = renderMax / width;
     let marginLeft = xScrollWidth * marginPercentage - xScrollWidth;
     xScroll.style.marginLeft = marginLeft + "px";
+  }
+
+  function yScrollUpdate() {
+    let board = document.getElementById("gameboard");
+    let height = board.offsetHeight;
+    let yScroll = document.getElementById("yScroll");
+    let totalHeight = gameboardHeight.current * (cellHeight.current + 2);
+    let yScrollPercentage = height / totalHeight;
+    let yScrollHeight = height * yScrollPercentage;
+    yScroll.style.height = yScrollHeight + "px";
+    let renderMax = renderHeight.current * (cellHeight.current + 2);
+    renderMax -= scrollBufferX.current;
+    let marginPercentage = renderMax / height;
+    let marginTop = yScrollHeight * marginPercentage - yScrollHeight + 33;
+    yScroll.style.marginTop = marginTop + "px";
   }
 
   function updateGameboardEntities() {
@@ -1087,6 +1104,7 @@ export default function engineOutput() {
       autoCell();
     }
     xScrollUpdate();
+    yScrollUpdate();
     updateGameboardEntities();
   }, []);
 
