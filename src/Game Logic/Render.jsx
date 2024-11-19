@@ -441,7 +441,7 @@ export default function engineOutput() {
       } else {
         attackBar(entity, style);
         entityHealthBar(entity, style);
-        entityLine(entity, style);
+        entityLine(style);
         cellText = entity.type + entity.lvl + " (hp: " + entity.hp + ")";
         if (entity.inFluid) {
           inFluid(entity, style);
@@ -545,7 +545,15 @@ export default function engineOutput() {
       groundLine(ground, style);
       groundHealthBar(ground, style);
       groundRenderTime.current += Date.now() - initialTime;
-      return [w + "x" + h, "", style];
+      let text = "";
+      if (ground.type === "corpse") {
+        text = "corpse";
+        style.fontStyle = "bold";
+        if (ground.enemy) {
+          style.color = "darkRed";
+        } else style.color = "darkGreen";
+      }
+      return [w + "x" + h, text, style];
 
       function groundLine(ground, style) {
         if (
@@ -609,12 +617,12 @@ export default function engineOutput() {
           if (ground.enemy) {
             color =
               "rgb(139 0 0 /" +
-              (1 - ground.hp / groundList[ground.type].hp / 2) +
+              (1 - ground.hp / groundList[ground.type].hp / 4) +
               ")";
           } else {
             color =
               "rgb(2 48 32 /" +
-              (1 - ground.hp / groundList[ground.type].hp / 2) +
+              (1 - ground.hp / groundList[ground.type].hp / 4) +
               ")";
           }
         }
@@ -628,7 +636,6 @@ export default function engineOutput() {
       let initialTime = Date.now();
       if (projectile.inFluid) {
         inFluid(projectile, style);
-        console.log(style);
       }
       projectileRenderTime.current += Date.now() - initialTime;
       return [w + "x" + h, projectile.symbol, style];
@@ -1042,30 +1049,27 @@ export default function engineOutput() {
             Settings/Entities &nbsp;
           </button>
         </div>
-        <table id="gameboard">
-          <tbody>
-            {gameboardEntities.map((row) => {
-              return (
-                <tr className="boardRow" key={row[0][0].split("x")[1]}>
-                  {row.map((position) => {
-                    return (
-                      <td key={position[0]} id={position[0] + "xtd"}>
-                        <input
-                          className="boardCell"
-                          type="text"
-                          style={position[2]}
-                          id={position[0]}
-                          value={position[1]}
-                          readOnly={true}
-                        ></input>
-                      </td>
-                    );
-                  })}
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        <div id="gameboard">
+          {gameboardEntities.map((row) => {
+            return (
+              <div className="boardRow" key={row[0][0].split("x")[1]}>
+                {row.map((position) => {
+                  return (
+                    <input
+                      className="boardCell"
+                      type="text"
+                      style={position[2]}
+                      key={position[0]}
+                      id={position[0]}
+                      value={position[1]}
+                      readOnly={true}
+                    ></input>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
       </div>
       <div id="below" style={{ display: settingsState }}>
         <Purchasables></Purchasables>

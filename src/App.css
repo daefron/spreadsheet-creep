@@ -33,12 +33,7 @@ body {
 }
 #gameboard {
   display: flex;
-}
-#gameboard > tbody {
-  display: flex;
   flex-direction: column;
-  flex-wrap: wrap;
-  justify-content: start;
 }
 .statTitle {
   overflow: hidden;

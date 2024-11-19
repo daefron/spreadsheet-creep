@@ -151,6 +151,7 @@ export function engine(newRound, gameState) {
     let groundID = type + position[0] + position[1];
     groundID = new Ground(groundList[type], position, groundID);
     groundID.enemy = entity.enemy;
+    groundID.parent = entity;
     toBoard(groundBoard.current, position, groundID);
     activeGround.current.push(groundID);
   }
@@ -1246,8 +1247,6 @@ export function engine(newRound, gameState) {
           }
         });
         if (projectile.position[1] > highest.position[1] - 4) {
-          console.log(projectile.position);
-          console.log(projectileBoard.current);
           let newPosition = [
             projectile.position[0],
             projectile.position[1] - 1,
