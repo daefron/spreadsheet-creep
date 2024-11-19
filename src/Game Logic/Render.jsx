@@ -73,6 +73,7 @@ export default function engineOutput() {
   const [gameboardEntities, setGameboardEntities] = useState([]);
   const [settingsState, setSettingsState] = useState("none");
   const scrollPositionX = useRef(0);
+  const scrollBufferX = useRef();
   const scrollPositionY = useRef(0);
   let entityList = EntityList;
   let groundList = GroundList;
@@ -355,14 +356,16 @@ export default function engineOutput() {
     let totalWidth = gameboardWidth.current * (cellWidth.current + 7);
     let xScrollPercentage = width / totalWidth;
     let xScrollWidth = width * xScrollPercentage;
-    let renderMin = renderWidthMin.current * (cellWidth.current + 7);
-    let renderMax = renderWidth.current * (cellWidth.current + 7);
-    let marginBaseline = width - xScrollWidth;
-    console.log(marginBaseline, xScrollWidth);
-    console.log(renderMin, renderMax);
     xScroll.style.width = xScrollWidth + "px";
+    let renderMax = renderWidth.current * (cellWidth.current + 7);
+    if (scrollBufferX.current === undefined) {
+      scrollBufferX.current = renderMax - width;
+    }
+    renderMax -= scrollBufferX.current;
+    if (totalWidth - renderMax < 100) {
+      renderMax = totalWidth;
+    }
     let marginPercentage = renderMax / width;
-    console.log(marginPercentage);
     let marginLeft = xScrollWidth * marginPercentage - xScrollWidth;
     xScroll.style.marginLeft = marginLeft + "px";
   }
