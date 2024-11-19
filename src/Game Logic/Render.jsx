@@ -24,6 +24,8 @@ export default function engineOutput() {
   const renderTimer = useRef();
   const gameboardWidth = useRef(14);
   const gameboardHeight = useRef(31);
+  const renderWidth = useRef();
+  const renderHeight = useRef();
   const groundLevel = useRef(15);
   const groundRoughness = useRef(5);
   const waterLevel = useRef(1);
@@ -279,18 +281,19 @@ export default function engineOutput() {
     let board = document.getElementById("gameboard");
     let width = board.offsetWidth;
     let height = board.offsetHeight;
-    let totalWide = width / cellWidth.current;
-    let totalHigh = height / cellHeight.current;
-    gameboardWidth.current = parseInt(totalWide - 0.5);
-    gameboardHeight.current = parseInt(totalHigh - 2.5);
+    renderWidth.current = parseInt(width / (cellWidth.current + 7) + 1);
+    console.log(width, cellWidth.current, renderWidth.current);
+    renderHeight.current = parseInt(height / (cellHeight.current + 2));
+    gameboardWidth.current = renderWidth.current;
+    gameboardHeight.current = renderHeight.current;
   }
 
   function updateGameboardEntities() {
     let grid = [];
     let initialTime = Date.now();
-    for (let h = 0; h <= gameboardHeight.current; h++) {
+    for (let h = 0; h <= renderHeight.current; h++) {
       let subGrid = [];
-      for (let w = 0; w <= gameboardWidth.current; w++) {
+      for (let w = 0; w <= renderWidth.current; w++) {
         subGrid.push(cellType(w, h));
       }
       grid.push(subGrid);
@@ -921,18 +924,22 @@ export default function engineOutput() {
   }
   function xDown() {
     cellWidth.current -= 10;
+    autoCell();
     updateGameboardEntities();
   }
   function xUp() {
     cellWidth.current += 10;
+    autoCell();
     updateGameboardEntities();
   }
   function yDown() {
     cellHeight.current--;
+    autoCell();
     updateGameboardEntities();
   }
   function yUp() {
     cellHeight.current++;
+    autoCell();
     updateGameboardEntities();
   }
 
