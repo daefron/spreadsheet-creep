@@ -29,9 +29,6 @@ export function keyboardSelect(e, gameState) {
   let currentInput = gameState.input.currentInput;
   let cellTyping = gameState.input.cellTyping;
   let cellSelectMoved = gameState.input.cellSelectMoved;
-  if (cellSelectMoved.current) {
-    return;
-  }
   if (selectedCell.current === undefined) {
     return;
   }
@@ -39,7 +36,6 @@ export function keyboardSelect(e, gameState) {
   position[0] = parseInt(position[0]);
   position[1] = parseInt(position[1]);
   let newPosition = keyPosition(e.key, position, e);
-  console.log(newPosition, renderHeight.current, renderHeightMin.current);
   if (!newPosition) {
     return;
   }
@@ -85,7 +81,6 @@ export function keyboardSelect(e, gameState) {
   }
   selectedCell.current = document.getElementById(newID);
   selectedCell.current.focus();
-
   cellSelectMoved.current = true;
 
   function keyPosition(keyPressed, position, e) {

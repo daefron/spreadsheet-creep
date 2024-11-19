@@ -36,7 +36,7 @@ export default function engineOutput() {
   const totalSpawns = useRef(30);
   const spawnSpeed = useRef(1);
   const kingHP = useRef(20);
-  const gameMode = useRef("king");
+  const gameMode = useRef("blob fight");
   const friendlyCount = useRef(1);
   const projectileCount = useRef(0);
   const selectedCell = useRef();
@@ -314,6 +314,10 @@ export default function engineOutput() {
   }, []);
 
   function renderUpdate() {
+    if (cellSelectMoved.current) {
+      xScrollUpdate();
+      yScrollUpdate();
+    }
     cellSelectMoved.current = false;
     autoCell();
     scrollCheck();
@@ -410,6 +414,12 @@ export default function engineOutput() {
   function updateGameboardEntities() {
     let grid = [];
     let initialTime = Date.now();
+    if (renderHeight.current > gameboardHeight.current) {
+      renderHeight.current = gameboardHeight.current;
+    }
+    if (renderWidth.current > gameboardWidth.current) {
+      renderWidth.current = gameboardWidth.current;
+    }
     for (let h = renderHeightMin.current; h <= renderHeight.current; h++) {
       let subGrid = [];
       for (let w = renderWidthMin.current; w <= renderWidth.current; w++) {
@@ -1030,7 +1040,7 @@ export default function engineOutput() {
     projectileBoard.current = initialGameboard();
     effectBoard.current = initialGameboard();
     fluidBoard.current = initialGameboard();
-    updateGameboardEntities();
+    renderUpdate();
   }
   function updateGameboardHeight(e) {
     gameboardHeight.current = parseInt(e.target.value);
@@ -1039,44 +1049,44 @@ export default function engineOutput() {
     projectileBoard.current = initialGameboard();
     effectBoard.current = initialGameboard();
     fluidBoard.current = initialGameboard();
-    updateGameboardEntities();
+    renderUpdate();
   }
   function updateGroundHeight(e) {
     groundLevel.current = parseInt(e.target.value);
-    updateGameboardEntities();
+    renderUpdate();
   }
   function updateWaterLevel(e) {
     waterLevel.current = parseInt(e.target.value);
-    updateGameboardEntities();
+    renderUpdate();
   }
   function updateGroundRoughness(e) {
     groundRoughness.current = parseFloat(e.target.value);
-    updateGameboardEntities();
+    renderUpdate();
   }
   function updateGameSpeed(e) {
     gameSpeed.current = parseFloat(e.target.value);
-    updateGameboardEntities();
+    renderUpdate();
   }
   function updateRenderSpeed(e) {
     renderSpeed.current = parseFloat(e.target.value);
-    updateGameboardEntities();
+    renderUpdate();
   }
   function updateTotalSpawns(e) {
     totalSpawns.current = parseInt(e.target.value);
-    updateGameboardEntities();
+    renderUpdate();
   }
   function updateSpawnSpeed(e) {
     spawnSpeed.current = parseFloat(e.target.value);
-    updateGameboardEntities();
+    renderUpdate();
   }
   function updateKingHP(e) {
     kingHP.current = parseInt(e.target.value);
     entityList.king.lvls.lvl1.hp = kingHP.current + 1;
-    updateGameboardEntities();
+    renderUpdate();
   }
   function updateGameMode(e) {
     gameMode.current = e.target.value;
-    updateGameboardEntities();
+    renderUpdate();
   }
   function toggleSettings() {
     if (settingsState === "flex") {
@@ -1084,24 +1094,26 @@ export default function engineOutput() {
     } else setSettingsState("flex");
   }
   function xDown() {
-    cellWidth.current -= 10;
-    autoCell();
-    updateGameboardEntities();
+    if (cellWidth.current <= 10) {
+      cellWidth.current = 1;
+    } else {
+      cellWidth.current -= 10;
+    }
+    renderUpdate();
   }
   function xUp() {
     cellWidth.current += 10;
-    autoCell();
-    updateGameboardEntities();
+    renderUpdate();
   }
   function yDown() {
-    cellHeight.current--;
-    autoCell();
-    updateGameboardEntities();
+    if (cellHeight.current !== 1) {
+      cellHeight.current--;
+    }
+    renderUpdate();
   }
   function yUp() {
     cellHeight.current++;
-    autoCell();
-    updateGameboardEntities();
+    renderUpdate();
   }
 
   //renders the gameboard once on page load
