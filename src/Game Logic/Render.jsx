@@ -441,6 +441,7 @@ export default function engineOutput() {
       } else {
         attackBar(entity, style);
         entityHealthBar(entity, style);
+        entityLine(entity, style);
         cellText = entity.type + entity.lvl + " (hp: " + entity.hp + ")";
         if (entity.inFluid) {
           inFluid(entity, style);
@@ -474,6 +475,13 @@ export default function engineOutput() {
           color = "rgb(2 48 32 /" + (1 - percentage / 1.5) + ")";
         }
         style.boxShadow += ",inset 157px 21px 0px 0px " + color;
+      }
+
+      function entityLine(style) {
+        style.boxShadow += ",inset 1px 0px 0px " + style.color;
+        style.boxShadow += ",inset -1px 0px 0px " + style.color;
+        style.boxShadow += ",inset 0px 1px 0px " + style.color;
+        style.boxShadow += ",inset 0px -1px 0px " + style.color;
       }
 
       function blobHealthBar(entity, style) {
@@ -540,7 +548,11 @@ export default function engineOutput() {
       return [w + "x" + h, "", style];
 
       function groundLine(ground, style) {
-        if (ground.falling || ground.fallSpeed > ground.fallCharge) {
+        if (
+          ground.falling ||
+          ground.fallSpeed > ground.fallCharge ||
+          ground.type === "corpse"
+        ) {
           return;
         }
         let made;
@@ -556,11 +568,17 @@ export default function engineOutput() {
           ground.position[0] + 1,
           ground.position[1],
         ]);
-        if (groundAbove === undefined) {
+        if (
+          groundAbove === undefined ||
+          (groundAbove !== undefined && groundAbove.type === "corpse")
+        ) {
           style.boxShadow = "inset 0px 2px 0px grey";
           made = true;
         }
-        if (groundLeft === undefined && ground.position[0] - 1 !== 0) {
+        if (
+          (groundLeft === undefined && ground.position[0] - 1 !== 0) ||
+          (groundLeft !== undefined && groundLeft.type === "corpse")
+        ) {
           if (!made) {
             style.boxShadow = "inset 2px 0px 0px grey";
             made = true;
@@ -569,8 +587,9 @@ export default function engineOutput() {
           }
         }
         if (
-          groundRight === undefined &&
-          ground.position[0] < gameboardWidth.current
+          (groundRight === undefined &&
+            ground.position[0] < gameboardWidth.current) ||
+          (groundRight !== undefined && groundRight.type === "corpse")
         ) {
           if (!made) {
             style.boxShadow = "inset -2px 0px 0px grey";
@@ -586,6 +605,19 @@ export default function engineOutput() {
           "rgb(150 150 150 /" +
           (1 - ground.hp / groundList[ground.type].hp / 2) +
           ")";
+        if (ground.type === "corpse") {
+          if (ground.enemy) {
+            color =
+              "rgb(139 0 0 /" +
+              (1 - ground.hp / groundList[ground.type].hp / 2) +
+              ")";
+          } else {
+            color =
+              "rgb(2 48 32 /" +
+              (1 - ground.hp / groundList[ground.type].hp / 2) +
+              ")";
+          }
+        }
         if (style.boxShadow === undefined) {
           style.boxShadow = "inset 157px 21px 0px 0px " + color;
         } else style.boxShadow += ",inset 157px 21px 0px 0px " + color;

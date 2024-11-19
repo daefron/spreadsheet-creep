@@ -7,6 +7,7 @@ export default {
     movement: "walker",
     attack: "melee",
     breathes: true,
+    corpse: true,
     lvls: {
       lvl1: {
         lvl: 1,
@@ -69,6 +70,7 @@ export default {
     movement: "scaler",
     attack: "melee",
     breathes: true,
+    corpse: true,
     lvls: {
       lvl1: {
         lvl: 1,
@@ -136,6 +138,7 @@ export default {
     projectile: "arrow",
     fallSpeed: 1,
     breathes: true,
+    corpse: true,
     lvls: {
       lvl1: {
         lvl: 1,
@@ -170,6 +173,7 @@ export default {
     breathes: true,
     attack: "enemyExists",
     projectile: "missile",
+    corpse: true,
     lvls: {
       lvl1: {
         lvl: 1,
@@ -201,6 +205,7 @@ export default {
     fallSpeed: 1,
     attack: "enemyExists",
     projectile: "barrel",
+    corpse: true,
     lvls: {
       lvl1: {
         lvl: 1,
@@ -215,6 +220,7 @@ export default {
     type: "knight",
     class: "entity",
     attack: "melee",
+    corpse: true,
     fallSpeed: 1,
     breathes: true,
     lvls: {
