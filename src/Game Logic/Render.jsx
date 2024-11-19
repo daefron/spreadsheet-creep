@@ -128,6 +128,10 @@ export default function engineOutput() {
       settings: {
         gameboardWidth: gameboardWidth,
         gameboardHeight: gameboardHeight,
+        renderWidth: renderWidth,
+        renderWidthMin: renderWidthMin,
+        renderHeight: renderHeight,
+        renderHeightMin: renderHeightMin,
         groundLevel: groundLevel,
         groundRoughness: groundRoughness,
         waterLevel: waterLevel,
@@ -285,6 +289,7 @@ export default function engineOutput() {
     let board = document.getElementById("above");
     board.addEventListener("scroll", handleScroll);
     function handleScroll() {
+      xScrollUpdate();
       let left = board.scrollLeft;
       let width = board.offsetWidth;
       let scrollWidth = board.scrollWidth;
@@ -308,19 +313,14 @@ export default function engineOutput() {
     if (renderWidth.current < gameboardWidth.current) {
       renderWidthMin.current++;
       renderWidth.current++;
-      scrollPositionX.current = parseInt(cellWidth.current * 0.191666667);
+      scrollPositionX.current = 1;
     }
   }
   function scrollStartX(scrollWidth) {
     if (renderWidthMin.current > 0) {
       renderWidthMin.current--;
       renderWidth.current--;
-      if (renderWidthMin.current === 1) {
-        scrollPositionX.current = 10;
-      } else {
-        scrollPositionX.current =
-          scrollWidth - parseInt(cellWidth.current * 0.191666667);
-      }
+      scrollPositionX.current = scrollWidth - 1;
     }
   }
   function scrollEndY() {
@@ -348,7 +348,27 @@ export default function engineOutput() {
       2 + parseInt(height / (cellHeight.current + 2)) + renderHeightMin.current;
   }
 
+  function xScrollUpdate() {
+    let board = document.getElementById("gameboard");
+    let width = board.offsetWidth;
+    let xScroll = document.getElementById("xScroll");
+    let totalWidth = gameboardWidth.current * (cellWidth.current + 7);
+    let xScrollPercentage = width / totalWidth;
+    let xScrollWidth = width * xScrollPercentage;
+    let renderMin = renderWidthMin.current * (cellWidth.current + 7);
+    let renderMax = renderWidth.current * (cellWidth.current + 7);
+    let marginBaseline = width - xScrollWidth;
+    console.log(marginBaseline, xScrollWidth);
+    console.log(renderMin, renderMax);
+    xScroll.style.width = xScrollWidth + "px";
+    let marginPercentage = renderMax / width;
+    console.log(marginPercentage);
+    let marginLeft = xScrollWidth * marginPercentage - xScrollWidth;
+    xScroll.style.marginLeft = marginLeft + "px";
+  }
+
   function updateGameboardEntities() {
+    scrollCheck();
     let grid = [];
     let initialTime = Date.now();
     for (let h = renderHeightMin.current; h <= renderHeight.current; h++) {
@@ -360,14 +380,17 @@ export default function engineOutput() {
     }
     renderTime.current += Date.now() - initialTime;
     setGameboardEntities(grid);
-    let board = document.getElementById("above");
-    if (scrollPositionX.current !== 0) {
-      board.scrollTo(scrollPositionX.current, board.scrollTop);
-      scrollPositionX.current = 0;
-    }
-    if (scrollPositionY.current !== 0) {
-      board.scrollTo(board.scrollLeft, scrollPositionY.current);
-      scrollPositionY.current = 0;
+
+    function scrollCheck() {
+      let board = document.getElementById("above");
+      if (scrollPositionX.current !== 0) {
+        board.scrollTo(scrollPositionX.current, board.scrollTop);
+        scrollPositionX.current = 0;
+      }
+      if (scrollPositionY.current !== 0) {
+        board.scrollTo(board.scrollLeft, scrollPositionY.current);
+        scrollPositionY.current = 0;
+      }
     }
 
     function cellType(w, h) {
@@ -452,7 +475,7 @@ export default function engineOutput() {
           position: "sticky",
           zIndex: "1000",
         };
-        return [w + "x" + h, "", style, "0"];
+        return [w + "x" + h, "", style, "0", w, h];
       } else {
         let style = {
           textAlign: "center",
@@ -466,7 +489,7 @@ export default function engineOutput() {
           position: "sticky",
           zIndex: "1000",
         };
-        return [w + "x" + h, h + " ", style];
+        return [w + "x" + h, h + " ", style, "", w, h];
       }
     }
 
@@ -480,13 +503,13 @@ export default function engineOutput() {
         color: "#404040",
         boxShadow: "inset 0px -2px 0px #404040",
       };
-      return [w + "x" + h, toLetter(w - 1) + " ", style, "0"];
+      return [w + "x" + h, toLetter(w - 1) + " ", style, "0", w, h];
     }
 
     function blankCell(w, h, style) {
       let initialTime = Date.now();
       blankRenderTime.current += Date.now() - initialTime;
-      return [w + "x" + h, "", style];
+      return [w + "x" + h, "", style, "", w, h];
     }
 
     function effectCell(effect, w, h, style) {
@@ -513,7 +536,7 @@ export default function engineOutput() {
         }
       }
       effectRenderTime.current += Date.now() - initialTime;
-      return [w + "x" + h, effect.symbol, style];
+      return [w + "x" + h, effect.symbol, style, "", w, h];
     }
 
     function entityCell(entity, w, h, style) {
@@ -539,10 +562,10 @@ export default function engineOutput() {
         }
       }
       entityRenderTime.current += Date.now() - initialTime;
-      return [w + "x" + h, cellText, style];
+      return [w + "x" + h, cellText, style, "", w, h];
 
       function attackBar(currentEntity, style) {
-        let maxWidth = 157;
+        let maxWidth = cellWidth.current;
         let percentage = currentEntity.rateCharge / currentEntity.rate;
         let currentWidth = maxWidth * percentage;
         if (currentEntity.enemy) {
@@ -563,7 +586,13 @@ export default function engineOutput() {
         } else {
           color = "rgb(2 48 32 /" + (1 - percentage / 1.5) + ")";
         }
-        style.boxShadow += ",inset 157px 21px 0px 0px " + color;
+        style.boxShadow +=
+          ",inset " +
+          cellWidth.current +
+          "px " +
+          cellHeight.current +
+          "px 0px 0px " +
+          color;
       }
 
       function entityLine(style) {
@@ -581,7 +610,13 @@ export default function engineOutput() {
         } else {
           color = "rgb(2 48 32 /" + percentage + ")";
         }
-        style.boxShadow = "inset 157px 21px 0px 0px " + color;
+        style.boxShadow =
+          "inset " +
+          cellWidth.current +
+          "px " +
+          cellHeight.current +
+          "px 0px 0px " +
+          color;
       }
 
       function blobLine(blob, style) {
@@ -642,7 +677,7 @@ export default function engineOutput() {
           style.color = "darkRed";
         } else style.color = "darkGreen";
       }
-      return [w + "x" + h, text, style];
+      return [w + "x" + h, text, style, "", w, h];
 
       function groundLine(ground, style) {
         if (
@@ -716,8 +751,21 @@ export default function engineOutput() {
           }
         }
         if (style.boxShadow === undefined) {
-          style.boxShadow = "inset 157px 21px 0px 0px " + color;
-        } else style.boxShadow += ",inset 157px 21px 0px 0px " + color;
+          style.boxShadow =
+            "inset " +
+            cellWidth.current +
+            "px " +
+            cellHeight.current +
+            "px 0px 0px " +
+            color;
+        } else
+          style.boxShadow +=
+            ",inset " +
+            cellWidth.current +
+            "px " +
+            cellHeight.current +
+            "px 0px 0px " +
+            color;
       }
     }
 
@@ -727,7 +775,7 @@ export default function engineOutput() {
         inFluid(projectile, style);
       }
       projectileRenderTime.current += Date.now() - initialTime;
-      return [w + "x" + h, projectile.symbol, style];
+      return [w + "x" + h, projectile.symbol, style, "", w, h];
     }
 
     function fluidCell(fluid, w, h, style) {
@@ -736,7 +784,7 @@ export default function engineOutput() {
       style.fontStyle = "italic";
       fluidLine(fluid, style);
       fluidRenderTime.current += Date.now() - initialTime;
-      return [w + "x" + h, "", style];
+      return [w + "x" + h, "", style, "", w, h];
 
       function fluidLine(fluid, style) {
         if (fluid.falling || fluid.fallSpeed > fluid.fallCharge) {
@@ -933,6 +981,7 @@ export default function engineOutput() {
   function newButton() {
     clearInterval(renderTimer.current);
     clearInterval(gameTimer.current);
+    autoCell();
     enemyGraveyard.current = [];
     friendlyGraveyard.current = [];
     groundGraveyard.current = [];
@@ -1034,6 +1083,7 @@ export default function engineOutput() {
     if ((cellType.current = "auto")) {
       autoCell();
     }
+    xScrollUpdate();
     updateGameboardEntities();
   }, []);
 
@@ -1165,7 +1215,12 @@ export default function engineOutput() {
                 {row.map((position) => {
                   return (
                     <input
-                      className="boardCell"
+                      className={
+                        "boardCell, column" +
+                        position[4] +
+                        ", row" +
+                        position[5]
+                      }
                       type="text"
                       style={position[2]}
                       key={position[0]}
@@ -1179,6 +1234,7 @@ export default function engineOutput() {
             );
           })}
         </div>
+        <div className="customScroll" id="yScroll"></div>
       </div>
       <div id="below" style={{ display: settingsState }}>
         <Purchasables></Purchasables>
@@ -1515,6 +1571,7 @@ export default function engineOutput() {
           </div>
         </div>
       </div>
+      <div className="customScroll" id="xScroll"></div>
       <div id="bottom">
         <div id="dimensions">
           <div className="dimensionButtonHolder">

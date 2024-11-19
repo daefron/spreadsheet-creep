@@ -675,7 +675,7 @@ export function engine(newRound, gameState) {
 
     //function to determine if there is anything under the current entity
     function entityCanFall(currentEntity) {
-      if (currentEntity.position[1] < 1) {
+      if (currentEntity.position[1] < 0) {
         currentEntity.position[1]++;
         return false;
       }
@@ -1403,7 +1403,7 @@ export function engine(newRound, gameState) {
 
     function groundFall(ground) {
       ground.fallCharge = 0;
-      if (ground.position[1] < 1) {
+      if (ground.position[1] < 0) {
         ground.position = [ground.position[0], ground.position[1] + 1];
       } else {
         moveBoard(
@@ -1416,7 +1416,7 @@ export function engine(newRound, gameState) {
     }
 
     function groundAttack(entityBelow) {
-      entityBelow.hp = 0;
+      entityKiller(entityBelow);
     }
   }
 
@@ -1452,7 +1452,7 @@ export function engine(newRound, gameState) {
         fluid.fallCharge++;
       } else {
         fluid.fallCharge = 0;
-        if (fluid.position[1] < 1) {
+        if (fluid.position[1] < 0) {
           fluid.position = [fluid.position[0], fluid.position[1] + 1];
         } else {
           moveBoard(

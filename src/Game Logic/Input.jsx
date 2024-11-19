@@ -21,6 +21,10 @@ export function clickSelect(e, gameState) {
 export function keyboardSelect(e, gameState) {
   let gameboardWidth = gameState.settings.gameboardWidth;
   let gameboardHeight = gameState.settings.gameboardHeight;
+  let renderWidth = gameState.settings.renderWidth;
+  let renderHeight = gameState.settings.renderHeight;
+  let renderWidthMin = gameState.settings.renderWidthMin;
+  let renderHeightMin = gameState.settings.renderHeightMin;
   let selectedCell = gameState.input.selectedCell;
   let currentInput = gameState.input.currentInput;
   let cellTyping = gameState.input.cellTyping;
@@ -36,12 +40,24 @@ export function keyboardSelect(e, gameState) {
   }
   if (
     newPosition === undefined ||
-    newPosition[0] === 0 ||
-    newPosition[0] > gameboardWidth.current ||
-    newPosition[1] === 0 ||
-    newPosition[1] > gameboardHeight.current
+    newPosition[0] === -1 ||
+    newPosition[0] > renderWidth.current ||
+    newPosition[1] === -1 ||
+    newPosition[1] > renderHeight.current
   ) {
     return;
+  }
+  if (newPosition[0] === renderWidthMin.current) {
+    if (renderWidthMin.current !== 0) {
+      return;
+    }
+  }
+  console.log(newPosition);
+  console.log(renderWidth.current);
+  if (newPosition[1] === renderHeightMin.current) {
+    if (renderHeightMin.current !== 0) {
+      return;
+    }
   }
   selectedCell.current.readOnly = true;
   let newID = newPosition[0] + "x" + newPosition[1];
