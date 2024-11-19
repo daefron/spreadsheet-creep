@@ -23,7 +23,7 @@ export default function engineOutput() {
   const gameTimer = useRef();
   const renderTimer = useRef();
   const gameboardWidth = useRef(25);
-  const gameboardHeight = useRef(31);
+  const gameboardHeight = useRef(42);
   const renderWidth = useRef();
   const renderWidthMin = useRef(0);
   const renderHeight = useRef();
@@ -72,6 +72,8 @@ export default function engineOutput() {
   const second = useRef(0);
   const [gameboardEntities, setGameboardEntities] = useState([]);
   const [settingsState, setSettingsState] = useState("none");
+  const scrollPositionX = useRef(0);
+  const scrollPositionY = useRef(0);
   let entityList = EntityList;
   let groundList = GroundList;
 
@@ -281,31 +283,54 @@ export default function engineOutput() {
 
   useEffect(() => {
     let board = document.getElementById("above");
-    board.addEventListener("scroll", handleScrollEnd);
-    function handleScrollEnd() {
+    board.addEventListener("scroll", handleScroll);
+    function handleScroll() {
       let left = board.scrollLeft;
       let width = board.offsetWidth;
       let scrollWidth = board.scrollWidth;
       if (scrollWidth - left < width) {
-        scrollEnd(board);
+        scrollEndX();
       } else if (left === 0) {
-        scrollStart(board);
+        scrollStartX(scrollWidth - width);
+      }
+      let top = board.scrollTop;
+      let height = board.offsetHeight;
+      let scrollHeight = board.scrollHeight;
+      if (scrollHeight - top < height) {
+        scrollEndY();
+      } else if (top === 0) {
+        scrollStartY(scrollHeight - height);
       }
     }
   }, []);
 
-  function scrollEnd(board) {
+  function scrollEndX() {
     if (renderWidth.current < gameboardWidth.current) {
       renderWidthMin.current++;
-      autoCell();
-      board.scroll(cellWidth.current, 0);
+      renderWidth.current++;
+      scrollPositionX.current = parseInt(cellWidth.current * 0.191666667);
     }
   }
-  function scrollStart(board) {
-    if (renderWidthMin.current > 0) {
+  function scrollStartX(scrollWidth) {
+    if (renderWidthMin.current > 1) {
       renderWidthMin.current--;
-      autoCell();
-      board.scroll(cellWidth.current - 57, 0);
+      renderWidth.current--;
+      scrollPositionX.current =
+        scrollWidth - parseInt(cellWidth.current * 0.191666667);
+    }
+  }
+  function scrollEndY() {
+    if (renderHeight.current < gameboardHeight.current) {
+      renderHeightMin.current++;
+      renderHeight.current++;
+      scrollPositionY.current = parseInt(cellHeight.current * 0.7);
+    }
+  }
+  function scrollStartY(scrollHeight) {
+    if (renderHeightMin.current > 1) {
+      renderHeightMin.current--;
+      renderHeight.current--;
+      scrollPositionY.current = scrollHeight - parseInt(cellHeight.current * 0.7);
     }
   }
 
@@ -316,7 +341,7 @@ export default function engineOutput() {
     renderWidth.current =
       1 + parseInt(width / (cellWidth.current + 7)) + renderWidthMin.current;
     renderHeight.current =
-      parseInt(height / (cellHeight.current + 2)) + renderHeightMin.current;
+      1 + parseInt(height / (cellHeight.current + 2)) + renderHeightMin.current;
   }
 
   function updateGameboardEntities() {
@@ -331,6 +356,15 @@ export default function engineOutput() {
     }
     renderTime.current += Date.now() - initialTime;
     setGameboardEntities(grid);
+    let board = document.getElementById("above");
+    if (scrollPositionX.current !== 0) {
+      board.scrollTo(scrollPositionX.current, board.scrollTop);
+      scrollPositionX.current = 0;
+    } 
+    if (scrollPositionY.current !== 0) {
+      board.scrollTo(board.scrollLeft, scrollPositionY.current);
+      scrollPositionY.current = 0;
+    }
 
     function cellType(w, h) {
       let testTimeInitial = Date.now();
@@ -352,10 +386,10 @@ export default function engineOutput() {
         }
       }
       testTime1.current += Date.now() - testTimeInitial;
-      if (w === renderWidthMin.current) {
+      if (w === 0) {
         return firstColumnCell(w, h);
       }
-      if (h === renderHeightMin.current) {
+      if (h === 0) {
         return firstRowCell(w, h);
       }
       let style = {
@@ -904,14 +938,21 @@ export default function engineOutput() {
   }
 
   function updateGameboardWidth(e) {
-    // gameboardWidth.current = parseInt(e.target.value);
-    // let board = document.getElementById("gameboard");
-    // let maxWidth = gameboardWidth.current * (cellWidth.current + 7);
-    // board.style.width = maxWidth + "px";
+    gameboardWidth.current = parseInt(e.target.value);
+    entityBoard.current = initialGameboard();
+    groundBoard.current = initialGameboard();
+    projectileBoard.current = initialGameboard();
+    effectBoard.current = initialGameboard();
+    fluidBoard.current = initialGameboard();
     updateGameboardEntities();
   }
   function updateGameboardHeight(e) {
     gameboardHeight.current = parseInt(e.target.value);
+    entityBoard.current = initialGameboard();
+    groundBoard.current = initialGameboard();
+    projectileBoard.current = initialGameboard();
+    effectBoard.current = initialGameboard();
+    fluidBoard.current = initialGameboard();
     updateGameboardEntities();
   }
   function updateGroundHeight(e) {
@@ -1174,7 +1215,7 @@ export default function engineOutput() {
                 className="settingSlider"
                 type="range"
                 min="2"
-                max="80"
+                max="800"
                 value={gameboardWidth.current}
                 onChange={updateGameboardWidth}
               ></input>
@@ -1202,7 +1243,7 @@ export default function engineOutput() {
                 className="settingSlider"
                 type="range"
                 min="1"
-                max="50"
+                max="800"
                 value={gameboardHeight.current}
                 onChange={updateGameboardHeight}
               ></input>
