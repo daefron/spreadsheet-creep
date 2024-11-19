@@ -19,15 +19,16 @@ body {
 #gameboardHolder {
   display: flex;
   height: 100%;
-  width:100%;
+  width: 100%;
 }
 #above {
-  display:flex;
+  display: flex;
   height: 89%;
   width: 100%;
 }
 #below {
   height: 55%;
+  flex: 0 0 auto;
 }
 #gameboardHolder,
 #below {
@@ -181,8 +182,14 @@ button {
 #xScroll {
   height: 3px;
 }
+#xScroll:hover {
+  height: 5px;
+}
 #yScroll {
   width: 3px;
+}
+#yScroll:hover {
+  width: 5px;
 }
 .customScroll {
   background-color: #404040;

@@ -75,7 +75,7 @@ export default function engineOutput() {
   const scrollPositionX = useRef(0);
   const scrollBufferX = useRef();
   const scrollPositionY = useRef(0);
-  const scrollBufferY = useRef();
+  const cellSelectMoved = useRef(false);
   let entityList = EntityList;
   let groundList = GroundList;
 
@@ -147,6 +147,7 @@ export default function engineOutput() {
         selectedCell: selectedCell,
         cellTyping: cellTyping,
         currentInput: currentInput,
+        cellSelectMoved: cellSelectMoved,
       },
       test: {
         engineTime: engineTime,
@@ -312,6 +313,13 @@ export default function engineOutput() {
     }
   }, []);
 
+  function renderUpdate() {
+    cellSelectMoved.current = false;
+    autoCell();
+    scrollCheck();
+    updateGameboardEntities();
+  }
+
   function scrollEndX() {
     if (renderWidth.current < gameboardWidth.current) {
       renderWidthMin.current++;
@@ -387,8 +395,19 @@ export default function engineOutput() {
     yScroll.style.marginTop = marginTop + "px";
   }
 
+  function scrollCheck() {
+    let board = document.getElementById("gameboardHolder");
+    if (scrollPositionX.current !== 0) {
+      board.scrollTo(scrollPositionX.current, board.scrollTop);
+      scrollPositionX.current = 0;
+    }
+    if (scrollPositionY.current !== 0) {
+      board.scrollTo(board.scrollLeft, scrollPositionY.current);
+      scrollPositionY.current = 0;
+    }
+  }
+
   function updateGameboardEntities() {
-    scrollCheck();
     let grid = [];
     let initialTime = Date.now();
     for (let h = renderHeightMin.current; h <= renderHeight.current; h++) {
@@ -400,18 +419,6 @@ export default function engineOutput() {
     }
     renderTime.current += Date.now() - initialTime;
     setGameboardEntities(grid);
-
-    function scrollCheck() {
-      let board = document.getElementById("gameboardHolder");
-      if (scrollPositionX.current !== 0) {
-        board.scrollTo(scrollPositionX.current, board.scrollTop);
-        scrollPositionX.current = 0;
-      }
-      if (scrollPositionY.current !== 0) {
-        board.scrollTo(board.scrollLeft, scrollPositionY.current);
-        scrollPositionY.current = 0;
-      }
-    }
 
     function cellType(w, h) {
       let testTimeInitial = Date.now();
@@ -1011,7 +1018,7 @@ export default function engineOutput() {
     lastEnemySpawnTime.current = 0;
     lastFriendlySpawnTime.current = 0;
     renderTimer.current = setInterval(() => {
-      updateGameboardEntities();
+      renderUpdate();
     }, renderSpeed.current * 4);
     engine(true, gameStatePacker());
   }
@@ -1100,12 +1107,9 @@ export default function engineOutput() {
   //renders the gameboard once on page load
   useEffect(() => {
     // timeTest();
-    if ((cellType.current = "auto")) {
-      autoCell();
-    }
+    renderUpdate();
     xScrollUpdate();
     yScrollUpdate();
-    updateGameboardEntities();
   }, []);
 
   return (
@@ -1237,12 +1241,7 @@ export default function engineOutput() {
                   {row.map((position) => {
                     return (
                       <input
-                        className={
-                          "boardCell, column" +
-                          position[4] +
-                          ", row" +
-                          position[5]
-                        }
+                        className={"boardCell"}
                         type="text"
                         style={position[2]}
                         key={position[0]}

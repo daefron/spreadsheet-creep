@@ -28,6 +28,10 @@ export function keyboardSelect(e, gameState) {
   let selectedCell = gameState.input.selectedCell;
   let currentInput = gameState.input.currentInput;
   let cellTyping = gameState.input.cellTyping;
+  let cellSelectMoved = gameState.input.cellSelectMoved;
+  if (cellSelectMoved.current) {
+    return;
+  }
   if (selectedCell.current === undefined) {
     return;
   }
@@ -35,34 +39,55 @@ export function keyboardSelect(e, gameState) {
   position[0] = parseInt(position[0]);
   position[1] = parseInt(position[1]);
   let newPosition = keyPosition(e.key, position, e);
+  console.log(newPosition, renderHeight.current, renderHeightMin.current);
   if (!newPosition) {
     return;
   }
+  if (newPosition === undefined) {
+    return;
+  }
   if (
-    newPosition === undefined ||
     newPosition[0] === -1 ||
     newPosition[0] > renderWidth.current ||
-    newPosition[1] === -1 ||
-    newPosition[1] > renderHeight.current
+    newPosition[1] === -1
   ) {
     return;
   }
-  if (newPosition[0] === renderWidthMin.current) {
-    if (renderWidthMin.current !== 0) {
+  if (newPosition[1] > renderHeight.current) {
+    if (
+      newPosition[1] > renderHeight.current &&
+      renderHeight.current < gameboardHeight.current
+    ) {
+      renderHeight.current++;
+      renderHeightMin.current++;
+    } else {
       return;
     }
   }
-  console.log(newPosition);
-  console.log(renderWidth.current);
+  if (newPosition[0] === renderWidthMin.current) {
+    if (renderWidthMin.current !== 0) {
+      renderWidth.current--;
+      renderWidthMin.current--;
+      return;
+    }
+  }
   if (newPosition[1] === renderHeightMin.current) {
     if (renderHeightMin.current !== 0) {
+      renderHeight.current--;
+      renderHeightMin.current--;
       return;
     }
   }
   selectedCell.current.readOnly = true;
   let newID = newPosition[0] + "x" + newPosition[1];
+  if (document.getElementById(newID) === null) {
+    return;
+  }
   selectedCell.current = document.getElementById(newID);
   selectedCell.current.focus();
+
+  cellSelectMoved.current = true;
+
   function keyPosition(keyPressed, position, e) {
     if (keyPressed === "ArrowUp") {
       if (cellTyping.current) {
