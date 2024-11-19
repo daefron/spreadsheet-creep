@@ -7,8 +7,8 @@ body {
   justify-content: center;
 }
 #root {
-  height: 81.1%;
-  width: 93.1%;
+  height: 79.6%;
+  width: 95%;
   padding: 5px;
   background-color: white;
   border-radius: 5px;
@@ -34,6 +34,8 @@ body {
 #gameboard {
   display: flex;
   flex-direction: column;
+  height: 100%;
+  width: 100%;
 }
 .statTitle {
   overflow: hidden;

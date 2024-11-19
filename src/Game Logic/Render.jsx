@@ -22,7 +22,7 @@ export default function engineOutput() {
   const lastFriendlySpawnTime = useRef(0);
   const gameTimer = useRef();
   const renderTimer = useRef();
-  const gameboardWidth = useRef(11);
+  const gameboardWidth = useRef(14);
   const gameboardHeight = useRef(31);
   const groundLevel = useRef(15);
   const groundRoughness = useRef(5);
@@ -38,7 +38,8 @@ export default function engineOutput() {
   const selectedCell = useRef();
   const cellTyping = useRef(false);
   const currentInput = useRef("");
-  const cellWidth = useRef(150);
+  const cellType = useRef("auto");
+  const cellWidth = useRef(120);
   const cellHeight = useRef(21);
   const renderTime = useRef(0);
   const blankIfTime = useRef(0);
@@ -273,6 +274,16 @@ export default function engineOutput() {
       document.removeEventListener("keydown", handleKeyPress);
     };
   }, []);
+
+  function autoCell() {
+    let board = document.getElementById("gameboard");
+    let width = board.offsetWidth;
+    let height = board.offsetHeight;
+    let totalWide = width / cellWidth.current;
+    let totalHigh = height / cellHeight.current;
+    gameboardWidth.current = parseInt(totalWide - 0.5);
+    gameboardHeight.current = parseInt(totalHigh - 2.5);
+  }
 
   function updateGameboardEntities() {
     let grid = [];
@@ -928,6 +939,9 @@ export default function engineOutput() {
   //renders the gameboard once on page load
   useEffect(() => {
     timeTest();
+    if ((cellType.current = "auto")) {
+      autoCell();
+    }
     updateGameboardEntities();
   }, []);
 
