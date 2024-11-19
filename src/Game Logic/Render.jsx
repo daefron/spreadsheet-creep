@@ -287,7 +287,7 @@ export default function engineOutput() {
   }, []);
 
   useEffect(() => {
-    let board = document.getElementById("above");
+    let board = document.getElementById("gameboardHolder");
     board.addEventListener("scroll", handleScroll);
     function handleScroll() {
       xScrollUpdate();
@@ -385,7 +385,7 @@ export default function engineOutput() {
     setGameboardEntities(grid);
 
     function scrollCheck() {
-      let board = document.getElementById("above");
+      let board = document.getElementById("gameboardHolder");
       if (scrollPositionX.current !== 0) {
         board.scrollTo(scrollPositionX.current, board.scrollTop);
         scrollPositionX.current = 0;
@@ -1207,35 +1207,37 @@ export default function engineOutput() {
         </button>
       </div>
       <div id="above">
-        <div id="gameboard">
-          {gameboardEntities.map((row) => {
-            return (
-              <div
-                className="boardRow"
-                key={row[0][0].split("x")[1]}
-                id={"row" + row[1][3]}
-              >
-                {row.map((position) => {
-                  return (
-                    <input
-                      className={
-                        "boardCell, column" +
-                        position[4] +
-                        ", row" +
-                        position[5]
-                      }
-                      type="text"
-                      style={position[2]}
-                      key={position[0]}
-                      id={position[0]}
-                      value={position[1]}
-                      readOnly={true}
-                    ></input>
-                  );
-                })}
-              </div>
-            );
-          })}
+        <div id="gameboardHolder">
+          <div id="gameboard">
+            {gameboardEntities.map((row) => {
+              return (
+                <div
+                  className="boardRow"
+                  key={row[0][0].split("x")[1]}
+                  id={"row" + row[1][3]}
+                >
+                  {row.map((position) => {
+                    return (
+                      <input
+                        className={
+                          "boardCell, column" +
+                          position[4] +
+                          ", row" +
+                          position[5]
+                        }
+                        type="text"
+                        style={position[2]}
+                        key={position[0]}
+                        id={position[0]}
+                        value={position[1]}
+                        readOnly={true}
+                      ></input>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </div>
         </div>
         <div className="customScroll" id="yScroll"></div>
       </div>

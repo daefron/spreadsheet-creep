@@ -16,14 +16,20 @@ body {
   flex-direction: column;
   align-self: center;
 }
-#above {
+#gameboardHolder {
   display: flex;
   height: 100%;
+  width:100%;
+}
+#above {
+  display:flex;
+  height: 89%;
+  width: 100%;
 }
 #below {
   height: 55%;
 }
-#above,
+#gameboardHolder,
 #below {
   overflow: scroll;
 }
@@ -173,11 +179,10 @@ button {
   width: 90%;
 }
 #xScroll {
-  height:3px;
+  height: 3px;
 }
 #yScroll {
   width: 3px;
-  height: 100%;
 }
 .customScroll {
   background-color: #404040;
@@ -187,5 +192,5 @@ button {
   height: 3px;
 }
 ::-webkit-scrollbar {
- display: hidden;
+  display: hidden;
 }
