@@ -299,7 +299,7 @@ export default function engineOutput() {
       if (scrollHeight - top < height) {
         scrollEndY();
       } else if (top === 0) {
-        scrollStartY(scrollHeight - height);
+        scrollStartY();
       }
     }
   }, []);
@@ -312,25 +312,29 @@ export default function engineOutput() {
     }
   }
   function scrollStartX(scrollWidth) {
-    if (renderWidthMin.current > 1) {
+    if (renderWidthMin.current > 0) {
       renderWidthMin.current--;
       renderWidth.current--;
-      scrollPositionX.current =
-        scrollWidth - parseInt(cellWidth.current * 0.191666667);
+      if (renderWidthMin.current === 1) {
+        scrollPositionX.current = 10;
+      } else {
+        scrollPositionX.current =
+          scrollWidth - parseInt(cellWidth.current * 0.191666667);
+      }
     }
   }
   function scrollEndY() {
     if (renderHeight.current < gameboardHeight.current) {
       renderHeightMin.current++;
       renderHeight.current++;
-      scrollPositionY.current = parseInt(cellHeight.current * 0.7);
+      scrollPositionY.current = parseInt(cellHeight.current * 2.766666);
     }
   }
-  function scrollStartY(scrollHeight) {
-    if (renderHeightMin.current > 1) {
+  function scrollStartY() {
+    if (renderHeightMin.current > 0) {
       renderHeightMin.current--;
       renderHeight.current--;
-      scrollPositionY.current = scrollHeight - parseInt(cellHeight.current * 0.7);
+      scrollPositionY.current = parseInt(cellHeight.current * 0.933333);
     }
   }
 
@@ -341,7 +345,7 @@ export default function engineOutput() {
     renderWidth.current =
       1 + parseInt(width / (cellWidth.current + 7)) + renderWidthMin.current;
     renderHeight.current =
-      1 + parseInt(height / (cellHeight.current + 2)) + renderHeightMin.current;
+      2 + parseInt(height / (cellHeight.current + 2)) + renderHeightMin.current;
   }
 
   function updateGameboardEntities() {
@@ -360,7 +364,7 @@ export default function engineOutput() {
     if (scrollPositionX.current !== 0) {
       board.scrollTo(scrollPositionX.current, board.scrollTop);
       scrollPositionX.current = 0;
-    } 
+    }
     if (scrollPositionY.current !== 0) {
       board.scrollTo(board.scrollLeft, scrollPositionY.current);
       scrollPositionY.current = 0;
@@ -386,10 +390,10 @@ export default function engineOutput() {
         }
       }
       testTime1.current += Date.now() - testTimeInitial;
-      if (w === 0) {
+      if (w === renderWidthMin.current) {
         return firstColumnCell(w, h);
       }
-      if (h === 0) {
+      if (h === renderHeightMin.current) {
         return firstRowCell(w, h);
       }
       let style = {
@@ -437,15 +441,18 @@ export default function engineOutput() {
     }
 
     function firstColumnCell(w, h) {
-      if (h === 0) {
+      if (h === renderHeightMin.current) {
         let style = {
           width: "50px",
           height: cellHeight.current + "px",
           "--cell-select-width": 50 - 2 + "px",
           "--cell-select-height": cellHeight.current - 2 + "px",
           boxShadow: "inset -1px 0px 0px #404040, inset 0px -2px 0px #404040",
+          left: "0px",
+          position: "sticky",
+          zIndex: "1000",
         };
-        return [w + "x" + h, "", style];
+        return [w + "x" + h, "", style, "0"];
       } else {
         let style = {
           textAlign: "center",
@@ -455,6 +462,9 @@ export default function engineOutput() {
           "--cell-select-height": cellHeight.current - 2 + "px",
           boxShadow: "inset -1px 0px 0px #404040",
           color: "#404040",
+          left: "0px",
+          position: "sticky",
+          zIndex: "1000",
         };
         return [w + "x" + h, h + " ", style];
       }
@@ -470,7 +480,7 @@ export default function engineOutput() {
         color: "#404040",
         boxShadow: "inset 0px -2px 0px #404040",
       };
-      return [w + "x" + h, toLetter(w - 1) + " ", style];
+      return [w + "x" + h, toLetter(w - 1) + " ", style, "0"];
     }
 
     function blankCell(w, h, style) {
@@ -1029,126 +1039,129 @@ export default function engineOutput() {
 
   return (
     <>
+      <div id="stats">
+        <p
+          className="statTitle"
+          id="firstStat"
+          style={{
+            height: cellHeight.current + "px",
+          }}
+        ></p>
+        <p
+          className="statTitle"
+          style={{
+            width: cellWidth.current + "px",
+            height: cellHeight.current + "px",
+          }}
+        >
+          Money:
+        </p>
+        <p
+          className="stat"
+          style={{
+            width: cellWidth.current + "px",
+            height: cellHeight.current + "px",
+          }}
+        >
+          {bank}
+        </p>
+
+        <p
+          className="statTitle"
+          style={{
+            width: cellWidth.current + "px",
+            height: cellHeight.current + "px",
+          }}
+        >
+          Friendly deaths:{" "}
+        </p>
+        <p
+          className="stat"
+          style={{
+            width: cellWidth.current + "px",
+            height: cellHeight.current + "px",
+          }}
+        >
+          {friendlyGraveyard.current.length}
+        </p>
+
+        <p
+          className="statTitle"
+          style={{
+            width: cellWidth.current + "px",
+            height: cellHeight.current + "px",
+          }}
+        >
+          Enemy deaths:{" "}
+        </p>
+        <p
+          className="stat"
+          style={{
+            width: cellWidth.current + "px",
+            height: cellHeight.current + "px",
+          }}
+        >
+          {enemyGraveyard.current.length}
+        </p>
+
+        <p
+          className="statTitle"
+          style={{
+            width: cellWidth.current + "px",
+            height: cellHeight.current + "px",
+          }}
+        >
+          Terrain destroyed:{" "}
+        </p>
+        <p
+          className="stat"
+          style={{
+            width: cellWidth.current + "px",
+            height: cellHeight.current + "px",
+          }}
+        >
+          {groundGraveyard.current.length}
+        </p>
+
+        <p
+          className="statTitle"
+          style={{
+            width: cellWidth.current + "px",
+            height: cellHeight.current + "px",
+          }}
+        >
+          Enemies remaining:{" "}
+        </p>
+        <p
+          className="stat"
+          style={{
+            width: cellWidth.current + "px",
+            height: cellHeight.current + "px",
+          }}
+        >
+          {totalSpawns.current - enemySpawnCount.current}/{totalSpawns.current}
+        </p>
+        <button
+          className="statTitle"
+          id="settingsButton"
+          style={{
+            width: cellWidth.current + 7 + "px",
+            height: cellHeight.current + 2 + "px",
+          }}
+          onClick={toggleSettings}
+        >
+          Settings/Entities &nbsp;
+        </button>
+      </div>
       <div id="above">
-        <div id="stats">
-          <p
-            className="statTitle"
-            id="firstStat"
-            style={{
-              height: cellHeight.current + "px",
-            }}
-          ></p>
-          <p
-            className="statTitle"
-            style={{
-              width: cellWidth.current + "px",
-              height: cellHeight.current + "px",
-            }}
-          >
-            Money:
-          </p>
-          <p
-            className="stat"
-            style={{
-              width: cellWidth.current + "px",
-              height: cellHeight.current + "px",
-            }}
-          >
-            {bank}
-          </p>
-
-          <p
-            className="statTitle"
-            style={{
-              width: cellWidth.current + "px",
-              height: cellHeight.current + "px",
-            }}
-          >
-            Friendly deaths:{" "}
-          </p>
-          <p
-            className="stat"
-            style={{
-              width: cellWidth.current + "px",
-              height: cellHeight.current + "px",
-            }}
-          >
-            {friendlyGraveyard.current.length}
-          </p>
-
-          <p
-            className="statTitle"
-            style={{
-              width: cellWidth.current + "px",
-              height: cellHeight.current + "px",
-            }}
-          >
-            Enemy deaths:{" "}
-          </p>
-          <p
-            className="stat"
-            style={{
-              width: cellWidth.current + "px",
-              height: cellHeight.current + "px",
-            }}
-          >
-            {enemyGraveyard.current.length}
-          </p>
-
-          <p
-            className="statTitle"
-            style={{
-              width: cellWidth.current + "px",
-              height: cellHeight.current + "px",
-            }}
-          >
-            Terrain destroyed:{" "}
-          </p>
-          <p
-            className="stat"
-            style={{
-              width: cellWidth.current + "px",
-              height: cellHeight.current + "px",
-            }}
-          >
-            {groundGraveyard.current.length}
-          </p>
-
-          <p
-            className="statTitle"
-            style={{
-              width: cellWidth.current + "px",
-              height: cellHeight.current + "px",
-            }}
-          >
-            Enemies remaining:{" "}
-          </p>
-          <p
-            className="stat"
-            style={{
-              width: cellWidth.current + "px",
-              height: cellHeight.current + "px",
-            }}
-          >
-            {totalSpawns.current - enemySpawnCount.current}/
-            {totalSpawns.current}
-          </p>
-          <button
-            className="statTitle"
-            id="settingsButton"
-            style={{
-              width: cellWidth.current + 7 + "px",
-              height: cellHeight.current + 2 + "px",
-            }}
-            onClick={toggleSettings}
-          >
-            Settings/Entities &nbsp;
-          </button>
-        </div>
         <div id="gameboard">
           {gameboardEntities.map((row) => {
             return (
-              <div className="boardRow" key={row[0][0].split("x")[1]}>
+              <div
+                className="boardRow"
+                key={row[0][0].split("x")[1]}
+                id={"row" + row[1][3]}
+              >
                 {row.map((position) => {
                   return (
                     <input

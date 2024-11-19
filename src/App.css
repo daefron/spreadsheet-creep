@@ -67,6 +67,12 @@ td {
 .purchasableRow {
   display: flex;
   align-items: start;
+  height: 30px;
+}
+#row0 {
+  position: sticky;
+  top: 0px;
+  z-index: 10000000;
 }
 input,
 p {
@@ -88,7 +94,6 @@ select,
   border-color: grey;
   border-style: solid;
   background-color: white;
-  position: sticky;
 }
 .boardCell:focus {
   outline: none;
@@ -106,7 +111,6 @@ select,
   display: flex;
   align-items: center;
   height: 21px;
-  position: sticky;
   box-shadow: -1px 0px 0px 0px black;
 }
 select {
