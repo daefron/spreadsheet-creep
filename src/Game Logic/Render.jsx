@@ -297,9 +297,23 @@ export default function engineOutput() {
     }
     cellSelectMoved.current = false;
     autoCell();
+    cellOverlap();
     updateGameboardEntities();
     scrollCheck();
     scrolledThisTurn.current = false;
+  }
+
+  function cellOverlap() {
+    if (selectedCell.current === undefined) {
+      return;
+    }
+    let left = selectedCell.current.getBoundingClientRect().left;
+    let top = selectedCell.current.getBoundingClientRect().top;
+    let elementOnTopLeft = document.elementFromPoint(left, top);
+    if (elementOnTopLeft !== selectedCell.current) {
+      let board = document.getElementById("gameboardHolder");
+      board.scrollBy(-50, 0);
+    }
   }
 
   const scrollBufferX = useRef();
