@@ -307,6 +307,10 @@ export default function engineOutput() {
     if (selectedCell.current === undefined) {
       return;
     }
+    let position = selectedCell.current.id.split("x");
+    if (!position[0] == renderWidthMin.current + 1) {
+      return
+    }
     let left = selectedCell.current.getBoundingClientRect().left;
     let top = selectedCell.current.getBoundingClientRect().top;
     let elementOnTopLeft = document.elementFromPoint(left, top);
