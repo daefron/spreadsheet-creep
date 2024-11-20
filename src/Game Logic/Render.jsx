@@ -73,7 +73,6 @@ export default function engineOutput() {
   const [gameboardEntities, setGameboardEntities] = useState([]);
   const [settingsState, setSettingsState] = useState("none");
   const scrollPositionX = useRef(0);
-  const scrollBufferX = useRef();
   const scrollPositionY = useRef(0);
   const cellSelectMoved = useRef(false);
   let entityList = EntityList;
@@ -288,115 +287,170 @@ export default function engineOutput() {
     };
   }, []);
 
+  function renderUpdate() {
+    if (cellSelectMoved.current) {
+      xScrollUpdate();
+      yScrollUpdate();
+    }
+    if (clickPosition.current !== undefined) {
+      scrollDrag();
+    }
+    cellSelectMoved.current = false;
+    autoCell();
+    updateGameboardEntities();
+    scrollCheck();
+    scrolledThisTurn.current = false;
+  }
+
+  const scrollBufferX = useRef();
+  function xScrollUpdate() {
+    let board = document.getElementById("gameboardHolder");
+    let width = board.offsetWidth;
+    let xScroll = document.getElementById("xScroll");
+    let totalWidth = gameboardWidth.current * (cellWidth.current - 1) - 50;
+    let xScrollPercentage = width / totalWidth;
+    let xScrollWidth = width * xScrollPercentage;
+    xScroll.style.width = xScrollWidth + "px";
+    let renderMax = renderWidth.current * cellWidth.current;
+    if (scrollBufferX.current === undefined) {
+      scrollBufferX.current = renderMax - width;
+    }
+    renderMax -= scrollBufferX.current;
+    let marginPercentage = renderMax / width;
+    let marginLeft = xScrollWidth * marginPercentage - xScrollWidth;
+    xScroll.style.marginLeft = marginLeft + "px";
+  }
+
+  const scrollBufferY = useRef();
+  function yScrollUpdate() {
+    let board = document.getElementById("gameboardHolder");
+    let height = board.offsetHeight;
+    let yScroll = document.getElementById("yScroll");
+    let totalHeight = gameboardHeight.current * (cellHeight.current - 2);
+    let yScrollPercentage = height / totalHeight;
+    let yScrollHeight = height * yScrollPercentage;
+    yScroll.style.height = yScrollHeight + "px";
+    let renderMax = renderHeight.current * cellHeight.current;
+    if (scrollBufferY.current === undefined) {
+      scrollBufferY.current = renderMax - height;
+    }
+    renderMax -= scrollBufferX.current;
+    let marginPercentage = renderMax / height;
+    let marginTop = yScrollHeight * marginPercentage - yScrollHeight + 17;
+    yScroll.style.marginTop = marginTop + "px";
+  }
+
+  const clickPosition = useRef(undefined);
+  const mousePosition = useRef([undefined, undefined]);
+  const selectedScroll = useRef(undefined);
+
+  function scrollDrag() {
+    let old, current, x;
+    if (selectedScroll.current.id === "xScroll") {
+      old = clickPosition.current[0];
+      current = mousePosition.current[0];
+      x = true;
+    } else if (selectedScroll.current.id === "yScroll") {
+      old = clickPosition.current[1];
+      current = mousePosition.current[1];
+      x = false;
+    }
+    let board = document.getElementById("gameboardHolder");
+    let diff = current - old;
+    if (x) {
+      board.scrollBy(diff * 50, 0);
+    } else {
+      board.scrollBy(0, diff * 50);
+    }
+    clickPosition.current[0] = current;
+  }
+
+  const scrolledThisTurn = useRef(false);
+
   useEffect(() => {
     let board = document.getElementById("gameboardHolder");
     board.addEventListener("scroll", handleScroll);
     function handleScroll() {
       xScrollUpdate();
       yScrollUpdate();
-      let left = board.scrollLeft;
-      let width = board.offsetWidth;
-      let scrollWidth = board.scrollWidth;
-      if (scrollWidth - left < width) {
-        scrollEndX();
-      } else if (left === 0) {
-        scrollStartX(scrollWidth - width);
+      if (!scrolledThisTurn.current) {
+        let left = board.scrollLeft;
+        let width = board.offsetWidth;
+        let scrollWidth = board.scrollWidth;
+        if (left + width > scrollWidth) {
+          scrollEndX();
+        } else if (left === 0) {
+          scrollStartX();
+        }
+        let top = board.scrollTop;
+        let height = board.offsetHeight;
+        let scrollHeight = board.scrollHeight;
+        if (top + height >= scrollHeight) {
+          scrollEndY();
+        } else if (top === 0) {
+          scrollStartY();
+        }
       }
-      let top = board.scrollTop;
-      let height = board.offsetHeight;
-      let scrollHeight = board.scrollHeight;
-      if (scrollHeight - top < height) {
-        scrollEndY();
-      } else if (top === 0) {
-        scrollStartY();
-      }
+    }
+    let xScroll = document.getElementById("xScroll");
+    let yScroll = document.getElementById("yScroll");
+    xScroll.addEventListener("mousedown", scrollClick);
+    yScroll.addEventListener("mousedown", scrollClick);
+    function scrollClick(e) {
+      clickPosition.current = [e.pageX, e.pageY];
+      selectedScroll.current = e.target;
+    }
+    document.addEventListener("mousemove", scrollMove);
+    function scrollMove(e) {
+      mousePosition.current = [e.clientX, e.clientY];
+    }
+    document.addEventListener("mouseup", scrollRelease);
+    function scrollRelease() {
+      clickPosition.current = undefined;
     }
   }, []);
-
-  function renderUpdate() {
-    if (cellSelectMoved.current) {
-      xScrollUpdate();
-      yScrollUpdate();
-    }
-    cellSelectMoved.current = false;
-    autoCell();
-    scrollCheck();
-    updateGameboardEntities();
-  }
 
   function scrollEndX() {
     if (renderWidth.current < gameboardWidth.current) {
       renderWidthMin.current++;
       renderWidth.current++;
-      scrollPositionX.current = 1;
+      scrollPositionX.current = cellWidth.current / 3;
+      scrolledThisTurn.current = true;
     }
   }
-  function scrollStartX(scrollWidth) {
+  function scrollStartX() {
     if (renderWidthMin.current > 0) {
       renderWidthMin.current--;
       renderWidth.current--;
-      scrollPositionX.current = scrollWidth - 1;
+      scrollPositionX.current = cellWidth.current;
+      scrolledThisTurn.current = true;
     }
   }
   function scrollEndY() {
     if (renderHeight.current < gameboardHeight.current) {
       renderHeightMin.current++;
       renderHeight.current++;
-      scrollPositionY.current = parseInt(cellHeight.current * 2.766666);
+      scrollPositionY.current = cellHeight.current * 4.23333;
+      scrolledThisTurn.current = true;
     }
   }
   function scrollStartY() {
     if (renderHeightMin.current > 0) {
       renderHeightMin.current--;
       renderHeight.current--;
-      scrollPositionY.current = parseInt(cellHeight.current * 0.933333);
+      scrollPositionY.current = cellHeight.current / 2;
+      scrolledThisTurn.current = true;
     }
   }
 
   function autoCell() {
-    let board = document.getElementById("gameboard");
+    let board = document.getElementById("gameboardHolder");
     let width = board.offsetWidth;
     let height = board.offsetHeight;
     renderWidth.current =
-      1 + parseInt(width / (cellWidth.current + 7)) + renderWidthMin.current;
+      1 + parseInt(width / cellWidth.current) + renderWidthMin.current;
     renderHeight.current =
-      2 + parseInt(height / (cellHeight.current + 2)) + renderHeightMin.current;
-  }
-
-  function xScrollUpdate() {
-    let board = document.getElementById("gameboard");
-    let width = board.offsetWidth;
-    let xScroll = document.getElementById("xScroll");
-    let totalWidth = gameboardWidth.current * (cellWidth.current + 7);
-    let xScrollPercentage = width / totalWidth;
-    let xScrollWidth = width * xScrollPercentage;
-    xScroll.style.width = xScrollWidth + "px";
-    let renderMax = renderWidth.current * (cellWidth.current + 7);
-    if (scrollBufferX.current === undefined) {
-      scrollBufferX.current = renderMax - width;
-    }
-    renderMax -= scrollBufferX.current;
-    if (totalWidth - renderMax < 100) {
-      renderMax = totalWidth;
-    }
-    let marginPercentage = renderMax / width;
-    let marginLeft = xScrollWidth * marginPercentage - xScrollWidth;
-    xScroll.style.marginLeft = marginLeft + "px";
-  }
-
-  function yScrollUpdate() {
-    let board = document.getElementById("gameboard");
-    let height = board.offsetHeight;
-    let yScroll = document.getElementById("yScroll");
-    let totalHeight = gameboardHeight.current * (cellHeight.current + 2);
-    let yScrollPercentage = height / totalHeight;
-    let yScrollHeight = height * yScrollPercentage;
-    yScroll.style.height = yScrollHeight + "px";
-    let renderMax = renderHeight.current * (cellHeight.current + 2);
-    renderMax -= scrollBufferX.current;
-    let marginPercentage = renderMax / height;
-    let marginTop = yScrollHeight * marginPercentage - yScrollHeight + 33;
-    yScroll.style.marginTop = marginTop + "px";
+      4 + parseInt(height / cellHeight.current) + renderHeightMin.current;
   }
 
   function scrollCheck() {
@@ -412,17 +466,21 @@ export default function engineOutput() {
   }
 
   function updateGameboardEntities() {
-    let grid = [];
     let initialTime = Date.now();
+    let grid = [];
     if (renderHeight.current > gameboardHeight.current) {
       renderHeight.current = gameboardHeight.current;
     }
     if (renderWidth.current > gameboardWidth.current) {
       renderWidth.current = gameboardWidth.current;
     }
-    for (let h = renderHeightMin.current; h <= renderHeight.current; h++) {
+    let heightMin = renderHeightMin.current;
+    let height = renderHeight.current;
+    let widthMin = renderWidthMin.current;
+    let width = renderWidth.current;
+    for (let h = heightMin; h <= height; h++) {
       let subGrid = [];
-      for (let w = renderWidthMin.current; w <= renderWidth.current; w++) {
+      for (let w = widthMin; w <= width; w++) {
         subGrid.push(cellType(w, h));
       }
       grid.push(subGrid);
@@ -450,17 +508,17 @@ export default function engineOutput() {
         }
       }
       testTime1.current += Date.now() - testTimeInitial;
-      if (w === renderWidthMin.current) {
+      if (w === widthMin) {
         return firstColumnCell(w, h);
       }
-      if (h === renderHeightMin.current) {
+      if (h === heightMin) {
         return firstRowCell(w, h);
       }
       let style = {
         width: cellWidth.current + "px",
         height: cellHeight.current + "px",
-        "--cell-select-width": cellWidth.current - 2 + "px",
-        "--cell-select-height": cellHeight.current - 2 + "px",
+        "--cell-select-width": cellWidth.current + "px",
+        "--cell-select-height": cellHeight.current + "px",
       };
       let effectInitial = Date.now();
       let cell = onBoard(effectBoard.current, [w, h]);
@@ -505,8 +563,8 @@ export default function engineOutput() {
         let style = {
           width: "50px",
           height: cellHeight.current + "px",
-          "--cell-select-width": 50 - 2 + "px",
-          "--cell-select-height": cellHeight.current - 2 + "px",
+          "--cell-select-width": 50 + "px",
+          "--cell-select-height": cellHeight.current + "px",
           boxShadow: "inset -1px 0px 0px #404040, inset 0px -2px 0px #404040",
           left: "0px",
           position: "sticky",
@@ -518,8 +576,8 @@ export default function engineOutput() {
           textAlign: "center",
           width: "50px",
           height: cellHeight.current + "px",
-          "--cell-select-width": 50 - 2 + "px",
-          "--cell-select-height": cellHeight.current - 2 + "px",
+          "--cell-select-width": 50 + "px",
+          "--cell-select-height": cellHeight.current + "px",
           boxShadow: "inset -1px 0px 0px #404040",
           color: "#404040",
           left: "0px",
@@ -534,8 +592,8 @@ export default function engineOutput() {
       let style = {
         width: cellWidth.current + "px",
         height: cellHeight.current + "px",
-        "--cell-select-width": cellWidth.current - 2 + "px",
-        "--cell-select-height": cellHeight.current - 2 + "px",
+        "--cell-select-width": cellWidth.current + "px",
+        "--cell-select-height": cellHeight.current + "px",
         textAlign: "center",
         color: "#404040",
         boxShadow: "inset 0px -2px 0px #404040",
@@ -924,7 +982,7 @@ export default function engineOutput() {
         [""],
       ],
       [
-        [gameboardHeight.current + 2 + " "],
+        [gameboardHeight.current + " "],
         ["Name"],
         ["Level"],
         ["Cost"],
@@ -1232,8 +1290,8 @@ export default function engineOutput() {
           className="statTitle"
           id="settingsButton"
           style={{
-            width: cellWidth.current + 7 + "px",
-            height: cellHeight.current + 2 + "px",
+            width: cellWidth.current + "px",
+            height: cellHeight.current + "px",
           }}
           onClick={toggleSettings}
         >
