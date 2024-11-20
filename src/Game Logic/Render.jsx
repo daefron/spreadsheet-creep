@@ -317,6 +317,17 @@ export default function engineOutput() {
     if (elementOnTop === xHeader) {
       let board = document.getElementById("gameboardHolder");
       board.scrollBy(-50, 0);
+      let gap = board.scrollLeft;
+      if (gap % cellWidth.current !== 0) {
+        let loop;
+        while (!loop) {
+          gap -= cellWidth.current;
+          if (gap < 0) {
+            loop = true;
+          }
+        }
+        board.scrollBy(0, -gap);
+      }
     }
     let yHeader = document.getElementById(
       position[0] + "x" + renderHeightMin.current
@@ -324,6 +335,17 @@ export default function engineOutput() {
     if (elementOnTop === yHeader) {
       let board = document.getElementById("gameboardHolder");
       board.scrollBy(0, -cellHeight.current);
+      let gap = board.scrollTop;
+      if (gap % cellHeight.current !== 0) {
+        let loop;
+        while (!loop) {
+          gap -= cellHeight.current;
+          if (gap < 0) {
+            loop = true;
+          }
+        }
+        board.scrollBy(0, -gap);
+      }
     }
   }
 
