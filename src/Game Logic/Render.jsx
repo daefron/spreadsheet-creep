@@ -308,15 +308,22 @@ export default function engineOutput() {
       return;
     }
     let position = selectedCell.current.id.split("x");
-    if (!position[0] == renderWidthMin.current + 1) {
-      return
-    }
     let left = selectedCell.current.getBoundingClientRect().left;
     let top = selectedCell.current.getBoundingClientRect().top;
-    let elementOnTopLeft = document.elementFromPoint(left, top);
-    if (elementOnTopLeft !== selectedCell.current) {
+    let elementOnTop = document.elementFromPoint(left, top);
+    let xHeader = document.getElementById(
+      renderWidthMin.current + "x" + position[1]
+    );
+    if (elementOnTop === xHeader) {
       let board = document.getElementById("gameboardHolder");
       board.scrollBy(-50, 0);
+    }
+    let yHeader = document.getElementById(
+      position[0] + "x" + renderHeightMin.current
+    );
+    if (elementOnTop === yHeader) {
+      let board = document.getElementById("gameboardHolder");
+      board.scrollBy(0, -cellHeight.current);
     }
   }
 
