@@ -22,11 +22,11 @@ export default function engineOutput() {
   const lastFriendlySpawnTime = useRef(0);
   const gameTimer = useRef();
   const renderTimer = useRef();
-  const gameboardWidth = useRef(25);
+  const gameboardWidth = useRef(85);
   const gameboardHeight = useRef(42);
-  const renderWidth = useRef();
+  const renderWidth = useRef(gameboardWidth.current);
   const renderWidthMin = useRef(0);
-  const renderHeight = useRef();
+  const renderHeight = useRef(gameboardHeight.current);
   const renderHeightMin = useRef(0);
   const groundLevel = useRef(15);
   const groundRoughness = useRef(5);
@@ -288,6 +288,8 @@ export default function engineOutput() {
   }, []);
 
   function renderUpdate() {
+    let initialTime = Date.now();
+    autoCell();
     if (cellSelectMoved.current) {
       xScrollUpdate();
       yScrollUpdate();
@@ -295,12 +297,12 @@ export default function engineOutput() {
     if (clickPosition.current !== undefined) {
       scrollDrag();
     }
-    cellSelectMoved.current = false;
-    autoCell();
     cellOverlap();
     updateGameboardEntities();
     scrollCheck();
+    cellSelectMoved.current = false;
     scrolledThisTurn.current = false;
+    renderTime.current += Date.now() - initialTime;
   }
 
   function cellOverlap() {
@@ -477,7 +479,7 @@ export default function engineOutput() {
     if (renderHeight.current < gameboardHeight.current) {
       renderHeightMin.current++;
       renderHeight.current++;
-      scrollPositionY.current = cellHeight.current * 4.23333;
+      scrollPositionY.current = cellHeight.current * 4.7;
       scrolledThisTurn.current = true;
     }
   }
@@ -491,13 +493,56 @@ export default function engineOutput() {
   }
 
   function autoCell() {
+    if (gameboardEntities[0] === undefined) {
+      return;
+    }
+    renderWidth.current = renderWidthCalc();
+    renderHeight.current = renderHeightCalc();
+    console.log(renderWidth.current, renderHeight.current);
+  }
+
+  const calcRenderWidth = useRef(0);
+  function renderWidthCalc() {
     let board = document.getElementById("gameboardHolder");
     let width = board.offsetWidth;
+    let cellsWidth = 0;
+    let cellAmount = 0;
+    for (let i = renderWidthMin.current; cellsWidth < width; i++) {
+      if (document.getElementById(i + "x" + renderHeightMin.current) === null) {
+        cellsWidth += cellWidth.current;
+        cellAmount++;
+      } else {
+        let cellWidth = document.getElementById(
+          i + "x" + renderHeightMin.current
+        ).offsetWidth;
+        cellsWidth += cellWidth;
+        cellAmount++;
+      }
+    }
+    calcRenderWidth.current = cellsWidth;
+    return cellAmount;
+  }
+
+  const calcRenderHeight = useRef(0);
+  function renderHeightCalc() {
+    let board = document.getElementById("gameboardHolder");
     let height = board.offsetHeight;
-    renderWidth.current =
-      1 + parseInt(width / cellWidth.current) + renderWidthMin.current;
-    renderHeight.current =
-      4 + parseInt(height / cellHeight.current) + renderHeightMin.current;
+    let cellsHeight = 0;
+    let cellAmount = 0;
+    for (let i = renderHeightMin.current; cellsHeight < height; i++) {
+      if (document.getElementById(i + "x" + renderHeightMin.current) === null) {
+        cellsHeight += cellHeight.current;
+        cellAmount++;
+      } else {
+        let cellHeight = document.getElementById(
+          i + "x" + renderHeightMin.current
+        ).offsetHeight;
+        cellsHeight += cellHeight;
+        cellAmount++;
+      }
+    }
+    calcRenderHeight.current = cellsHeight;
+    return cellAmount;
   }
 
   function scrollCheck() {
@@ -513,7 +558,6 @@ export default function engineOutput() {
   }
 
   function updateGameboardEntities() {
-    let initialTime = Date.now();
     let grid = [];
     if (renderHeight.current > gameboardHeight.current) {
       renderHeight.current = gameboardHeight.current;
@@ -532,7 +576,6 @@ export default function engineOutput() {
       }
       grid.push(subGrid);
     }
-    renderTime.current += Date.now() - initialTime;
     setGameboardEntities(grid);
 
     function cellType(w, h) {
@@ -605,6 +648,12 @@ export default function engineOutput() {
       return blankCell(w, h, style);
     }
 
+    function widthTest(style, w) {
+      if (w > 5 && w < 10) {
+        style.width = cellWidth.current / 2 + "px";
+      }
+    }
+
     function firstColumnCell(w, h) {
       if (h === renderHeightMin.current) {
         let style = {
@@ -617,6 +666,7 @@ export default function engineOutput() {
           position: "sticky",
           zIndex: "1000",
         };
+        widthTest(style, w);
         return [w + "x" + h, "", style, "0", w, h];
       } else {
         let style = {
@@ -631,6 +681,8 @@ export default function engineOutput() {
           position: "sticky",
           zIndex: "1000",
         };
+        widthTest(style, w);
+
         return [w + "x" + h, h + " ", style, "", w, h];
       }
     }
@@ -645,12 +697,14 @@ export default function engineOutput() {
         color: "#404040",
         boxShadow: "inset 0px -2px 0px #404040",
       };
+      widthTest(style, w);
       return [w + "x" + h, toLetter(w - 1) + " ", style, "0", w, h];
     }
 
     function blankCell(w, h, style) {
       let initialTime = Date.now();
       blankRenderTime.current += Date.now() - initialTime;
+      widthTest(style, w);
       return [w + "x" + h, "", style, "", w, h];
     }
 
@@ -678,6 +732,7 @@ export default function engineOutput() {
         }
       }
       effectRenderTime.current += Date.now() - initialTime;
+      widthTest(style, w);
       return [w + "x" + h, effect.symbol, style, "", w, h];
     }
 
@@ -704,6 +759,7 @@ export default function engineOutput() {
         }
       }
       entityRenderTime.current += Date.now() - initialTime;
+      widthTest(style, w);
       return [w + "x" + h, cellText, style, "", w, h];
 
       function attackBar(currentEntity, style) {
@@ -745,7 +801,7 @@ export default function engineOutput() {
       }
 
       function blobHealthBar(entity, style) {
-        let percentage = entity.hp / 10;
+        let percentage = entity.hp / 20;
         let color;
         if (entity.enemy) {
           color = "rgb(139 0 0 /" + percentage + ")";
@@ -819,6 +875,7 @@ export default function engineOutput() {
           style.color = "darkRed";
         } else style.color = "darkGreen";
       }
+      widthTest(style, w);
       return [w + "x" + h, text, style, "", w, h];
 
       function groundLine(ground, style) {
@@ -917,15 +974,16 @@ export default function engineOutput() {
         inFluid(projectile, style);
       }
       projectileRenderTime.current += Date.now() - initialTime;
+      widthTest(style, w);
       return [w + "x" + h, projectile.symbol, style, "", w, h];
     }
 
     function fluidCell(fluid, w, h, style) {
       let initialTime = Date.now();
       style.backgroundColor = "lightBlue";
-      style.fontStyle = "italic";
       fluidLine(fluid, style);
       fluidRenderTime.current += Date.now() - initialTime;
+      widthTest(style, w);
       return [w + "x" + h, "", style, "", w, h];
 
       function fluidLine(fluid, style) {
@@ -1123,7 +1181,6 @@ export default function engineOutput() {
   function newButton() {
     clearInterval(renderTimer.current);
     clearInterval(gameTimer.current);
-    autoCell();
     enemyGraveyard.current = [];
     friendlyGraveyard.current = [];
     groundGraveyard.current = [];
@@ -1134,7 +1191,7 @@ export default function engineOutput() {
     lastFriendlySpawnTime.current = 0;
     renderTimer.current = setInterval(() => {
       renderUpdate();
-    }, renderSpeed.current * 4);
+    }, renderSpeed.current);
     engine(true, gameStatePacker());
   }
 

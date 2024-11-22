@@ -398,13 +398,13 @@ export default {
       lvl1: {
         lvl: 1,
         hp: 1,
-        maxHp: 10,
+        maxHp: 60,
         speed: 60,
       },
       lvl2: {
         lvl: 2,
         hp: 1,
-        maxHp: 10,
+        maxHp: 60,
         speed: 35,
       },
     },
