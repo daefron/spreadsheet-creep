@@ -216,7 +216,7 @@ export function engine(newRound, gameState) {
       return;
     }
     if (currentEntity.type === "blob") {
-      return blobTurn(currentEntity);
+      return blobHolder(currentEntity);
     }
     if (entityFall(currentEntity)) {
       return;
@@ -231,7 +231,7 @@ export function engine(newRound, gameState) {
       return;
     }
 
-    function blobTurn(currentEntity) {
+    function blobHolder(currentEntity) {
       let initialTestTime1 = Date.now();
       let initialTestTime5 = Date.now();
       let x = currentEntity.position[0];
@@ -293,7 +293,7 @@ export function engine(newRound, gameState) {
           return;
         }
         if (
-          currentEntity.speed < currentEntity.speedCharge &&
+          currentEntity.speedCharge >= currentEntity.speed &&
           Math.random() < 0.5
         ) {
           currentEntity.hp++;
@@ -544,11 +544,14 @@ export function engine(newRound, gameState) {
 
         function blobDirection() {
           let rightFree, leftFree;
-          if (positionRight[0] > gameboardWidth.current) {
+          if (
+            positionRight[0] > gameboardWidth.current &&
+            currentEntity.enemy
+          ) {
             rightFree = false;
           } else
             rightFree = groundRight === undefined || entityRight === undefined;
-          if (positionLeft[0] < 1) {
+          if (positionLeft[0] < 1 && !currentEntity.enemy) {
             leftFree = false;
           } else
             leftFree = groundLeft === undefined || entityLeft === undefined;
@@ -602,27 +605,33 @@ export function engine(newRound, gameState) {
     function entityBoundaryHandler(currentEntity) {
       let newPosition = [direction(currentEntity), currentEntity.position[1]];
       if (
-        (newPosition[0] === -1 ||
-          newPosition[0] === gameboardWidth.current + 1) &&
-        currentEntity.speedCharge >= currentEntity.speed / gameSpeed.current
+        newPosition[0] === -1 ||
+        newPosition[0] === gameboardWidth.current + 1
       ) {
-        if (gameMode.current === "king") {
-          let king = activeEntities.current.find(
-            (entity) => entity.type === "king"
-          );
-          king.hp -= currentEntity.dmg * 2;
-          currentEntity.hp = 0;
-          return true;
-        } else if (gameMode.current === "battle") {
-          if (currentEntity.enemy) {
-            friendlySpawnCount.current += 2;
-          } else if (!currentEntity.enemy) {
-            enemySpawnCount.current += 2;
-          }
-          currentEntity.hp = 0;
-        } else if (gameMode.current === "blob") {
+        if (gameMode.current === "blob" || gameMode.current === "blob gob") {
           currentEntity.hp = 0;
           blobAtEnd = true;
+        } else {
+          if (
+            currentEntity.speedCharge >=
+            currentEntity.speed / gameSpeed.current
+          ) {
+            if (gameMode.current === "king") {
+              let king = activeEntities.current.find(
+                (entity) => entity.type === "king"
+              );
+              king.hp -= currentEntity.dmg * 2;
+              currentEntity.hp = 0;
+              return true;
+            } else if (gameMode.current === "battle") {
+              if (currentEntity.enemy) {
+                friendlySpawnCount.current += 2;
+              } else if (!currentEntity.enemy) {
+                enemySpawnCount.current += 2;
+              }
+              currentEntity.hp = 0;
+            }
+          }
         }
       }
     }
@@ -1697,23 +1706,75 @@ export function engine(newRound, gameState) {
         if (kingAlive) {
           return true;
         }
+        console.log("King dead, you lost");
         return false;
-      } else if (gameMode.current === "battle") {
+      }
+      if (gameMode.current === "battle") {
+        let enemiesAlive = activeEntities.current.filter(
+          (entity) => entity.enemy
+        );
         if (
-          enemySpawnCount.current === totalSpawns.current ||
-          friendlySpawnCount.current === totalSpawns.current
+          enemySpawnCount.current >= totalSpawns.current &&
+          enemiesAlive.length === 0
         ) {
+          console.log("All enemies dead");
+          return false;
+        }
+        let friendliesAlive = activeEntities.current.filter(
+          (entity) => !entity.enemy
+        );
+        console.log(friendlySpawnCount.current, totalSpawns.current);
+        if (
+          friendlySpawnCount.current >= totalSpawns.current &&
+          friendliesAlive.length === 0
+        ) {
+          console.log("All friendlies dead");
           return false;
         }
         return true;
-      } else if (gameMode.current === "blob") {
+      }
+      if (gameMode.current === "blob") {
         if (blobAtEnd) {
+          console.log("Blob at end");
           return false;
         } else return true;
-      } else if (
-        gameMode.current === "blob fight" ||
-        gameMode.current === "blob gob"
-      ) {
+      }
+      if (gameMode.current === "blob fight") {
+        let enemiesAlive = activeEntities.current.filter(
+          (entity) => entity.enemy
+        );
+        let friendliesAlive = activeEntities.current.filter(
+          (entity) => !entity.enemy
+        );
+        if (enemiesAlive.length === 0 && friendliesAlive.length !== 0) {
+          console.log("Enemy blob dead");
+          return false;
+        }
+        if (friendliesAlive.length === 0 && enemiesAlive.length !== 0) {
+          console.log("Friendly blob dead");
+          return false;
+        }
+        return true;
+      }
+      if (gameMode.current === "blob gob") {
+        let friendliesAlive = activeEntities.current.filter(
+          (entity) => !entity.enemy
+        );
+        let enemiesAlive = activeEntities.current.filter(
+          (entity) => entity.enemy
+        );
+        if (
+          (friendlySpawnCount.current === totalSpawns.current &&
+            friendliesAlive.length === 0) ||
+          blobAtEnd
+        ) {
+          console.log("Friendlies lose");
+          return false;
+        }
+        if (enemiesAlive.length === 0 && friendlySpawnCount.current > 1) {
+          console.log("Blob loses");
+          return false;
+        }
         return true;
       }
     }
@@ -1721,7 +1782,7 @@ export function engine(newRound, gameState) {
     //checks if game is allowed to spawn on current turn
     function spawnChecker(enemy) {
       if (enemy) {
-        if (enemySpawnCount.current <= totalSpawns.current) {
+        if (enemySpawnCount.current < totalSpawns.current) {
           lastEnemySpawnTime.current++;
           if (lastEnemySpawnTime.current > spawnTime()) {
             entitySpawner(spawnType(), enemy);
@@ -1730,11 +1791,13 @@ export function engine(newRound, gameState) {
           }
         }
       } else if (!enemy) {
-        lastFriendlySpawnTime.current++;
-        if (lastFriendlySpawnTime.current > spawnTime()) {
-          entitySpawner(spawnType(), enemy);
-          friendlySpawnCount.current++;
-          lastFriendlySpawnTime.current = 0;
+        if (friendlySpawnCount.current < totalSpawns.current) {
+          lastFriendlySpawnTime.current++;
+          if (lastFriendlySpawnTime.current > spawnTime()) {
+            entitySpawner(spawnType(), enemy);
+            friendlySpawnCount.current++;
+            lastFriendlySpawnTime.current = 0;
+          }
         }
       }
     }
