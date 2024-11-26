@@ -22,13 +22,13 @@ export default function engineOutput() {
   const lastFriendlySpawnTime = useRef(0);
   const gameTimer = useRef();
   const renderTimer = useRef();
-  const gameboardWidth = useRef(6);
-  const gameboardHeight = useRef(6);
+  const gameboardWidth = useRef(25);
+  const gameboardHeight = useRef(35);
   const renderWidth = useRef();
   const renderWidthMin = useRef(0);
   const renderHeight = useRef();
   const renderHeightMin = useRef(0);
-  const groundLevel = useRef(3);
+  const groundLevel = useRef(15);
   const groundRoughness = useRef(5);
   const waterLevel = useRef(1);
   const renderSpeed = useRef(5);
@@ -42,7 +42,6 @@ export default function engineOutput() {
   const selectedCell = useRef();
   const cellTyping = useRef(false);
   const currentInput = useRef("");
-  const cellType = useRef("auto");
   const cellWidth = useRef(120);
   const cellHeight = useRef(21);
   const renderTime = useRef(0);
@@ -83,6 +82,8 @@ export default function engineOutput() {
   const fluidBoard = useRef(initialGameboard());
   const projectileBoard = useRef(initialGameboard());
   const effectBoard = useRef(initialGameboard());
+
+  const gameStatus = useRef();
 
   function initialGameboard() {
     let grid = [];
@@ -141,6 +142,7 @@ export default function engineOutput() {
         totalSpawns: totalSpawns,
         spawnSpeed: spawnSpeed,
         gameMode: gameMode,
+        gameStatus: gameStatus,
       },
       input: {
         selectedCell: selectedCell,
@@ -498,7 +500,7 @@ export default function engineOutput() {
     let height = board.offsetHeight;
     renderWidth.current =
       1 + parseInt(width / cellWidth.current) + renderWidthMin.current;
-    
+
     renderHeight.current =
       4 + parseInt(height / cellHeight.current) + renderHeightMin.current;
   }
@@ -1257,7 +1259,13 @@ export default function engineOutput() {
         >
           {bank}
         </p>
-
+        <p
+          className="statTitle"
+          style={{
+            width: cellWidth.current * 2 + "px",
+            height: cellHeight.current + "px",
+          }}
+        ></p>
         <p
           className="statTitle"
           style={{
@@ -1265,7 +1273,7 @@ export default function engineOutput() {
             height: cellHeight.current + "px",
           }}
         >
-          Friendly deaths:{" "}
+          Friendly spawns:
         </p>
         <p
           className="stat"
@@ -1274,9 +1282,9 @@ export default function engineOutput() {
             height: cellHeight.current + "px",
           }}
         >
-          {friendlyGraveyard.current.length}
+          {totalSpawns.current - friendlySpawnCount.current}/
+          {totalSpawns.current}
         </p>
-
         <p
           className="statTitle"
           style={{
@@ -1284,45 +1292,7 @@ export default function engineOutput() {
             height: cellHeight.current + "px",
           }}
         >
-          Enemy deaths:{" "}
-        </p>
-        <p
-          className="stat"
-          style={{
-            width: cellWidth.current + "px",
-            height: cellHeight.current + "px",
-          }}
-        >
-          {enemyGraveyard.current.length}
-        </p>
-
-        <p
-          className="statTitle"
-          style={{
-            width: cellWidth.current + "px",
-            height: cellHeight.current + "px",
-          }}
-        >
-          Terrain destroyed:{" "}
-        </p>
-        <p
-          className="stat"
-          style={{
-            width: cellWidth.current + "px",
-            height: cellHeight.current + "px",
-          }}
-        >
-          {groundGraveyard.current.length}
-        </p>
-
-        <p
-          className="statTitle"
-          style={{
-            width: cellWidth.current + "px",
-            height: cellHeight.current + "px",
-          }}
-        >
-          Enemies remaining:{" "}
+          Enemy spawns:
         </p>
         <p
           className="stat"
@@ -1332,6 +1302,18 @@ export default function engineOutput() {
           }}
         >
           {totalSpawns.current - enemySpawnCount.current}/{totalSpawns.current}
+        </p>
+        <p
+          className="statTitle"
+          style={{
+            width: cellWidth.current * 2 + "px",
+            height: cellHeight.current + "px",
+            overflow: "visible",
+            position: "sticky",
+            zIndex: "10000",
+          }}
+        >
+          {gameStatus.current}
         </p>
         <button
           className="statTitle"
@@ -1484,7 +1466,7 @@ export default function engineOutput() {
                 onChange={updateGroundHeight}
               ></input>
             </div>
-          </div>{" "}
+          </div>
           <div className="settingHolder">
             <p
               style={{

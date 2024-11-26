@@ -52,6 +52,7 @@ export function engine(newRound, gameState) {
   let totalSpawns = gameState.settings.totalSpawns;
   let spawnSpeed = gameState.settings.spawnSpeed;
   let gameMode = gameState.settings.gameMode;
+  let gameStatus = gameState.settings.gameStatus;
   let projectileCount = gameState.engine.projectileCount;
   let blobAtEnd = false;
   let engineTime = gameState.test.engineTime;
@@ -212,8 +213,10 @@ export function engine(newRound, gameState) {
       return;
     }
     fluidChecker(currentEntity);
-    if (entityBoundaryHandler(currentEntity)) {
-      return;
+    if (currentEntity.movement !== undefined) {
+      if (entityBoundaryHandler(currentEntity)) {
+        return;
+      }
     }
     if (currentEntity.type === "blob") {
       return blobHolder(currentEntity);
@@ -610,7 +613,9 @@ export function engine(newRound, gameState) {
       ) {
         if (gameMode.current === "blob" || gameMode.current === "blob gob") {
           currentEntity.hp = 0;
-          blobAtEnd = true;
+          if (currentEntity.type === "blob") {
+            blobAtEnd = true;
+          }
         } else {
           if (
             currentEntity.speedCharge >=
@@ -1624,6 +1629,7 @@ export function engine(newRound, gameState) {
       if (lastEnemySpawnTime.current === 200) {
         let firstBlob = entitySpawner(["blob", 1], true);
         firstBlob.hp = firstBlob.maxHp;
+        enemySpawnCount.current++;
       }
       nextTurn();
       if (!victoryChecker()) {
@@ -1706,7 +1712,7 @@ export function engine(newRound, gameState) {
         if (kingAlive) {
           return true;
         }
-        console.log("King dead, you lost");
+        gameStatus.current = "King dead, you lose";
         return false;
       }
       if (gameMode.current === "battle") {
@@ -1717,27 +1723,34 @@ export function engine(newRound, gameState) {
           enemySpawnCount.current >= totalSpawns.current &&
           enemiesAlive.length === 0
         ) {
-          console.log("All enemies dead");
+          gameStatus.current = "All enemies dead";
           return false;
         }
         let friendliesAlive = activeEntities.current.filter(
           (entity) => !entity.enemy
         );
-        console.log(friendlySpawnCount.current, totalSpawns.current);
         if (
           friendlySpawnCount.current >= totalSpawns.current &&
           friendliesAlive.length === 0
         ) {
-          console.log("All friendlies dead");
+          gameStatus.current = "All friendlies dead";
           return false;
         }
         return true;
       }
       if (gameMode.current === "blob") {
         if (blobAtEnd) {
-          console.log("Blob at end");
+          gameStatus.current = "Blob at end. You lose";
           return false;
-        } else return true;
+        }
+        let enemiesAlive = activeEntities.current.filter(
+          (entity) => entity.enemy
+        );
+        if (enemiesAlive.length === 0 && enemySpawnCount.current !== 0) {
+          gameStatus.current = "Enemy blob dead";
+          return false;
+        }
+        return true;
       }
       if (gameMode.current === "blob fight") {
         let enemiesAlive = activeEntities.current.filter(
@@ -1747,11 +1760,11 @@ export function engine(newRound, gameState) {
           (entity) => !entity.enemy
         );
         if (enemiesAlive.length === 0 && friendliesAlive.length !== 0) {
-          console.log("Enemy blob dead");
+          gameStatus.current = "Enemy blob dead";
           return false;
         }
         if (friendliesAlive.length === 0 && enemiesAlive.length !== 0) {
-          console.log("Friendly blob dead");
+          gameStatus.current = "Friendly blob dead";
           return false;
         }
         return true;
@@ -1768,11 +1781,11 @@ export function engine(newRound, gameState) {
             friendliesAlive.length === 0) ||
           blobAtEnd
         ) {
-          console.log("Friendlies lose");
+          gameStatus.current = "Friendlies lose";
           return false;
         }
         if (enemiesAlive.length === 0 && friendlySpawnCount.current > 1) {
-          console.log("Blob loses");
+          gameStatus.current = "Enemies lose";
           return false;
         }
         return true;

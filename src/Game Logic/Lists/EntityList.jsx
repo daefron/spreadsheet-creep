@@ -394,6 +394,7 @@ export default {
     enemy: true,
     sponge: true,
     attack: "blob",
+    movement: "blob",
     lvls: {
       lvl1: {
         lvl: 1,
