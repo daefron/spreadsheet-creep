@@ -1194,10 +1194,13 @@ export default function engineOutput() {
     gameMode.current = e.target.value;
     renderUpdate();
   }
-  function toggleSettings() {
-    if (settingsState === "flex") {
-      setSettingsState("none");
-    } else setSettingsState("flex");
+  function updateCellWidth(e) {
+    cellWidth.current = e.target.value;
+    renderUpdate();
+  }
+  function updateCellHeight(e) {
+    cellHeight.current = e.target.value;
+    renderUpdate();
   }
   function xDown() {
     if (cellWidth.current <= 10) {
@@ -1374,45 +1377,13 @@ export default function engineOutput() {
           }
         >
           <div id="settings">
-            <div
-              className="settingHolder"
-              style={{ display: "flex", alignItems: "center" }}
-            >
-              <p
-                className="settingTitle"
-                style={{
-                  boxShadow: "inset 0px -2px 0px 0px black",
-                  width: cellWidth.current + "px",
-                  height: cellHeight.current + "px",
-                }}
-              >
-                Settings:
-              </p>
-              <input
-                id="settingTitle"
-                style={{
-                  boxShadow: "inset 0px -2px 0px 0px black",
-                  width: cellWidth.current + "px",
-                  height: cellHeight.current + "px",
-                }}
-              ></input>
+            <div className="settingHolder">
+              <p className="settingTitle">Settings:</p>
+              <input className="settingTitle"></input>
             </div>
             <div className="settingHolder">
-              <p
-                style={{
-                  width: cellWidth.current + "px",
-                  height: cellHeight.current + "px",
-                }}
-                className="settingTitle"
-              >
-                Gameboard width:
-              </p>
-              <div
-                style={{
-                  width: cellWidth.current - 4 + "px",
-                  height: cellHeight.current + "px",
-                }}
-              >
+              <p className="settingTitle">Gameboard width:</p>
+              <div>
                 <p>{gameboardWidth.current}</p>
                 <input
                   id="boardWidth"
@@ -1426,21 +1397,8 @@ export default function engineOutput() {
               </div>
             </div>
             <div className="settingHolder">
-              <p
-                style={{
-                  width: cellWidth.current + "px",
-                  height: cellHeight.current + "px",
-                }}
-                className="settingTitle"
-              >
-                Gameboard height:
-              </p>
-              <div
-                style={{
-                  width: cellWidth.current - 4 + "px",
-                  height: cellHeight.current + "px",
-                }}
-              >
+              <p className="settingTitle">Gameboard height:</p>
+              <div>
                 <p>{gameboardHeight.current}</p>
                 <input
                   id="boardHeight"
@@ -1454,21 +1412,8 @@ export default function engineOutput() {
               </div>
             </div>
             <div className="settingHolder">
-              <p
-                style={{
-                  width: cellWidth.current + "px",
-                  height: cellHeight.current + "px",
-                }}
-                className="settingTitle"
-              >
-                Ground height:
-              </p>
-              <div
-                style={{
-                  width: cellWidth.current - 4 + "px",
-                  height: cellHeight.current + "px",
-                }}
-              >
+              <p className="settingTitle">Ground height:</p>
+              <div>
                 <p>{groundLevel.current}</p>
                 <input
                   id="groundLevel.current"
@@ -1482,21 +1427,8 @@ export default function engineOutput() {
               </div>
             </div>
             <div className="settingHolder">
-              <p
-                style={{
-                  width: cellWidth.current + "px",
-                  height: cellHeight.current + "px",
-                }}
-                className="settingTitle"
-              >
-                Water level:
-              </p>
-              <div
-                style={{
-                  width: cellWidth.current - 4 + "px",
-                  height: cellHeight.current + "px",
-                }}
-              >
+              <p className="settingTitle">Water level:</p>
+              <div>
                 <p>{waterLevel.current}</p>
                 <input
                   id="waterLevel.current"
@@ -1510,21 +1442,8 @@ export default function engineOutput() {
               </div>
             </div>
             <div className="settingHolder">
-              <p
-                style={{
-                  width: cellWidth.current + "px",
-                  height: cellHeight.current + "px",
-                }}
-                className="settingTitle"
-              >
-                Ground roughness:
-              </p>
-              <div
-                style={{
-                  width: cellWidth.current - 4 + "px",
-                  height: cellHeight.current + "px",
-                }}
-              >
+              <p className="settingTitle">Ground roughness:</p>
+              <div>
                 <p>{groundRoughness.current}</p>
                 <input
                   id="groundRoughness.current"
@@ -1538,21 +1457,8 @@ export default function engineOutput() {
               </div>
             </div>
             <div className="settingHolder">
-              <p
-                style={{
-                  width: cellWidth.current + "px",
-                  height: cellHeight.current + "px",
-                }}
-                className="settingTitle"
-              >
-                Game speed:
-              </p>
-              <div
-                style={{
-                  width: cellWidth.current - 4 + "px",
-                  height: cellHeight.current + "px",
-                }}
-              >
+              <p className="settingTitle">Game speed:</p>
+              <div>
                 <p>{gameSpeed.current}</p>
                 <input
                   id="gameSpeed.current"
@@ -1566,21 +1472,8 @@ export default function engineOutput() {
               </div>
             </div>
             <div className="settingHolder">
-              <p
-                style={{
-                  width: cellWidth.current + "px",
-                  height: cellHeight.current + "px",
-                }}
-                className="settingTitle"
-              >
-                Render speed:
-              </p>
-              <div
-                style={{
-                  width: cellWidth.current - 4 + "px",
-                  height: cellHeight.current + "px",
-                }}
-              >
+              <p className="settingTitle">Render speed:</p>
+              <div>
                 <p>{renderSpeed.current}</p>
                 <input
                   id="renderSpeed.current"
@@ -1594,21 +1487,8 @@ export default function engineOutput() {
               </div>
             </div>
             <div className="settingHolder">
-              <p
-                style={{
-                  width: cellWidth.current + "px",
-                  height: cellHeight.current + "px",
-                }}
-                className="settingTitle"
-              >
-                Total spawns:
-              </p>
-              <div
-                style={{
-                  width: cellWidth.current - 4 + "px",
-                  height: cellHeight.current + "px",
-                }}
-              >
+              <p className="settingTitle">Total spawns:</p>
+              <div>
                 <p>{totalSpawns.current}</p>
                 <input
                   id="totalSpawns.current"
@@ -1622,21 +1502,8 @@ export default function engineOutput() {
               </div>
             </div>
             <div className="settingHolder">
-              <p
-                style={{
-                  width: cellWidth.current + "px",
-                  height: cellHeight.current + "px",
-                }}
-                className="settingTitle"
-              >
-                Spawn speed:
-              </p>
-              <div
-                style={{
-                  width: cellWidth.current - 4 + "px",
-                  height: cellHeight.current + "px",
-                }}
-              >
+              <p className="settingTitle">Spawn speed:</p>
+              <div>
                 <p>{spawnSpeed.current}</p>
                 <input
                   id="spawnSpeed.current"
@@ -1650,21 +1517,8 @@ export default function engineOutput() {
               </div>
             </div>
             <div className="settingHolder">
-              <p
-                style={{
-                  width: cellWidth.current + "px",
-                  height: cellHeight.current + "px",
-                }}
-                className="settingTitle"
-              >
-                King HP:
-              </p>
-              <div
-                style={{
-                  width: cellWidth.current - 4 + "px",
-                  height: cellHeight.current + "px",
-                }}
-              >
+              <p className="settingTitle">King HP:</p>
+              <div>
                 <p>{kingHP.current}</p>
                 <input
                   id="kingHP.current"
@@ -1677,24 +1531,42 @@ export default function engineOutput() {
                 ></input>
               </div>
             </div>
-            <div
-              className="settingHolder"
-              style={{ display: "flex", alignItems: "center" }}
-            >
-              <p
-                style={{
-                  width: cellWidth.current + "px",
-                  height: cellHeight.current + "px",
-                }}
-                className="settingTitle"
-              >
-                Gamemode:
-              </p>
+            <div className="settingHolder">
+              <p className="settingTitle">Cell width: </p>
+              <div>
+                <p>{cellWidth.current}</p>
+                <input
+                  id="cellWidth"
+                  className="settingSlider"
+                  type="range"
+                  min="1"
+                  max="300"
+                  value={cellWidth.current}
+                  onChange={updateCellWidth}
+                ></input>
+              </div>
+            </div>
+            <div className="settingHolder">
+              <p className="settingTitle">Cell height:</p>
+              <div>
+                <p>{cellHeight.current}</p>
+                <input
+                  id="cellHeight"
+                  className="settingSlider"
+                  type="range"
+                  min="1"
+                  max="300"
+                  value={cellHeight.current}
+                  onChange={updateCellHeight}
+                ></input>
+              </div>
+            </div>
+            <div className="settingHolder">
+              <p className="settingTitle">Gamemode:</p>
               <select
                 id="gamemode.currentSelect"
                 defaultValue={gameMode.current}
                 onChange={updateGameMode}
-                style={{ color: "black" }}
               >
                 <option value="king">king</option>
                 <option value="battle">battle</option>
@@ -1703,26 +1575,6 @@ export default function engineOutput() {
                 <option value="blob gob">blob gob</option>
                 <option value="sandbox">sandbox</option>
               </select>
-              <div id="dimensions">
-                <div className="dimensionButtonHolder">
-                  <button className="dimensionButton" onClick={xDown}>
-                    -
-                  </button>
-                  <p>X = {cellWidth.current}</p>
-                  <button className="dimensionButton" onClick={xUp}>
-                    +
-                  </button>
-                </div>
-                <div className="dimensionButtonHolder">
-                  <button className="dimensionButton" onClick={yDown}>
-                    -
-                  </button>
-                  <p>Y = {cellHeight.current}</p>
-                  <button className="dimensionButton" onClick={yUp}>
-                    +
-                  </button>
-                </div>
-              </div>
             </div>
           </div>
         </div>

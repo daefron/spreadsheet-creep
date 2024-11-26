@@ -65,7 +65,7 @@ body {
 }
 #newButton {
   border: solid, black, 1px;
-  width: calc(70% + 2px);
+  width: calc(70%);
 }
 .tab {
   border: solid, black, 1px;
@@ -108,9 +108,8 @@ p {
 }
 input,
 select,
-.settingTitle,
-.statTitle,
-.stat {
+.stat,
+.statTitle {
   cursor: initial;
   font-size: 13px;
   margin: 0;
@@ -137,52 +136,68 @@ select,
 .purchasableCell:focus {
   outline: none;
 }
+#settingsHolder {
+  width: calc(100% - 5px);
+  border: solid 1px black;
+}
+#settings {
+  width: 70%;
+}
 .settingHolder {
+  width: 100%;
   display: flex;
-  align-items: center;
-  height: 21px;
-  box-shadow: -1px 0px 0px 0px black;
+}
+.settingHolder > div > p {
+  margin: 0;
+  width: 10%;
+  height: 23px;
+  text-align: center;
+}
+.settingTitle {
+  width: 50%;
+  height: 25px;
+  font-size: 13px;
+  margin: 0;
+  padding: 0;
+  text-indent: 5px;
+  border-width: 1px;
+  border-color: grey;
+  border-style: solid;
+  background-color: white;
+  user-select: none;
+  box-sizing: border-box;
 }
 select {
-  width: 157px;
-  height: 23px;
-  padding-left: 0px;
+  width: 50%;
+  height: 25px;
+  border: solid 1px grey;
 }
-#purchasables {
-  margin-top: -3px;
+option {
+  padding: 0px;
 }
 .settingSlider {
   accent-color: #404040;
-  width: 110px;
+  width: 88%;
 }
 .settingHolder > div {
-  padding-inline: 5px;
+  width: 50%;
+  text-indent: 5px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 2px;
-  border-bottom: solid 1px grey;
-  border-right: solid 1px grey;
-}
-#dimensions {
-  display: flex;
-  flex-direction: column;
-  margin-top: 5px;
-}
-.dimensionButtonHolder {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 5px;
-  height: 50%;
+  border: solid 1px grey;
+  box-sizing: border-box;
 }
 .dimensionButton {
   border: solid 1px;
-  border-radius: 3px;
+  border-radius: 0px;
   width: 30px;
   height: 25px;
   padding: 0px;
   margin: 0px;
+}
+#purchasables {
+  margin-top: -3px;
 }
 #xScroll {
   position: sticky;
@@ -207,7 +222,7 @@ select {
 }
 #yScroll {
   position: sticky;
-  margin-left: -5px;
+  margin-left: -9px;
   width: 4px;
 }
 #yScroll:hover {
