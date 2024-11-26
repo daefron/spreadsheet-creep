@@ -22,11 +22,11 @@ export default function engineOutput() {
   const lastFriendlySpawnTime = useRef(0);
   const gameTimer = useRef();
   const renderTimer = useRef();
-  const gameboardWidth = useRef(85);
+  const gameboardWidth = useRef(25);
   const gameboardHeight = useRef(42);
-  const renderWidth = useRef(gameboardWidth.current);
+  const renderWidth = useRef();
   const renderWidthMin = useRef(0);
-  const renderHeight = useRef(gameboardHeight.current);
+  const renderHeight = useRef();
   const renderHeightMin = useRef(0);
   const groundLevel = useRef(15);
   const groundRoughness = useRef(5);
@@ -289,7 +289,6 @@ export default function engineOutput() {
 
   function renderUpdate() {
     let initialTime = Date.now();
-    autoCell();
     if (cellSelectMoved.current) {
       xScrollUpdate();
       yScrollUpdate();
@@ -297,6 +296,7 @@ export default function engineOutput() {
     if (clickPosition.current !== undefined) {
       scrollDrag();
     }
+    autoCell();
     cellOverlap();
     updateGameboardEntities();
     scrollCheck();
@@ -493,56 +493,14 @@ export default function engineOutput() {
   }
 
   function autoCell() {
-    if (gameboardEntities[0] === undefined) {
-      return;
-    }
-    renderWidth.current = renderWidthCalc();
-    renderHeight.current = renderHeightCalc();
-    console.log(renderWidth.current, renderHeight.current);
-  }
-
-  const calcRenderWidth = useRef(0);
-  function renderWidthCalc() {
     let board = document.getElementById("gameboardHolder");
     let width = board.offsetWidth;
-    let cellsWidth = 0;
-    let cellAmount = 0;
-    for (let i = renderWidthMin.current; cellsWidth < width; i++) {
-      if (document.getElementById(i + "x" + renderHeightMin.current) === null) {
-        cellsWidth += cellWidth.current;
-        cellAmount++;
-      } else {
-        let cellWidth = document.getElementById(
-          i + "x" + renderHeightMin.current
-        ).offsetWidth;
-        cellsWidth += cellWidth;
-        cellAmount++;
-      }
-    }
-    calcRenderWidth.current = cellsWidth;
-    return cellAmount;
-  }
-
-  const calcRenderHeight = useRef(0);
-  function renderHeightCalc() {
-    let board = document.getElementById("gameboardHolder");
     let height = board.offsetHeight;
-    let cellsHeight = 0;
-    let cellAmount = 0;
-    for (let i = renderHeightMin.current; cellsHeight < height; i++) {
-      if (document.getElementById(i + "x" + renderHeightMin.current) === null) {
-        cellsHeight += cellHeight.current;
-        cellAmount++;
-      } else {
-        let cellHeight = document.getElementById(
-          i + "x" + renderHeightMin.current
-        ).offsetHeight;
-        cellsHeight += cellHeight;
-        cellAmount++;
-      }
-    }
-    calcRenderHeight.current = cellsHeight;
-    return cellAmount;
+    renderWidth.current =
+      1 + parseInt(width / cellWidth.current) + renderWidthMin.current;
+    
+    renderHeight.current =
+      4 + parseInt(height / cellHeight.current) + renderHeightMin.current;
   }
 
   function scrollCheck() {
@@ -648,12 +606,6 @@ export default function engineOutput() {
       return blankCell(w, h, style);
     }
 
-    function widthTest(style, w) {
-      if (w > 5 && w < 10) {
-        style.width = cellWidth.current / 2 + "px";
-      }
-    }
-
     function firstColumnCell(w, h) {
       if (h === renderHeightMin.current) {
         let style = {
@@ -666,7 +618,6 @@ export default function engineOutput() {
           position: "sticky",
           zIndex: "1000",
         };
-        widthTest(style, w);
         return [w + "x" + h, "", style, "0", w, h];
       } else {
         let style = {
@@ -681,8 +632,6 @@ export default function engineOutput() {
           position: "sticky",
           zIndex: "1000",
         };
-        widthTest(style, w);
-
         return [w + "x" + h, h + " ", style, "", w, h];
       }
     }
@@ -697,14 +646,12 @@ export default function engineOutput() {
         color: "#404040",
         boxShadow: "inset 0px -2px 0px #404040",
       };
-      widthTest(style, w);
       return [w + "x" + h, toLetter(w - 1) + " ", style, "0", w, h];
     }
 
     function blankCell(w, h, style) {
       let initialTime = Date.now();
       blankRenderTime.current += Date.now() - initialTime;
-      widthTest(style, w);
       return [w + "x" + h, "", style, "", w, h];
     }
 
@@ -732,7 +679,6 @@ export default function engineOutput() {
         }
       }
       effectRenderTime.current += Date.now() - initialTime;
-      widthTest(style, w);
       return [w + "x" + h, effect.symbol, style, "", w, h];
     }
 
@@ -759,7 +705,6 @@ export default function engineOutput() {
         }
       }
       entityRenderTime.current += Date.now() - initialTime;
-      widthTest(style, w);
       return [w + "x" + h, cellText, style, "", w, h];
 
       function attackBar(currentEntity, style) {
@@ -875,7 +820,6 @@ export default function engineOutput() {
           style.color = "darkRed";
         } else style.color = "darkGreen";
       }
-      widthTest(style, w);
       return [w + "x" + h, text, style, "", w, h];
 
       function groundLine(ground, style) {
@@ -974,7 +918,6 @@ export default function engineOutput() {
         inFluid(projectile, style);
       }
       projectileRenderTime.current += Date.now() - initialTime;
-      widthTest(style, w);
       return [w + "x" + h, projectile.symbol, style, "", w, h];
     }
 
@@ -983,7 +926,6 @@ export default function engineOutput() {
       style.backgroundColor = "lightBlue";
       fluidLine(fluid, style);
       fluidRenderTime.current += Date.now() - initialTime;
-      widthTest(style, w);
       return [w + "x" + h, "", style, "", w, h];
 
       function fluidLine(fluid, style) {
@@ -1181,6 +1123,7 @@ export default function engineOutput() {
   function newButton() {
     clearInterval(renderTimer.current);
     clearInterval(gameTimer.current);
+    autoCell();
     enemyGraveyard.current = [];
     friendlyGraveyard.current = [];
     groundGraveyard.current = [];
