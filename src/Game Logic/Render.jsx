@@ -1174,17 +1174,32 @@ export default function engineOutput() {
   return (
     <>
       <div id="stats">
-        <p className="statTitle">Money:</p>
+        <p
+          className="statTitle"
+          style={{ textAlign: "right", paddingRight: "5px" }}
+        >
+          Money:
+        </p>
         <p className="stat">{bank}</p>
-        <p className="statTitle" id="lastStat">
+        <p className="statTitle" id="status" style={{ textAlign: "center" }}>
           {gameStatus.current}
         </p>
-        <p className="statTitle">Friendly spawns:</p>
+        <p
+          className="statTitle"
+          style={{ textAlign: "right", paddingRight: "5px" }}
+        >
+          Friendly spawns:
+        </p>
         <p className="stat">
           {totalSpawns.current - friendlySpawnCount.current}/
           {totalSpawns.current}
         </p>
-        <p className="statTitle">Enemy spawns:</p>
+        <p
+          className="statTitle"
+          style={{ textAlign: "right", paddingRight: "5px" }}
+        >
+          Enemy spawns:
+        </p>
         <p className="stat">
           {totalSpawns.current - enemySpawnCount.current}/{totalSpawns.current}
         </p>
