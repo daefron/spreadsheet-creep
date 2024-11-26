@@ -1019,28 +1019,9 @@ export default function engineOutput() {
     let friendlyEntityArray = entityArray.filter((entity) => !entity.enemy);
     friendlyEntityArray.pop();
     let parsedFriendlyEntityArray = [
-      [
-        [gameboardHeight.current + 1 + " "],
-        ["Purchasable entities:"],
-        [""],
-        [""],
-        [""],
-        [""],
-        [""],
-        [""],
-      ],
-      [
-        [gameboardHeight.current + " "],
-        ["Name"],
-        ["Level"],
-        ["Cost"],
-        ["HP"],
-        ["Damage"],
-        ["Range"],
-        ["Rate"],
-      ],
+      [["Purchasable entities:"], [""], [""], [""], [""], [""], [""]],
+      [["Name"], ["Level"], ["Cost"], ["HP"], ["Damage"], ["Range"], ["Rate"]],
     ];
-    let headerNumber = gameboardHeight.current + 3;
     friendlyEntityArray.forEach((entity) => {
       let lvls = Object.values(entity.lvls);
       lvls.forEach((lvl) => {
@@ -1049,7 +1030,6 @@ export default function engineOutput() {
           name = entity.type;
         }
         let thisLevel = [
-          [headerNumber + " "],
           [name],
           [lvl.lvl],
           [lvl.value],
@@ -1059,7 +1039,6 @@ export default function engineOutput() {
           [lvl.rate],
         ];
         parsedFriendlyEntityArray.push(thisLevel);
-        headerNumber++;
       });
     });
     let cellCount = 0;
@@ -1067,30 +1046,6 @@ export default function engineOutput() {
       row.forEach((cell) => {
         cell.push(cellCount + "purchasable");
         cellCount++;
-      });
-      row[0].push({
-        textAlign: "center",
-        width: "50px",
-        boxShadow: "inset -1px 0px 0px #404040",
-        color: "#404040",
-      });
-    });
-    parsedFriendlyEntityArray[0].forEach((cell) => {
-      if (cell[0] !== gameboardHeight.current + 1 + " ") {
-        cell.push({
-          boxShadow: "inset 0px -2px 0px 0px black",
-        });
-      }
-    });
-    parsedFriendlyEntityArray.forEach((row) => {
-      row.forEach((cell) => {
-        if (cell[2] === undefined) {
-          cell.push({});
-        }
-        if (cell[2].width === undefined) {
-          cell[2].width = cellWidth.current + "px";
-        }
-        cell[2].height = cellHeight.current + "px";
       });
     });
     return (
@@ -1107,7 +1062,7 @@ export default function engineOutput() {
                         className="purchasableCell"
                         type="text"
                         defaultValue={position[0]}
-                        style={position[2]}
+                        style={{ width: "140px", height: "21px" }}
                         readOnly
                       ></input>
                     </td>
@@ -1202,28 +1157,6 @@ export default function engineOutput() {
     cellHeight.current = e.target.value;
     renderUpdate();
   }
-  function xDown() {
-    if (cellWidth.current <= 10) {
-      cellWidth.current = 1;
-    } else {
-      cellWidth.current -= 10;
-    }
-    renderUpdate();
-  }
-  function xUp() {
-    cellWidth.current += 10;
-    renderUpdate();
-  }
-  function yDown() {
-    if (cellHeight.current !== 1) {
-      cellHeight.current--;
-    }
-    renderUpdate();
-  }
-  function yUp() {
-    cellHeight.current++;
-    renderUpdate();
-  }
 
   const [activeTab, setActiveTab] = useState("gameboardHolder");
   function tabButton(e) {
@@ -1241,86 +1174,19 @@ export default function engineOutput() {
   return (
     <>
       <div id="stats">
-        <p
-          className="statTitle"
-          id="firstStat"
-          style={{
-            height: cellHeight.current + "px",
-          }}
-        ></p>
-        <p
-          className="statTitle"
-          style={{
-            width: cellWidth.current + "px",
-            height: cellHeight.current + "px",
-          }}
-        >
-          Money:
+        <p className="statTitle">Money:</p>
+        <p className="stat">{bank}</p>
+        <p className="statTitle" id="lastStat">
+          {gameStatus.current}
         </p>
-        <p
-          className="stat"
-          style={{
-            width: cellWidth.current + "px",
-            height: cellHeight.current + "px",
-          }}
-        >
-          {bank}
-        </p>
-        <p
-          className="statTitle"
-          style={{
-            width: cellWidth.current * 2 + "px",
-            height: cellHeight.current + "px",
-          }}
-        ></p>
-        <p
-          className="statTitle"
-          style={{
-            width: cellWidth.current + "px",
-            height: cellHeight.current + "px",
-          }}
-        >
-          Friendly spawns:
-        </p>
-        <p
-          className="stat"
-          style={{
-            width: cellWidth.current + "px",
-            height: cellHeight.current + "px",
-          }}
-        >
+        <p className="statTitle">Friendly spawns:</p>
+        <p className="stat">
           {totalSpawns.current - friendlySpawnCount.current}/
           {totalSpawns.current}
         </p>
-        <p
-          className="statTitle"
-          style={{
-            width: cellWidth.current + "px",
-            height: cellHeight.current + "px",
-          }}
-        >
-          Enemy spawns:
-        </p>
-        <p
-          className="stat"
-          style={{
-            width: cellWidth.current + "px",
-            height: cellHeight.current + "px",
-          }}
-        >
+        <p className="statTitle">Enemy spawns:</p>
+        <p className="stat">
           {totalSpawns.current - enemySpawnCount.current}/{totalSpawns.current}
-        </p>
-        <p
-          className="statTitle"
-          style={{
-            width: cellWidth.current * 2 + "px",
-            height: cellHeight.current + "px",
-            overflow: "visible",
-            position: "sticky",
-            zIndex: "10000",
-          }}
-        >
-          {gameStatus.current}
         </p>
       </div>
       <div id="above">
@@ -1329,7 +1195,7 @@ export default function engineOutput() {
           style={
             activeTab === "gameboardHolder"
               ? { visibility: "visible" }
-              : { visibility: "collapse", width: "0px" }
+              : { visibility: "collapse", width: "0px", border: "none" }
           }
         >
           <div id="gameboard">
@@ -1359,11 +1225,11 @@ export default function engineOutput() {
           </div>
         </div>
         <div
-          id="purchaseablesHolder"
+          id="purchasablesHolder"
           style={
             activeTab === "entitiesHolder"
               ? { visibility: "visible" }
-              : { visibility: "collapse", width: "0px" }
+              : { visibility: "collapse", width: "0px", border: "none" }
           }
         >
           <Purchasables></Purchasables>
@@ -1373,7 +1239,7 @@ export default function engineOutput() {
           style={
             activeTab === "settingsHolder"
               ? { visibility: "visible" }
-              : { visibility: "collapse", width: "0px" }
+              : { visibility: "collapse", width: "0px", border: "none" }
           }
         >
           <div id="settings">
@@ -1588,8 +1454,15 @@ export default function engineOutput() {
           }
         >
           <div id="yScrollBar"></div>
-          <div id="yLine"></div>
         </div>
+        <div
+          id="yLine"
+          style={
+            activeTab === "gameboardHolder"
+              ? { visibility: "visible" }
+              : { visibility: "collapse" }
+          }
+        ></div>
       </div>
       <div className="customScroll" id="xScroll">
         <div
