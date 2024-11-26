@@ -2,12 +2,11 @@ body {
   width: 100vw;
   height: 90vh;
   background-color: #cacaca;
-  margin: 20px;
   display: flex;
   justify-content: center;
 }
 #root {
-  height: 79%;
+  height: 85vh;
   width: 95%;
   padding: 5px;
   background-color: white;
@@ -16,26 +15,25 @@ body {
   flex-direction: column;
   align-self: center;
 }
+#stats {
+  display: flex;
+  height: var(--cell-select-height);
+}
+#above {
+  display: flex;
+  height: 94%;
+  width: 100%;
+  overflow: hidden;
+}
+#bottom {
+  display: flex;
+  height: var(--cell-select-height);
+}
 #gameboardHolder {
   display: flex;
   height: 100%;
   width: 100%;
-}
-#above {
-  display: flex;
-  height: 89%;
-  width: 100%;
-}
-#below {
-  height: 55%;
-  flex: 0 0 auto;
-}
-#gameboardHolder,
-#below {
   overflow: scroll;
-}
-#stats {
-  display: flex;
 }
 #gameboard {
   display: flex;
@@ -48,6 +46,29 @@ body {
 }
 #firstStat {
   width: 50px;
+}
+#bottom > button {
+  overflow: hidden;
+  box-sizing: border-box;
+  border-radius: 0px;
+  padding: 5px;
+  font-weight: 420;
+}
+#bottom > button:hover,
+#bottom > button:focus {
+  border-color: black;
+  border-right: solid black 1px;
+  outline: solid black 1px;
+  z-index: 100000;
+}
+#newButton {
+  border: solid, black, 1px;
+  width: calc(70% - 1px);
+}
+.tab {
+  border: solid, black, 1px;
+  margin-right: -1px;
+  width: 10%;
 }
 #settingsButton {
   border-radius: 0px;
@@ -91,7 +112,6 @@ select,
   cursor: initial;
   font-size: 13px;
   margin: 0;
-  /* margin-bottom: -1px; */
   padding: 0;
   text-indent: 5px;
   border-width: 1px;
@@ -101,7 +121,7 @@ select,
   border-style: solid;
   background-color: white;
   user-select: none;
-  box-sizing:border-box;
+  box-sizing: border-box;
 }
 .boardCell:focus {
   outline: none;
@@ -129,17 +149,6 @@ select {
 #purchasables {
   margin-top: -3px;
 }
-
-#below {
-  display: flex;
-  justify-content: start;
-  align-items: start;
-  border-top-style: solid;
-  border-top-color: #404040;
-}
-button {
-  margin-top: 5px;
-}
 .settingSlider {
   accent-color: #404040;
   width: 110px;
@@ -152,11 +161,6 @@ button {
   gap: 2px;
   border-bottom: solid 1px grey;
   border-right: solid 1px grey;
-}
-#bottom {
-  display: flex;
-  height: 60px;
-  gap: 5px;
 }
 #dimensions {
   display: flex;
@@ -178,23 +182,33 @@ button {
   padding: 0px;
   margin: 0px;
 }
-#newButton {
-  width: 90%;
-}
 #xScroll {
-  height: 3px;
+  height: 4px;
+  margin-top:-4px;
 }
 #xScroll:hover {
-  height: 5px;
+  height: 6px;
+}
+#xScrollBar {
+  height:100%;
+}
+#xScrollBar, #yScrollBar {
+  background-color: #404040;
+}
+#yLine {
+  width:1px;
+  background-color: black;
+  margin-left:-3px;
 }
 #yScroll {
-  width: 3px;
+  width: 4px;
 }
 #yScroll:hover {
-  width: 5px;
+  width: 6px;
 }
-.customScroll {
-  background-color: #404040;
+#yScrollBar {
+  width:100%;
+  height: 100%;
 }
 ::-webkit-scrollbar {
   width: 3px;

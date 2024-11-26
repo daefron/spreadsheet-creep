@@ -23,7 +23,7 @@ export default function engineOutput() {
   const gameTimer = useRef();
   const renderTimer = useRef();
   const gameboardWidth = useRef(25);
-  const gameboardHeight = useRef(35);
+  const gameboardHeight = useRef(48);
   const renderWidth = useRef();
   const renderWidthMin = useRef(0);
   const renderHeight = useRef();
@@ -500,7 +500,6 @@ export default function engineOutput() {
     let height = board.offsetHeight;
     renderWidth.current =
       1 + parseInt(width / cellWidth.current) + renderWidthMin.current;
-
     renderHeight.current =
       4 + parseInt(height / cellHeight.current) + renderHeightMin.current;
   }
@@ -1320,17 +1319,6 @@ export default function engineOutput() {
         >
           {gameStatus.current}
         </p>
-        <button
-          className="statTitle"
-          id="settingsButton"
-          style={{
-            width: cellWidth.current + "px",
-            height: cellHeight.current + "px",
-          }}
-          onClick={toggleSettings}
-        >
-          Settings/Entities &nbsp;
-        </button>
       </div>
       <div id="above">
         <div
@@ -1366,10 +1354,7 @@ export default function engineOutput() {
               );
             })}
           </div>
-          <div className="customScroll" id="yScroll"></div>
-          <div className="customScroll" id="xScroll"></div>
         </div>
-
         <div
           id="purchaseablesHolder"
           style={
@@ -1718,38 +1703,72 @@ export default function engineOutput() {
                 <option value="blob gob">blob gob</option>
                 <option value="sandbox">sandbox</option>
               </select>
+              <div id="dimensions">
+                <div className="dimensionButtonHolder">
+                  <button className="dimensionButton" onClick={xDown}>
+                    -
+                  </button>
+                  <p>X = {cellWidth.current}</p>
+                  <button className="dimensionButton" onClick={xUp}>
+                    +
+                  </button>
+                </div>
+                <div className="dimensionButtonHolder">
+                  <button className="dimensionButton" onClick={yDown}>
+                    -
+                  </button>
+                  <p>Y = {cellHeight.current}</p>
+                  <button className="dimensionButton" onClick={yUp}>
+                    +
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
+        <div id="yLine"></div>
+        <div className="customScroll" id="yScroll">
+        <div id="yScrollBar"></div>
+        </div>
+      </div>
+      <div className="customScroll" id="xScroll">
+        <div id="xScrollBar"></div>
       </div>
       <div id="bottom">
-        {/* <div id="dimensions">
-          <div className="dimensionButtonHolder">
-            <button className="dimensionButton" onClick={xDown}>
-              -
-            </button>
-            <p>X = {cellWidth.current}</p>
-            <button className="dimensionButton" onClick={xUp}>
-              +
-            </button>
-          </div>
-          <div className="dimensionButtonHolder">
-            <button className="dimensionButton" onClick={yDown}>
-              -
-            </button>
-            <p>Y = {cellHeight.current}</p>
-            <button className="dimensionButton" onClick={yUp}>
-              +
-            </button>
-          </div>
-        </div> */}
-        <button className="tab" id="gameboardTab" onClick={tabButton}>
+        <button
+          className="tab"
+          id="gameboardTab"
+          onClick={tabButton}
+          style={
+            activeTab === "gameboardHolder"
+              ? { backgroundColor: "#cacaca" }
+              : { backgroundColor: "white" }
+          }
+        >
           gameboard
         </button>
-        <button className="tab" id="entitiesTab" onClick={tabButton}>
+        <button
+          className="tab"
+          id="entitiesTab"
+          onClick={tabButton}
+          style={
+            activeTab === "entitiesHolder"
+              ? { backgroundColor: "#cacaca" }
+              : { backgroundColor: "white" }
+          }
+        >
           entities
         </button>
-        <button className="tab" id="settingsTab" onClick={tabButton}>
+        <button
+          className="tab"
+          id="settingsTab"
+          onClick={tabButton}
+          style={
+            activeTab === "settingsHolder"
+              ? { backgroundColor: "#cacaca" }
+              : { backgroundColor: "white" }
+          }
+        >
           settings
         </button>
         <button
