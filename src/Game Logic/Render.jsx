@@ -1223,6 +1223,11 @@ export default function engineOutput() {
     renderUpdate();
   }
 
+  const [activeTab, setActiveTab] = useState("gameboardHolder");
+  function tabButton(e) {
+    setActiveTab(e.target.textContent + "Holder");
+  }
+
   //renders the gameboard once on page load
   useEffect(() => {
     // timeTest();
@@ -1328,7 +1333,14 @@ export default function engineOutput() {
         </button>
       </div>
       <div id="above">
-        <div id="gameboardHolder">
+        <div
+          id="gameboardHolder"
+          style={
+            activeTab === "gameboardHolder"
+              ? { visibility: "visible" }
+              : { visibility: "collapse", width: "0px" }
+          }
+        >
           <div id="gameboard">
             {gameboardEntities.map((row) => {
               return (
@@ -1354,347 +1366,364 @@ export default function engineOutput() {
               );
             })}
           </div>
+          <div className="customScroll" id="yScroll"></div>
+          <div className="customScroll" id="xScroll"></div>
         </div>
-        <div className="customScroll" id="yScroll"></div>
-      </div>
-      <div id="below" style={{ display: settingsState }}>
-        <Purchasables></Purchasables>
-        <div id="settings">
-          <div
-            className="settingHolder"
-            style={{ display: "flex", alignItems: "center" }}
-          >
-            <p
-              className="settingTitle"
-              style={{
-                boxShadow: "inset 0px -2px 0px 0px black",
-                width: cellWidth.current + "px",
-                height: cellHeight.current + "px",
-              }}
-            >
-              Settings:
-            </p>
-            <input
-              id="settingTitle"
-              style={{
-                boxShadow: "inset 0px -2px 0px 0px black",
-                width: cellWidth.current + "px",
-                height: cellHeight.current + "px",
-              }}
-            ></input>
-          </div>
-          <div className="settingHolder">
-            <p
-              style={{
-                width: cellWidth.current + "px",
-                height: cellHeight.current + "px",
-              }}
-              className="settingTitle"
-            >
-              Gameboard width:
-            </p>
+
+        <div
+          id="purchaseablesHolder"
+          style={
+            activeTab === "entitiesHolder"
+              ? { visibility: "visible" }
+              : { visibility: "collapse", width: "0px" }
+          }
+        >
+          <Purchasables></Purchasables>
+        </div>
+        <div
+          id="settingsHolder"
+          style={
+            activeTab === "settingsHolder"
+              ? { visibility: "visible" }
+              : { visibility: "collapse", width: "0px" }
+          }
+        >
+          <div id="settings">
             <div
-              style={{
-                width: cellWidth.current - 4 + "px",
-                height: cellHeight.current + "px",
-              }}
+              className="settingHolder"
+              style={{ display: "flex", alignItems: "center" }}
             >
-              <p>{gameboardWidth.current}</p>
+              <p
+                className="settingTitle"
+                style={{
+                  boxShadow: "inset 0px -2px 0px 0px black",
+                  width: cellWidth.current + "px",
+                  height: cellHeight.current + "px",
+                }}
+              >
+                Settings:
+              </p>
               <input
-                id="boardWidth"
-                className="settingSlider"
-                type="range"
-                min="2"
-                max="800"
-                value={gameboardWidth.current}
-                onChange={updateGameboardWidth}
+                id="settingTitle"
+                style={{
+                  boxShadow: "inset 0px -2px 0px 0px black",
+                  width: cellWidth.current + "px",
+                  height: cellHeight.current + "px",
+                }}
               ></input>
             </div>
-          </div>
-          <div className="settingHolder">
-            <p
-              style={{
-                width: cellWidth.current + "px",
-                height: cellHeight.current + "px",
-              }}
-              className="settingTitle"
-            >
-              Gameboard height:
-            </p>
-            <div
-              style={{
-                width: cellWidth.current - 4 + "px",
-                height: cellHeight.current + "px",
-              }}
-            >
-              <p>{gameboardHeight.current}</p>
-              <input
-                id="boardHeight"
-                className="settingSlider"
-                type="range"
-                min="1"
-                max="800"
-                value={gameboardHeight.current}
-                onChange={updateGameboardHeight}
-              ></input>
+            <div className="settingHolder">
+              <p
+                style={{
+                  width: cellWidth.current + "px",
+                  height: cellHeight.current + "px",
+                }}
+                className="settingTitle"
+              >
+                Gameboard width:
+              </p>
+              <div
+                style={{
+                  width: cellWidth.current - 4 + "px",
+                  height: cellHeight.current + "px",
+                }}
+              >
+                <p>{gameboardWidth.current}</p>
+                <input
+                  id="boardWidth"
+                  className="settingSlider"
+                  type="range"
+                  min="2"
+                  max="800"
+                  value={gameboardWidth.current}
+                  onChange={updateGameboardWidth}
+                ></input>
+              </div>
             </div>
-          </div>
-          <div className="settingHolder">
-            <p
-              style={{
-                width: cellWidth.current + "px",
-                height: cellHeight.current + "px",
-              }}
-              className="settingTitle"
-            >
-              Ground height:
-            </p>
-            <div
-              style={{
-                width: cellWidth.current - 4 + "px",
-                height: cellHeight.current + "px",
-              }}
-            >
-              <p>{groundLevel.current}</p>
-              <input
-                id="groundLevel.current"
-                className="settingSlider"
-                type="range"
-                min="0"
-                max={gameboardHeight.current}
-                value={groundLevel.current}
-                onChange={updateGroundHeight}
-              ></input>
+            <div className="settingHolder">
+              <p
+                style={{
+                  width: cellWidth.current + "px",
+                  height: cellHeight.current + "px",
+                }}
+                className="settingTitle"
+              >
+                Gameboard height:
+              </p>
+              <div
+                style={{
+                  width: cellWidth.current - 4 + "px",
+                  height: cellHeight.current + "px",
+                }}
+              >
+                <p>{gameboardHeight.current}</p>
+                <input
+                  id="boardHeight"
+                  className="settingSlider"
+                  type="range"
+                  min="1"
+                  max="800"
+                  value={gameboardHeight.current}
+                  onChange={updateGameboardHeight}
+                ></input>
+              </div>
             </div>
-          </div>
-          <div className="settingHolder">
-            <p
-              style={{
-                width: cellWidth.current + "px",
-                height: cellHeight.current + "px",
-              }}
-              className="settingTitle"
-            >
-              Water level:
-            </p>
-            <div
-              style={{
-                width: cellWidth.current - 4 + "px",
-                height: cellHeight.current + "px",
-              }}
-            >
-              <p>{waterLevel.current}</p>
-              <input
-                id="waterLevel.current"
-                className="settingSlider"
-                type="range"
-                min="0"
-                max={gameboardHeight.current}
-                value={waterLevel.current}
-                onChange={updateWaterLevel}
-              ></input>
+            <div className="settingHolder">
+              <p
+                style={{
+                  width: cellWidth.current + "px",
+                  height: cellHeight.current + "px",
+                }}
+                className="settingTitle"
+              >
+                Ground height:
+              </p>
+              <div
+                style={{
+                  width: cellWidth.current - 4 + "px",
+                  height: cellHeight.current + "px",
+                }}
+              >
+                <p>{groundLevel.current}</p>
+                <input
+                  id="groundLevel.current"
+                  className="settingSlider"
+                  type="range"
+                  min="0"
+                  max={gameboardHeight.current}
+                  value={groundLevel.current}
+                  onChange={updateGroundHeight}
+                ></input>
+              </div>
             </div>
-          </div>
-          <div className="settingHolder">
-            <p
-              style={{
-                width: cellWidth.current + "px",
-                height: cellHeight.current + "px",
-              }}
-              className="settingTitle"
-            >
-              Ground roughness:
-            </p>
-            <div
-              style={{
-                width: cellWidth.current - 4 + "px",
-                height: cellHeight.current + "px",
-              }}
-            >
-              <p>{groundRoughness.current}</p>
-              <input
-                id="groundRoughness.current"
-                className="settingSlider"
-                type="range"
-                min="0"
-                max="10"
-                value={groundRoughness.current}
-                onChange={updateGroundRoughness}
-              ></input>
+            <div className="settingHolder">
+              <p
+                style={{
+                  width: cellWidth.current + "px",
+                  height: cellHeight.current + "px",
+                }}
+                className="settingTitle"
+              >
+                Water level:
+              </p>
+              <div
+                style={{
+                  width: cellWidth.current - 4 + "px",
+                  height: cellHeight.current + "px",
+                }}
+              >
+                <p>{waterLevel.current}</p>
+                <input
+                  id="waterLevel.current"
+                  className="settingSlider"
+                  type="range"
+                  min="0"
+                  max={gameboardHeight.current}
+                  value={waterLevel.current}
+                  onChange={updateWaterLevel}
+                ></input>
+              </div>
             </div>
-          </div>
-          <div className="settingHolder">
-            <p
-              style={{
-                width: cellWidth.current + "px",
-                height: cellHeight.current + "px",
-              }}
-              className="settingTitle"
-            >
-              Game speed:
-            </p>
-            <div
-              style={{
-                width: cellWidth.current - 4 + "px",
-                height: cellHeight.current + "px",
-              }}
-            >
-              <p>{gameSpeed.current}</p>
-              <input
-                id="gameSpeed.current"
-                className="settingSlider"
-                type="range"
-                min="0"
-                max="10"
-                value={gameSpeed.current}
-                onChange={updateGameSpeed}
-              ></input>
+            <div className="settingHolder">
+              <p
+                style={{
+                  width: cellWidth.current + "px",
+                  height: cellHeight.current + "px",
+                }}
+                className="settingTitle"
+              >
+                Ground roughness:
+              </p>
+              <div
+                style={{
+                  width: cellWidth.current - 4 + "px",
+                  height: cellHeight.current + "px",
+                }}
+              >
+                <p>{groundRoughness.current}</p>
+                <input
+                  id="groundRoughness.current"
+                  className="settingSlider"
+                  type="range"
+                  min="0"
+                  max="10"
+                  value={groundRoughness.current}
+                  onChange={updateGroundRoughness}
+                ></input>
+              </div>
             </div>
-          </div>
-          <div className="settingHolder">
-            <p
-              style={{
-                width: cellWidth.current + "px",
-                height: cellHeight.current + "px",
-              }}
-              className="settingTitle"
-            >
-              Render speed:
-            </p>
-            <div
-              style={{
-                width: cellWidth.current - 4 + "px",
-                height: cellHeight.current + "px",
-              }}
-            >
-              <p>{renderSpeed.current}</p>
-              <input
-                id="renderSpeed.current"
-                className="settingSlider"
-                type="range"
-                min="1"
-                max="10"
-                value={renderSpeed.current}
-                onChange={updateRenderSpeed}
-              ></input>
+            <div className="settingHolder">
+              <p
+                style={{
+                  width: cellWidth.current + "px",
+                  height: cellHeight.current + "px",
+                }}
+                className="settingTitle"
+              >
+                Game speed:
+              </p>
+              <div
+                style={{
+                  width: cellWidth.current - 4 + "px",
+                  height: cellHeight.current + "px",
+                }}
+              >
+                <p>{gameSpeed.current}</p>
+                <input
+                  id="gameSpeed.current"
+                  className="settingSlider"
+                  type="range"
+                  min="0"
+                  max="10"
+                  value={gameSpeed.current}
+                  onChange={updateGameSpeed}
+                ></input>
+              </div>
             </div>
-          </div>
-          <div className="settingHolder">
-            <p
-              style={{
-                width: cellWidth.current + "px",
-                height: cellHeight.current + "px",
-              }}
-              className="settingTitle"
-            >
-              Total spawns:
-            </p>
-            <div
-              style={{
-                width: cellWidth.current - 4 + "px",
-                height: cellHeight.current + "px",
-              }}
-            >
-              <p>{totalSpawns.current}</p>
-              <input
-                id="totalSpawns.current"
-                className="settingSlider"
-                type="range"
-                min="1"
-                max="300"
-                value={totalSpawns.current}
-                onChange={updateTotalSpawns}
-              ></input>
+            <div className="settingHolder">
+              <p
+                style={{
+                  width: cellWidth.current + "px",
+                  height: cellHeight.current + "px",
+                }}
+                className="settingTitle"
+              >
+                Render speed:
+              </p>
+              <div
+                style={{
+                  width: cellWidth.current - 4 + "px",
+                  height: cellHeight.current + "px",
+                }}
+              >
+                <p>{renderSpeed.current}</p>
+                <input
+                  id="renderSpeed.current"
+                  className="settingSlider"
+                  type="range"
+                  min="1"
+                  max="10"
+                  value={renderSpeed.current}
+                  onChange={updateRenderSpeed}
+                ></input>
+              </div>
             </div>
-          </div>
-          <div className="settingHolder">
-            <p
-              style={{
-                width: cellWidth.current + "px",
-                height: cellHeight.current + "px",
-              }}
-              className="settingTitle"
-            >
-              Spawn speed:
-            </p>
-            <div
-              style={{
-                width: cellWidth.current - 4 + "px",
-                height: cellHeight.current + "px",
-              }}
-            >
-              <p>{spawnSpeed.current}</p>
-              <input
-                id="spawnSpeed.current"
-                className="settingSlider"
-                type="range"
-                min="1"
-                max="100"
-                value={spawnSpeed.current}
-                onChange={updateSpawnSpeed}
-              ></input>
+            <div className="settingHolder">
+              <p
+                style={{
+                  width: cellWidth.current + "px",
+                  height: cellHeight.current + "px",
+                }}
+                className="settingTitle"
+              >
+                Total spawns:
+              </p>
+              <div
+                style={{
+                  width: cellWidth.current - 4 + "px",
+                  height: cellHeight.current + "px",
+                }}
+              >
+                <p>{totalSpawns.current}</p>
+                <input
+                  id="totalSpawns.current"
+                  className="settingSlider"
+                  type="range"
+                  min="1"
+                  max="300"
+                  value={totalSpawns.current}
+                  onChange={updateTotalSpawns}
+                ></input>
+              </div>
             </div>
-          </div>
-          <div className="settingHolder">
-            <p
-              style={{
-                width: cellWidth.current + "px",
-                height: cellHeight.current + "px",
-              }}
-              className="settingTitle"
-            >
-              King HP:
-            </p>
-            <div
-              style={{
-                width: cellWidth.current - 4 + "px",
-                height: cellHeight.current + "px",
-              }}
-            >
-              <p>{kingHP.current}</p>
-              <input
-                id="kingHP.current"
-                className="settingSlider"
-                type="range"
-                min="10"
-                max="10000"
-                value={kingHP.current}
-                onChange={updateKingHP}
-              ></input>
+            <div className="settingHolder">
+              <p
+                style={{
+                  width: cellWidth.current + "px",
+                  height: cellHeight.current + "px",
+                }}
+                className="settingTitle"
+              >
+                Spawn speed:
+              </p>
+              <div
+                style={{
+                  width: cellWidth.current - 4 + "px",
+                  height: cellHeight.current + "px",
+                }}
+              >
+                <p>{spawnSpeed.current}</p>
+                <input
+                  id="spawnSpeed.current"
+                  className="settingSlider"
+                  type="range"
+                  min="1"
+                  max="100"
+                  value={spawnSpeed.current}
+                  onChange={updateSpawnSpeed}
+                ></input>
+              </div>
             </div>
-          </div>
-          <div
-            className="settingHolder"
-            style={{ display: "flex", alignItems: "center" }}
-          >
-            <p
-              style={{
-                width: cellWidth.current + "px",
-                height: cellHeight.current + "px",
-              }}
-              className="settingTitle"
+            <div className="settingHolder">
+              <p
+                style={{
+                  width: cellWidth.current + "px",
+                  height: cellHeight.current + "px",
+                }}
+                className="settingTitle"
+              >
+                King HP:
+              </p>
+              <div
+                style={{
+                  width: cellWidth.current - 4 + "px",
+                  height: cellHeight.current + "px",
+                }}
+              >
+                <p>{kingHP.current}</p>
+                <input
+                  id="kingHP.current"
+                  className="settingSlider"
+                  type="range"
+                  min="10"
+                  max="10000"
+                  value={kingHP.current}
+                  onChange={updateKingHP}
+                ></input>
+              </div>
+            </div>
+            <div
+              className="settingHolder"
+              style={{ display: "flex", alignItems: "center" }}
             >
-              Gamemode:
-            </p>
-            <select
-              id="gamemode.currentSelect"
-              defaultValue={gameMode.current}
-              onChange={updateGameMode}
-              style={{ color: "black" }}
-            >
-              <option value="king">king</option>
-              <option value="battle">battle</option>
-              <option value="blob">blob</option>
-              <option value="blob fight">blob fight</option>
-              <option value="blob gob">blob gob</option>
-              <option value="sandbox">sandbox</option>
-            </select>
+              <p
+                style={{
+                  width: cellWidth.current + "px",
+                  height: cellHeight.current + "px",
+                }}
+                className="settingTitle"
+              >
+                Gamemode:
+              </p>
+              <select
+                id="gamemode.currentSelect"
+                defaultValue={gameMode.current}
+                onChange={updateGameMode}
+                style={{ color: "black" }}
+              >
+                <option value="king">king</option>
+                <option value="battle">battle</option>
+                <option value="blob">blob</option>
+                <option value="blob fight">blob fight</option>
+                <option value="blob gob">blob gob</option>
+                <option value="sandbox">sandbox</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
-      <div className="customScroll" id="xScroll"></div>
       <div id="bottom">
-        <div id="dimensions">
+        {/* <div id="dimensions">
           <div className="dimensionButtonHolder">
             <button className="dimensionButton" onClick={xDown}>
               -
@@ -1713,7 +1742,16 @@ export default function engineOutput() {
               +
             </button>
           </div>
-        </div>
+        </div> */}
+        <button className="tab" id="gameboardTab" onClick={tabButton}>
+          gameboard
+        </button>
+        <button className="tab" id="entitiesTab" onClick={tabButton}>
+          entities
+        </button>
+        <button className="tab" id="settingsTab" onClick={tabButton}>
+          settings
+        </button>
         <button
           id="newButton"
           onClick={newButton}
