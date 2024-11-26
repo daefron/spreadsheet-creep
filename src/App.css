@@ -4,6 +4,7 @@ body {
   background-color: #cacaca;
   display: flex;
   justify-content: center;
+  color: black;
 }
 #root {
   height: 85vh;
@@ -48,6 +49,7 @@ body {
   width: 50px;
 }
 #bottom > button {
+  color: black;
   overflow: hidden;
   box-sizing: border-box;
   border-radius: 0px;
@@ -63,7 +65,7 @@ body {
 }
 #newButton {
   border: solid, black, 1px;
-  width: calc(70% - 1px);
+  width: calc(70% + 2px);
 }
 .tab {
   border: solid, black, 1px;
@@ -183,31 +185,36 @@ select {
   margin: 0px;
 }
 #xScroll {
+  position: sticky;
   height: 4px;
-  margin-top:-4px;
+  margin-top: -7px;
 }
 #xScroll:hover {
   height: 6px;
 }
 #xScrollBar {
-  height:100%;
+  height: 100%;
 }
-#xScrollBar, #yScrollBar {
+#xScrollBar,
+#yScrollBar {
   background-color: #404040;
 }
 #yLine {
-  width:1px;
+  width: 1px;
+  margin-left: 3px;
+  height: 100%;
   background-color: black;
-  margin-left:-3px;
 }
 #yScroll {
+  position: sticky;
+  margin-left: -5px;
   width: 4px;
 }
 #yScroll:hover {
   width: 6px;
 }
 #yScrollBar {
-  width:100%;
+  width: 100%;
   height: 100%;
 }
 ::-webkit-scrollbar {

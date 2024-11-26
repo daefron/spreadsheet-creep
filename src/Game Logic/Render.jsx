@@ -1726,13 +1726,28 @@ export default function engineOutput() {
             </div>
           </div>
         </div>
-        <div id="yLine"></div>
-        <div className="customScroll" id="yScroll">
-        <div id="yScrollBar"></div>
+        <div
+          className="customScroll"
+          id="yScroll"
+          style={
+            activeTab === "gameboardHolder"
+              ? { visibility: "visible" }
+              : { visibility: "collapse" }
+          }
+        >
+          <div id="yScrollBar"></div>
+          <div id="yLine"></div>
         </div>
       </div>
       <div className="customScroll" id="xScroll">
-        <div id="xScrollBar"></div>
+        <div
+          id="xScrollBar"
+          style={
+            activeTab === "gameboardHolder"
+              ? { visibility: "visible" }
+              : { visibility: "collapse" }
+          }
+        ></div>
       </div>
       <div id="bottom">
         <button
