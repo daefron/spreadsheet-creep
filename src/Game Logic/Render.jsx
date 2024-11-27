@@ -24,7 +24,7 @@ export default function EngineOutput() {
   const gameTimer = useRef();
   const renderTimer = useRef();
   const gameboardWidth = useRef(25);
-  const gameboardHeight = useRef(78);
+  const gameboardHeight = useRef(55);
   const renderWidth = useRef();
   const renderWidthMin = useRef(0);
   const renderHeight = useRef();
@@ -44,7 +44,7 @@ export default function EngineOutput() {
   const cellTyping = useRef(false);
   const currentInput = useRef("");
   const cellWidth = useRef(120);
-  const cellHeight = useRef(21);
+  const cellHeight = useRef(20);
   const [gameboardEntities, setGameboardEntities] = useState([]);
   const scrollPositionX = useRef(0);
   const scrollPositionY = useRef(0);
@@ -138,19 +138,13 @@ export default function EngineOutput() {
   }, []);
 
   function renderUpdate() {
-    if (cellSelectMoved.current) {
-      xScrollUpdate();
-      yScrollUpdate();
-    }
-    if (clickPosition.current !== undefined) {
-      scrollDrag();
-    }
+    xScrollUpdate();
+    yScrollUpdate();
     autoCell();
     cellOverlap();
     setGameboardEntities(updateGameboardEntities(gameStatePacker()));
     scrollCheck();
     cellSelectMoved.current = false;
-    scrolledThisTurn.current = false;
   }
 
   function cellOverlap() {
@@ -230,31 +224,6 @@ export default function EngineOutput() {
     yScroll.style.marginTop = baselineMargin * marginMultiplier + "px";
   }
 
-  const clickPosition = useRef(undefined);
-  const mousePosition = useRef([undefined, undefined]);
-  const selectedScroll = useRef(undefined);
-
-  function scrollDrag() {
-    let old, current, x;
-    if (selectedScroll.current.id === "xScroll") {
-      old = clickPosition.current[0];
-      current = mousePosition.current[0];
-      x = true;
-    } else if (selectedScroll.current.id === "yScroll") {
-      old = clickPosition.current[1];
-      current = mousePosition.current[1];
-      x = false;
-    }
-    let board = document.getElementById("gameboardHolder");
-    let diff = current - old;
-    if (x) {
-      board.scrollBy(diff * 50, 0);
-    } else {
-      board.scrollBy(0, diff * 50);
-    }
-    clickPosition.current[0] = current;
-  }
-
   const scrolledThisTurn = useRef(false);
 
   useEffect(() => {
@@ -282,29 +251,13 @@ export default function EngineOutput() {
         }
       }
     }
-    let xScroll = document.getElementById("xScroll");
-    let yScroll = document.getElementById("yScroll");
-    xScroll.addEventListener("mousedown", scrollClick);
-    yScroll.addEventListener("mousedown", scrollClick);
-    function scrollClick(e) {
-      clickPosition.current = [e.pageX, e.pageY];
-      selectedScroll.current = e.target;
-    }
-    document.addEventListener("mousemove", scrollMove);
-    function scrollMove(e) {
-      mousePosition.current = [e.clientX, e.clientY];
-    }
-    document.addEventListener("mouseup", scrollRelease);
-    function scrollRelease() {
-      clickPosition.current = undefined;
-    }
   }, []);
 
   function scrollEndX() {
     if (renderWidth.current < gameboardWidth.current) {
       renderWidthMin.current++;
       renderWidth.current++;
-      scrollPositionX.current = cellWidth.current / 3;
+      scrollPositionX.current = -cellWidth.current;
       scrolledThisTurn.current = true;
     }
   }
@@ -320,7 +273,7 @@ export default function EngineOutput() {
     if (renderHeight.current < gameboardHeight.current) {
       renderHeightMin.current++;
       renderHeight.current++;
-      scrollPositionY.current = cellHeight.current * 4.7;
+      scrollPositionY.current = -1;
       scrolledThisTurn.current = true;
     }
   }
@@ -328,8 +281,22 @@ export default function EngineOutput() {
     if (renderHeightMin.current > 0) {
       renderHeightMin.current--;
       renderHeight.current--;
-      scrollPositionY.current = cellHeight.current / 2;
+      scrollPositionY.current = cellHeight.current - 1;
       scrolledThisTurn.current = true;
+    }
+  }
+
+  function scrollCheck() {
+    let board = document.getElementById("gameboardHolder");
+    if (scrollPositionX.current !== 0) {
+      board.scrollBy(scrollPositionX.current, 0);
+      scrollPositionX.current = 0;
+      scrolledThisTurn.current = false;
+    }
+    if (scrollPositionY.current !== 0) {
+      board.scrollBy(0, scrollPositionY.current);
+      scrollPositionY.current = 0;
+      scrolledThisTurn.current = false;
     }
   }
 
@@ -338,22 +305,11 @@ export default function EngineOutput() {
     let width = board.offsetWidth;
     let height = board.offsetHeight;
     renderWidth.current =
-      1 + parseInt(width / cellWidth.current) + renderWidthMin.current;
+      2 + parseInt(width / cellWidth.current) + renderWidthMin.current;
     renderHeight.current =
-      4 + parseInt(height / cellHeight.current) + renderHeightMin.current;
+      2 + parseInt(height / cellHeight.current) + renderHeightMin.current;
   }
 
-  function scrollCheck() {
-    let board = document.getElementById("gameboardHolder");
-    if (scrollPositionX.current !== 0) {
-      board.scrollTo(scrollPositionX.current, board.scrollTop);
-      scrollPositionX.current = 0;
-    }
-    if (scrollPositionY.current !== 0) {
-      board.scrollTo(board.scrollLeft, scrollPositionY.current);
-      scrollPositionY.current = 0;
-    }
-  }
   function newButton() {
     clearInterval(renderTimer.current);
     clearInterval(gameTimer.current);
