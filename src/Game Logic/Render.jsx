@@ -36,7 +36,7 @@ export default function engineOutput() {
   const totalSpawns = useRef(5);
   const spawnSpeed = useRef(1);
   const kingHP = useRef(20);
-  const gameMode = useRef("blob gob");
+  const gameMode = useRef("blob");
   const friendlyCount = useRef(1);
   const projectileCount = useRef(0);
   const selectedCell = useRef();
@@ -764,7 +764,7 @@ export default function engineOutput() {
       }
 
       function blobLine(blob, style) {
-        if (entity.hp === 10) {
+        if (entity.hp === entity.maxHp) {
           return;
         }
         let color = style.color;
