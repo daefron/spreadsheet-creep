@@ -55,7 +55,7 @@ export function engine(newRound, gameState) {
   let totalSpawns = gameState.settings.totalSpawns;
   let spawnSpeed = gameState.settings.spawnSpeed;
   let gameMode = gameState.settings.gameMode;
-  let gameStatus = gameState.settings.gameStatus;
+  let gameStatus = gameState.render.gameStatus;
   let projectileCount = gameState.engine.projectileCount;
   let blobAtEnd = false;
 

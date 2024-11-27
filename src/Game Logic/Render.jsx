@@ -27,6 +27,7 @@ import {
 } from "./Render/SettingUpdaters.jsx";
 import { engine } from "./Engine.jsx";
 import EntityList from "./Lists/EntityList.jsx";
+import Stats from "./Render/Stats.jsx";
 import Purchasables from "./Render/Purchasables.jsx";
 import { updateGameboardEntities } from "./Render/UpdateGameboardEntities.jsx";
 
@@ -127,7 +128,6 @@ export default function EngineOutput() {
         totalSpawns: totalSpawns,
         spawnSpeed: spawnSpeed,
         gameMode: gameMode,
-        gameStatus: gameStatus,
       },
       input: {
         selectedCell: selectedCell,
@@ -146,6 +146,7 @@ export default function EngineOutput() {
         scrollPositionX: scrollPositionX,
         scrollPositionY: scrollPositionY,
         scrolledThisTurn: scrolledThisTurn,
+        gameStatus: gameStatus,
       },
     };
   }
@@ -179,42 +180,6 @@ export default function EngineOutput() {
 
   const [activeTab, setActiveTab] = useState("gameboardHolder");
 
-  function Stats() {
-    return (
-      <div id="stats">
-        <p
-          className="statTitle"
-          style={{ textAlign: "right", paddingRight: "5px" }}
-        >
-          Money:
-        </p>
-        <p className="stat">{bank}</p>
-        <p
-          className="statTitle"
-          style={{ textAlign: "right", paddingRight: "5px" }}
-        >
-          Friendly spawns:
-        </p>
-        <p className="stat">
-          {totalSpawns.current - friendlySpawnCount.current}/
-          {totalSpawns.current}
-        </p>
-        <p
-          className="statTitle"
-          style={{ textAlign: "right", paddingRight: "5px" }}
-        >
-          Enemy spawns:
-        </p>
-        <p className="stat">
-          {totalSpawns.current - enemySpawnCount.current}/{totalSpawns.current}
-        </p>
-        <p className="statTitle" id="status" style={{ textAlign: "center" }}>
-          {gameStatus.current}
-        </p>
-      </div>
-    );
-  }
-
   useEffect(() => {
     function handleKeyPress(e) {
       keyboardSelect(e, gameStatePacker());
@@ -237,7 +202,7 @@ export default function EngineOutput() {
 
   return (
     <>
-      <Stats></Stats>
+      <Stats gameState={gameStatePacker()}></Stats>
       <div id="above">
         <div
           id="gameboardHolder"
