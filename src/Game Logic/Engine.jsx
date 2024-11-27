@@ -130,7 +130,6 @@ export function engine(newRound, gameState) {
     activeEntities.current.push(entityID);
   }
 
-  //checks to see if entity dies
   function healthChecker(entity) {
     if (entity.hp <= 0) {
       entityKiller(entity);
@@ -138,7 +137,6 @@ export function engine(newRound, gameState) {
     }
   }
 
-  //determines which graveyard entities get sent to
   function entityKiller(entity) {
     if (entity.death !== undefined) {
       if (entity.death === "explodes") {
@@ -186,7 +184,6 @@ export function engine(newRound, gameState) {
       );
     }
   }
-  //tells entities what to do on their turn
   function entityTurn(currentEntity) {
     if (healthChecker(currentEntity)) {
       return;
@@ -570,7 +567,6 @@ export function engine(newRound, gameState) {
       }
     }
 
-    //determines what happens to entity if hits boundary wall
     function entityBoundaryHandler(currentEntity) {
       let newPosition = [direction(currentEntity), currentEntity.position[1]];
       if (
@@ -646,14 +642,12 @@ export function engine(newRound, gameState) {
     }
   }
 
-  //holds functions for entity falling
   function entityFall(currentEntity) {
     if (entityCanFall(currentEntity)) {
       entityFall(currentEntity);
       return true;
     }
 
-    //function to determine if there is anything under the current entity
     function entityCanFall(currentEntity) {
       if (currentEntity.position[1] < 0) {
         currentEntity.position[1]++;
@@ -688,7 +682,6 @@ export function engine(newRound, gameState) {
       }
     }
 
-    //moves entities down if falling
     function entityFall(entity) {
       if (entity.fallCharge < entity.fallSpeed / gameSpeed.current) {
         entity.fallCharge++;
@@ -705,7 +698,6 @@ export function engine(newRound, gameState) {
     }
   }
 
-  //holds functions for entity attacks
   function entityAttack(currentEntity) {
     if (currentEntity.position[1] < 1) {
       currentEntity.position[1]++;
@@ -755,7 +747,6 @@ export function engine(newRound, gameState) {
       }
     }
 
-    //function to determine if entity can attack this turn
     function entityCanAttack(currentEntity, targetEntity) {
       if (
         currentEntity.rateCharge >= currentEntity.rate &&
@@ -767,7 +758,6 @@ export function engine(newRound, gameState) {
       }
     }
 
-    //function to return array of cells entity can target
     function meleeRange(currentEntity) {
       let rangeCells = [];
       let rangeLetter = direction(currentEntity);
@@ -794,7 +784,6 @@ export function engine(newRound, gameState) {
       return rangeCells;
     }
 
-    //function to return entity to attack
     function meleeAttackTargetter(currentEntity, rangeCells) {
       let target;
       rangeCells.forEach((cell) => {
@@ -809,7 +798,6 @@ export function engine(newRound, gameState) {
       return target;
     }
 
-    //function to execute attack if can
     function meleeAttack(currentEntity, targetEntity) {
       targetEntity.hp -= currentEntity.dmg;
       currentEntity.rateCharge = 0;
@@ -841,7 +829,6 @@ export function engine(newRound, gameState) {
       return target;
     }
 
-    //function to spawn projectile
     function rangedAttack(currentEntity) {
       let projectileID =
         currentEntity.projectile + projectileCount.current + currentEntity.name;
@@ -904,7 +891,6 @@ export function engine(newRound, gameState) {
       currentEntity.rateCharge = 0;
     }
 
-    //checks to see if any enemies exist
     function enemyChecker() {
       let enemies = activeEntities.current.filter(
         (entity) => entity.enemy === true
@@ -915,14 +901,12 @@ export function engine(newRound, gameState) {
     }
   }
 
-  //holds functions for entity movement
   function entityMovement(currentEntity) {
     currentEntity.speedCharge++;
     if (entityCanMove(currentEntity)) {
       return entityMovementType(currentEntity);
     }
 
-    //function to determine if entity can move this turn
     function entityCanMove(currentEntity) {
       if (currentEntity.movement === undefined) {
         return false;
@@ -932,7 +916,6 @@ export function engine(newRound, gameState) {
       }
     }
 
-    //function to determine how entity moves if it can
     function entityMovementType(currentEntity) {
       let newPosition = [direction(currentEntity), currentEntity.position[1]];
       if (currentEntity.movement === "walker") {
@@ -953,7 +936,6 @@ export function engine(newRound, gameState) {
       }
       return false;
 
-      //holds climbing functions
       function climb(currentEntity) {
         let positionNextTo = [
           direction(currentEntity),
@@ -964,7 +946,6 @@ export function engine(newRound, gameState) {
           return true;
         }
 
-        //checks if entity wants to climb
         function climbChecker(currentEntity, positionNextTo) {
           let entityNextTo = onBoard(entityBoard.current, positionNextTo);
           if (
@@ -979,7 +960,6 @@ export function engine(newRound, gameState) {
           }
           return false;
 
-          //checks if position to climb into is free
           function climbSpotFree(positionNextTo) {
             let positionAbove = [positionNextTo[0], positionNextTo[1] - 1];
             let entityAbove = onBoard(entityBoard.current, positionAbove);
@@ -991,7 +971,6 @@ export function engine(newRound, gameState) {
           }
         }
 
-        //makes entity climb
         function climbMovement(currentEntity, positionNextTo) {
           let positionAbove = [positionNextTo[0], positionNextTo[1] - 1];
           moveBoard(entityBoard.current, positionAbove, currentEntity);
@@ -1000,14 +979,12 @@ export function engine(newRound, gameState) {
         }
       }
 
-      //holds functions for normal walking
       function walk(currentEntity, newPosition) {
         if (walkChecker(newPosition)) {
           walkMovement(currentEntity, newPosition);
           return true;
         }
 
-        //checks if entity can walk
         function walkChecker(newPosition) {
           let entityCell = onBoard(entityBoard.current, newPosition);
           let groundCell = onBoard(groundBoard.current, newPosition);
@@ -1016,7 +993,6 @@ export function engine(newRound, gameState) {
           }
         }
 
-        //makes entity walk
         function walkMovement(currentEntity, newPosition) {
           currentEntity.speedCharge = 0;
           currentEntity.idle = 0;
@@ -1076,14 +1052,12 @@ export function engine(newRound, gameState) {
     }
   }
 
-  //holds functions for entities attacking ground
   function entityAttackGroundHandler(currentEntity) {
     if (entityCanAttackGround(currentEntity)) {
       entityAttackGround(currentEntity);
       return true;
     }
 
-    //checks if entity is allowed to attack adjacent ground
     function entityCanAttackGround(currentEntity) {
       if (currentEntity.idle === undefined) {
         currentEntity.idle = 0;
@@ -1105,7 +1079,6 @@ export function engine(newRound, gameState) {
       return false;
     }
 
-    //makes entity attack adjacent ground
     function entityAttackGround(currentEntity) {
       let targetGround = onBoard(groundBoard.current, [
         direction(currentEntity),
@@ -1117,7 +1090,6 @@ export function engine(newRound, gameState) {
     }
   }
 
-  //tells the projectile what to do on its turn
   function projectileTurn(projectile) {
     fluidChecker(projectile);
     projectile.speedCharge++;
@@ -1287,7 +1259,6 @@ export function engine(newRound, gameState) {
         projectile.speedCharge = 0;
       }
 
-      //checks to see if there is an enemy below projectile
       function belowTargetter(projectile) {
         let targetFound = false;
         for (let h = gameboardHeight.current; h > 1; h--) {
@@ -1305,7 +1276,6 @@ export function engine(newRound, gameState) {
       }
     }
 
-    //checks if the projectile can move this turn
     function arrowCanMove(projectile) {
       if (projectile.distance === 0) {
         activeProjectiles.current.splice(
@@ -1319,7 +1289,6 @@ export function engine(newRound, gameState) {
       }
     }
 
-    //checks to see if projectile will move or attack enemy
     function arrowMovement(projectile) {
       let newPosition = [direction(projectile), projectile.position[1]];
       let entityInPosition = onBoard(entityBoard.current, newPosition);
@@ -1494,7 +1463,6 @@ export function engine(newRound, gameState) {
       activeEffects.current.splice(activeEffects.current.indexOf(effect), 1);
     }
   }
-  //creates ground based on groundHeight and type
   function terrainMaker() {
     for (
       let h = gameboardHeight.current;
@@ -1652,7 +1620,6 @@ export function engine(newRound, gameState) {
       nextTurn();
     }
 
-    //makes all entities take turn
     function nextTurn() {
       activeEntities.current.forEach((entity) => {
         entityTurn(entity);
@@ -1759,7 +1726,6 @@ export function engine(newRound, gameState) {
       }
     }
 
-    //checks if game is allowed to spawn on current turn
     function spawnChecker(enemy) {
       if (enemy) {
         if (enemySpawnCount.current < totalSpawns.current) {
@@ -1782,7 +1748,6 @@ export function engine(newRound, gameState) {
       }
     }
 
-    //sets how long until next unit spawns
     function spawnTime() {
       let baseline = 80;
       let actual =
@@ -1792,7 +1757,6 @@ export function engine(newRound, gameState) {
       return actual;
     }
 
-    //determines what entity will spawn based on weighted chance
     function spawnType() {
       let entitiesEnemy = Object.entries(entityList)
         .filter((entity) => entity[1].enemy)
@@ -1827,7 +1791,6 @@ export function engine(newRound, gameState) {
       return chosenEntity;
     }
 
-    //spawns chosen entity
     function entitySpawner(entity, enemy) {
       let entityType = entityList[entity[0]];
       let entityLvl = entityType.lvls["lvl" + entity[1]];
@@ -1852,7 +1815,6 @@ export function engine(newRound, gameState) {
       return entityID;
     }
 
-    //finds the position above the highest entity in the final column
     function spawnPositionFinder(enemy) {
       let baselinePosition;
       if (enemy) {

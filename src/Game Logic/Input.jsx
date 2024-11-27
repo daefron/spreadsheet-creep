@@ -17,13 +17,13 @@ export function clickSelect(e, gameState) {
     currentInput.current = "";
   }
 }
-//gives the user input a spreadsheet like experience
+
 export function keyboardSelect(e, gameState) {
   let gameboardHeight = gameState.settings.gameboardHeight;
-  let renderWidth = gameState.settings.renderWidth;
-  let renderHeight = gameState.settings.renderHeight;
-  let renderWidthMin = gameState.settings.renderWidthMin;
-  let renderHeightMin = gameState.settings.renderHeightMin;
+  let renderWidth = gameState.render.renderWidth;
+  let renderHeight = gameState.render.renderHeight;
+  let renderWidthMin = gameState.render.renderWidthMin;
+  let renderHeightMin = gameState.render.renderHeightMin;
   let selectedCell = gameState.input.selectedCell;
   let currentInput = gameState.input.currentInput;
   let cellTyping = gameState.input.cellTyping;
@@ -185,7 +185,6 @@ export function keyboardSelect(e, gameState) {
   }
 }
 
-//checks to see if user input is in space of other entity
 function typingChecker(position, gameState) {
   let targetCell = cellContents(position, gameState.active);
   if (targetCell.ground === undefined && targetCell.entity === undefined) {
@@ -193,7 +192,6 @@ function typingChecker(position, gameState) {
   }
 }
 
-//parses user input into usable data
 function friendlyInput(position, gameState) {
   let input = gameState.input.currentInput.current;
   let parsedType = "";
@@ -207,7 +205,6 @@ function friendlyInput(position, gameState) {
   friendlySpawner(parsedType, position, parsedLvl, gameState);
 }
 
-//runs friendly through checks before spawning
 function friendlySpawner(
   friendlyType,
   friendlyPosition,
@@ -230,7 +227,6 @@ function friendlySpawner(
   }
 }
 
-//determines if entity name and level are valid
 function validFriendly(friendlyType, friendlyLvl, gameMode) {
   if (entityList[friendlyType] !== undefined) {
     if (entityList[friendlyType].lvls["lvl" + friendlyLvl] !== undefined) {
@@ -244,14 +240,12 @@ function validFriendly(friendlyType, friendlyLvl, gameMode) {
   }
 }
 
-//determines if enough money in bank to spawn friendly
 function bankChecker(friendlyCost, bank) {
   if (friendlyCost <= bank) {
     return true;
   }
 }
 
-//translates user input into data Entity maker can use
 function friendlyEntityMaker(
   entityType,
   entityPosition,
