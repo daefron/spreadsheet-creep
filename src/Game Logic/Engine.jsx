@@ -45,6 +45,8 @@ export function engine(newRound, gameState) {
   let timer = gameState.engine.timer;
   let gameboardWidth = gameState.settings.gameboardWidth;
   let gameboardHeight = gameState.settings.gameboardHeight;
+  let renderWidth = gameState.settings.renderWidth;
+  let renderHeight = gameState.settings.renderHeight;
   let groundLevel = gameState.settings.groundLevel;
   let groundRoughness = gameState.settings.groundRoughness;
   let waterLevel = gameState.settings.waterLevel;
@@ -237,23 +239,21 @@ export function engine(newRound, gameState) {
     }
 
     function blobHolder(currentEntity) {
-      let initialTestTime1 = Date.now();
-      let initialTestTime5 = Date.now();
+      if (currentEntity.ghost) {
+        entityKiller(currentEntity);
+        return;
+      }
       let x = currentEntity.position[0];
       let y = currentEntity.position[1];
       let positionBelow = [x, y + 1];
       let groundBelow = onBoard(groundBoard.current, positionBelow);
       let entityBelow = onBoard(entityBoard.current, positionBelow);
-      testTime5.current += Date.now() - initialTestTime5;
       if (blobFall()) {
-        testTime1.current += Date.now() - initialTestTime1;
         return;
       }
       if (blobStatGain()) {
-        testTime1.current += Date.now() - initialTestTime1;
         return;
       }
-      initialTestTime5 = Date.now();
       if (Math.random() > 0.9) {
         return;
       }
@@ -263,35 +263,26 @@ export function engine(newRound, gameState) {
       let entityAbove = onBoard(entityBoard.current, positionAbove);
       let entityLeft = onBoard(entityBoard.current, positionLeft);
       let entityRight = onBoard(entityBoard.current, positionRight);
-      testTime5.current += Date.now() - initialTestTime5;
       blobSorter();
-      initialTestTime5 = Date.now();
       let groundAbove = onBoard(groundBoard.current, positionAbove);
       let groundLeft = onBoard(groundBoard.current, positionLeft);
       let groundRight = onBoard(groundBoard.current, positionRight);
-      testTime5.current += Date.now() - initialTestTime5;
       blobAttack();
       if (currentEntity.hp < 2) {
-        testTime1.current += Date.now() - initialTestTime1;
         return;
       }
       if (blobBelow()) {
-        testTime1.current += Date.now() - initialTestTime1;
         return;
       }
       if (currentEntity.hp < 3) {
-        testTime1.current += Date.now() - initialTestTime1;
         return;
       }
       if (blobSide()) {
-        testTime1.current += Date.now() - initialTestTime1;
         return;
       }
       if (blobAbove()) {
-        testTime1.current += Date.now() - initialTestTime1;
         return;
       }
-      testTime1.current += Date.now() - initialTestTime1;
 
       function blobStatGain() {
         if (currentEntity.hp >= currentEntity.maxHp) {
@@ -1450,33 +1441,36 @@ export function engine(newRound, gameState) {
       if (fluid.position[1] < 0) {
         return true;
       }
-      if (fluid.position[1] < gameboardHeight.current) {
-        let positionBelow = [fluid.position[0], fluid.position[1] + 1];
-        let groundBelow = onBoard(groundBoard.current, positionBelow);
-        let fluidBelow = onBoard(fluidBoard.current, positionBelow);
-        if (groundBelow !== undefined || fluidBelow !== undefined) {
-          return false;
+      if (fluid.position[1] >= gameboardHeight.current) {
+        if (fluid.ghost) {
+          entityKiller(fluid);
+          return true;
         }
-        return true;
-      } else if (fluid.ghost) {
-        entityKiller(fluid);
+        return false;
       }
+      if (fluid.fallCharge < fluid.fallSpeed) {
+        fluid.fallCharge++;
+        return false;
+      }
+      let positionBelow = [fluid.position[0], fluid.position[1] + 1];
+      let groundBelow = onBoard(groundBoard.current, positionBelow);
+      let fluidBelow = onBoard(fluidBoard.current, positionBelow);
+      if (groundBelow !== undefined || fluidBelow !== undefined) {
+        return false;
+      }
+      return true;
     }
 
     function fluidFall(fluid) {
-      if (fluid.fallCharge < fluid.fallSpeed) {
-        fluid.fallCharge++;
+      fluid.fallCharge = 0;
+      if (fluid.position[1] < 0) {
+        fluid.position = [fluid.position[0], fluid.position[1] + 1];
       } else {
-        fluid.fallCharge = 0;
-        if (fluid.position[1] < 0) {
-          fluid.position = [fluid.position[0], fluid.position[1] + 1];
-        } else {
-          moveBoard(
-            fluidBoard.current,
-            [fluid.position[0], fluid.position[1] + 1],
-            fluid
-          );
-        }
+        moveBoard(
+          fluidBoard.current,
+          [fluid.position[0], fluid.position[1] + 1],
+          fluid
+        );
       }
     }
 
@@ -1608,6 +1602,10 @@ export function engine(newRound, gameState) {
     }
 
     function kingTurn() {
+      if (friendlySpawnCount.current === 0) {
+        entitySpawner(["king", 1], false);
+        friendlySpawnCount.current++;
+      }
       spawnChecker(true);
       nextTurn();
       if (!victoryChecker()) {
@@ -1876,7 +1874,14 @@ export function engine(newRound, gameState) {
         entityID.enemy = false;
       }
       activeEntities.current.push(entityID);
-      toBoard(entityBoard.current, position, entityID);
+      if (
+        position[0] > 0 &&
+        position[0] <= renderWidth.current &&
+        position[1] > 0 &&
+        position[1] <= renderHeight.current
+      ) {
+        toBoard(entityBoard.current, position, entityID);
+      }
       return entityID;
     }
 
@@ -1938,18 +1943,6 @@ export function engine(newRound, gameState) {
   if (newRound) {
     ghoster();
     terrainMaker();
-    if (gameMode.current === "king") {
-      let entityType = entityList["king"];
-      let entityID = "king";
-      entityID += friendlySpawnCount.current;
-      entityID = new Entity(
-        entityType,
-        entityType.lvls["lvl1"],
-        [1, -groundLevel.current],
-        entityID
-      );
-      activeEntities.current.push(entityID);
-    }
   }
   gamemode(false);
 }
