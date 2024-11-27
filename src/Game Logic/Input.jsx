@@ -136,19 +136,44 @@ export function keyboardSelect(e, gameState) {
       currentInput.current = "";
       return [position[0] + 1, position[1]];
     }
-    if (keyPressed.length === 1 || keyPressed === "space") {
+    if (keyPressed.length === 1 || keyPressed === " ") {
       if (typingChecker(position, gameState)) {
         cellTyping.current = true;
         selectedCell.current.readOnly = false;
-        if (keyPressed === "space") {
-          currentInput.current += " ";
+        if (keyPressed === " ") {
+          sliceAtCursor(" ");
+        } else {
+          sliceAtCursor(keyPressed);
         }
-        currentInput.current += keyPressed;
-      } else e.preventDefault();
+      }
     }
     if (keyPressed === "Backspace") {
-      currentInput.current = currentInput.current.slice(0, -1);
-    } else return false;
+      sliceAtCursor("Backspace");
+    } 
+    if (keyPressed === "Delete") {
+      sliceAtCursor("Delete");
+    }
+  }
+
+  function sliceAtCursor(character) {
+    let cursorPosition = selectedCell.current.selectionStart;
+    let firstHalf = currentInput.current.slice(0, cursorPosition);
+    let secondHalf = currentInput.current.slice(
+      cursorPosition,
+      currentInput.current.length
+    );
+    if (character === "Backspace") {
+      firstHalf = currentInput.current.slice(0, cursorPosition - 1);
+      character = "";
+    }
+    if (character === "Delete") {
+      secondHalf = currentInput.current.slice(
+        cursorPosition + 1,
+        currentInput.current.length
+      );
+      character = "";
+    }
+    currentInput.current = firstHalf + character + secondHalf;
   }
 }
 
