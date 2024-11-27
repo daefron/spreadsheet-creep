@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { keyboardSelect, clickSelect } from "./Input.jsx";
+import { initialGameboard } from "./Tools.jsx";
 import { engine } from "./Engine.jsx";
 import EntityList from "./Lists/EntityList.jsx";
 import Purchasables from "./Render/Purchasables.jsx";
@@ -23,7 +24,7 @@ export default function EngineOutput() {
   const gameTimer = useRef();
   const renderTimer = useRef();
   const gameboardWidth = useRef(25);
-  const gameboardHeight = useRef(38);
+  const gameboardHeight = useRef(78);
   const renderWidth = useRef();
   const renderWidthMin = useRef(0);
   const renderHeight = useRef();
@@ -49,25 +50,15 @@ export default function EngineOutput() {
   const scrollPositionY = useRef(0);
   const cellSelectMoved = useRef(false);
   const cellCursorPosition = useRef();
-  const entityBoard = useRef(initialGameboard());
-  const groundBoard = useRef(initialGameboard());
-  const fluidBoard = useRef(initialGameboard());
-  const projectileBoard = useRef(initialGameboard());
-  const effectBoard = useRef(initialGameboard());
+  const entityBoard = useRef(initialGameboard(gameboardHeight, gameboardWidth));
+  const groundBoard = useRef(initialGameboard(gameboardHeight, gameboardWidth));
+  const fluidBoard = useRef(initialGameboard(gameboardHeight, gameboardWidth));
+  const projectileBoard = useRef(
+    initialGameboard(gameboardHeight, gameboardWidth)
+  );
+  const effectBoard = useRef(initialGameboard(gameboardHeight, gameboardWidth));
   const gameStatus = useRef();
   let entityList = EntityList;
-
-  function initialGameboard() {
-    let grid = [];
-    for (let h = 0; h <= gameboardHeight.current + 1; h++) {
-      let subGrid = [];
-      for (let w = 0; w <= gameboardWidth.current; w++) {
-        subGrid.push();
-      }
-      grid.push(subGrid);
-    }
-    return grid;
-  }
 
   function gameStatePacker() {
     return {
@@ -370,7 +361,6 @@ export default function EngineOutput() {
       scrollPositionY.current = 0;
     }
   }
-  let timetest = 0;
   function newButton() {
     clearInterval(renderTimer.current);
     clearInterval(gameTimer.current);
@@ -385,28 +375,26 @@ export default function EngineOutput() {
     lastFriendlySpawnTime.current = 0;
     renderTimer.current = setInterval(() => {
       renderUpdate();
-      timetest++;
-      console.log(timetest);
-    }, renderSpeed.current);
+    }, renderSpeed.current * 4);
     engine(true, gameStatePacker());
   }
 
   function updateGameboardWidth(e) {
     gameboardWidth.current = parseInt(e.target.value);
-    entityBoard.current = initialGameboard();
-    groundBoard.current = initialGameboard();
-    projectileBoard.current = initialGameboard();
-    effectBoard.current = initialGameboard();
-    fluidBoard.current = initialGameboard();
+    entityBoard.current = initialGameboard(gameboardHeight, gameboardWidth);
+    groundBoard.current = initialGameboard(gameboardHeight, gameboardWidth);
+    projectileBoard.current = initialGameboard(gameboardHeight, gameboardWidth);
+    effectBoard.current = initialGameboard(gameboardHeight, gameboardWidth);
+    fluidBoard.current = initialGameboard(gameboardHeight, gameboardWidth);
     renderUpdate();
   }
   function updateGameboardHeight(e) {
     gameboardHeight.current = parseInt(e.target.value);
-    entityBoard.current = initialGameboard();
-    groundBoard.current = initialGameboard();
-    projectileBoard.current = initialGameboard();
-    effectBoard.current = initialGameboard();
-    fluidBoard.current = initialGameboard();
+    entityBoard.current = initialGameboard(gameboardHeight, gameboardWidth);
+    groundBoard.current = initialGameboard(gameboardHeight, gameboardWidth);
+    projectileBoard.current = initialGameboard(gameboardHeight, gameboardWidth);
+    effectBoard.current = initialGameboard(gameboardHeight, gameboardWidth);
+    fluidBoard.current = initialGameboard(gameboardHeight, gameboardWidth);
     renderUpdate();
   }
   function updateGroundHeight(e) {
@@ -791,6 +779,14 @@ export default function EngineOutput() {
           }
         ></div>
       </div>
+      <div
+        id="xLine"
+        style={
+          activeTab === "gameboardHolder"
+            ? { visibility: "visible" }
+            : { visibility: "collapse" }
+        }
+      ></div>
       <div id="bottom">
         <button
           className="tab"

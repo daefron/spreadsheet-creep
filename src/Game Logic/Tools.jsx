@@ -79,3 +79,15 @@ export function moveBoard(board, position, entity) {
   entity.position = position;
   board[position[1]][position[0]] = entity;
 }
+
+export function initialGameboard(gameboardHeight, gameboardWidth) {
+  let grid = [];
+  for (let h = 0; h <= gameboardHeight.current + 1; h++) {
+    let subGrid = [];
+    for (let w = 0; w <= gameboardWidth.current; w++) {
+      subGrid.push();
+    }
+    grid.push(subGrid);
+  }
+  return grid;
+}

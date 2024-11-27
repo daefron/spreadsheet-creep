@@ -216,9 +216,18 @@ option {
   padding: 0px;
   margin: 0px;
 }
+#xLine {
+  width: calc(100% - 4px);
+  height: 1px;
+  margin-top: -5px;
+  margin-bottom:4px;
+  z-index: 100000000;
+  background-color: black;
+}
 #xScroll {
+  position:sticky;
   height: 4px;
-  margin-top: -7px;
+  margin-top: -3px;
 }
 #xScrollBar {
   height: 100%;
@@ -229,14 +238,14 @@ option {
 }
 #yLine {
   width: 1px;
-  margin-left: -1px;
-  height: 100%;
+  margin-left: -5px;
+  height: calc(100% - 3px);
   background-color: black;
   z-index: 10000000;
 }
 #yScroll {
   position: sticky;
-  margin-left: -7px;
+  margin-left: -3px;
   width: 4px;
 }
 #yScrollBar {
