@@ -1,10 +1,18 @@
 import { useState, useEffect, useRef } from "react";
 import { keyboardSelect, clickSelect } from "./Input.jsx";
 import { initialGameboard } from "./Tools.jsx";
+import {
+  handleScroll,
+  scrollCheck,
+  xScrollUpdate,
+  yScrollUpdate,
+  cellOverlap,
+  autoCell,
+} from "./Render/Scrolling.jsx";
 import { engine } from "./Engine.jsx";
 import EntityList from "./Lists/EntityList.jsx";
 import Purchasables from "./Render/Purchasables.jsx";
-import { updateGameboardEntities } from "./Render/UpdateGameboardEntities";
+import { updateGameboardEntities } from "./Render/UpdateGameboardEntities.jsx";
 
 export default function EngineOutput() {
   const activeEntities = useRef([]);
@@ -58,6 +66,7 @@ export default function EngineOutput() {
   );
   const effectBoard = useRef(initialGameboard(gameboardHeight, gameboardWidth));
   const gameStatus = useRef();
+  const scrolledThisTurn = useRef(false);
   let entityList = EntityList;
 
   function gameStatePacker() {
@@ -138,182 +147,58 @@ export default function EngineOutput() {
   }, []);
 
   function renderUpdate() {
-    xScrollUpdate();
-    yScrollUpdate();
-    autoCell();
-    cellOverlap();
+    xScrollUpdate(gameboardWidth, renderWidth, renderWidthMin, cellWidth);
+    yScrollUpdate(gameboardHeight, renderHeight, renderHeightMin, cellHeight);
+    autoCell(
+      renderWidth,
+      renderWidthMin,
+      renderHeight,
+      renderHeightMin,
+      cellWidth,
+      cellHeight
+    );
+    cellOverlap(
+      renderWidthMin,
+      renderHeightMin,
+      selectedCell,
+      cellWidth,
+      cellHeight
+    );
     setGameboardEntities(updateGameboardEntities(gameStatePacker()));
-    scrollCheck();
+    scrollCheck(scrollPositionX, scrollPositionY, scrolledThisTurn);
     cellSelectMoved.current = false;
   }
 
-  function cellOverlap() {
-    if (selectedCell.current === undefined) {
-      return;
-    }
-    let position = selectedCell.current.id.split("x");
-    let left = selectedCell.current.getBoundingClientRect().left;
-    let top = selectedCell.current.getBoundingClientRect().top;
-    let elementOnTop = document.elementFromPoint(left, top);
-    let xHeader = document.getElementById(
-      renderWidthMin.current + "x" + position[1]
-    );
-    if (elementOnTop === xHeader) {
-      let board = document.getElementById("gameboardHolder");
-      board.scrollBy(-50, 0);
-      let gap = board.scrollLeft;
-      if (gap % cellWidth.current !== 0) {
-        let loop;
-        while (!loop) {
-          gap -= cellWidth.current;
-          if (gap < 0) {
-            loop = true;
-          }
-        }
-        board.scrollBy(0, -gap);
-      }
-    }
-    let yHeader = document.getElementById(
-      position[0] + "x" + renderHeightMin.current
-    );
-    if (elementOnTop === yHeader) {
-      let board = document.getElementById("gameboardHolder");
-      board.scrollBy(0, -cellHeight.current);
-      let gap = board.scrollTop;
-      if (gap % cellHeight.current !== 0) {
-        let loop;
-        while (!loop) {
-          gap -= cellHeight.current;
-          if (gap < 0) {
-            loop = true;
-          }
-        }
-        board.scrollBy(0, -gap);
-      }
-    }
-  }
-
-  function xScrollUpdate() {
-    let board = document.getElementById("gameboardHolder");
-    let width = board.offsetWidth - 3;
-    let xScroll = document.getElementById("xScroll");
-    let totalWidth = (gameboardWidth.current - 1) * cellWidth.current + 50;
-    let xScrollPercentage = width / totalWidth;
-    let xScrollWidth = width * xScrollPercentage;
-    xScroll.style.width = xScrollWidth + "px";
-    let divider =
-      gameboardWidth.current - (renderWidth.current - renderWidthMin.current);
-    let baselineMargin = (width - xScrollWidth) / divider;
-    let marginMultiplier = renderWidthMin.current;
-    xScroll.style.marginLeft = baselineMargin * marginMultiplier + "px";
-  }
-
-  function yScrollUpdate() {
-    let board = document.getElementById("gameboardHolder");
-    let height = board.offsetHeight - 2;
-    let yScroll = document.getElementById("yScroll");
-    let totalHeight = (gameboardHeight.current - 2) * cellHeight.current;
-    let yScrollPercentage = height / totalHeight;
-    let yScrollHeight = height * yScrollPercentage;
-    yScroll.style.height = yScrollHeight + "px";
-    let divider =
-      gameboardHeight.current -
-      (renderHeight.current - renderHeightMin.current);
-    let baselineMargin = (height - yScrollHeight) / divider;
-    let marginMultiplier = renderHeightMin.current;
-    yScroll.style.marginTop = baselineMargin * marginMultiplier + "px";
-  }
-
-  const scrolledThisTurn = useRef(false);
-
   useEffect(() => {
     let board = document.getElementById("gameboardHolder");
-    board.addEventListener("scroll", handleScroll);
-    function handleScroll() {
-      xScrollUpdate();
-      yScrollUpdate();
-      if (!scrolledThisTurn.current) {
-        let left = board.scrollLeft;
-        let width = board.offsetWidth;
-        let scrollWidth = board.scrollWidth;
-        if (left + width > scrollWidth) {
-          scrollEndX();
-        } else if (left === 0) {
-          scrollStartX();
-        }
-        let top = board.scrollTop;
-        let height = board.offsetHeight;
-        let scrollHeight = board.scrollHeight;
-        if (top + height >= scrollHeight) {
-          scrollEndY();
-        } else if (top === 0) {
-          scrollStartY();
-        }
-      }
-    }
+    board.addEventListener("scroll", function () {
+      handleScroll(
+        gameboardWidth,
+        gameboardHeight,
+        renderWidth,
+        renderWidthMin,
+        renderHeight,
+        renderHeightMin,
+        scrollPositionX,
+        scrollPositionY,
+        scrolledThisTurn,
+        cellWidth,
+        cellHeight
+      );
+    });
   }, []);
-
-  function scrollEndX() {
-    if (renderWidth.current < gameboardWidth.current) {
-      renderWidthMin.current++;
-      renderWidth.current++;
-      scrollPositionX.current = -cellWidth.current;
-      scrolledThisTurn.current = true;
-    }
-  }
-  function scrollStartX() {
-    if (renderWidthMin.current > 0) {
-      renderWidthMin.current--;
-      renderWidth.current--;
-      scrollPositionX.current = cellWidth.current;
-      scrolledThisTurn.current = true;
-    }
-  }
-  function scrollEndY() {
-    if (renderHeight.current < gameboardHeight.current) {
-      renderHeightMin.current++;
-      renderHeight.current++;
-      scrollPositionY.current = -1;
-      scrolledThisTurn.current = true;
-    }
-  }
-  function scrollStartY() {
-    if (renderHeightMin.current > 0) {
-      renderHeightMin.current--;
-      renderHeight.current--;
-      scrollPositionY.current = cellHeight.current - 1;
-      scrolledThisTurn.current = true;
-    }
-  }
-
-  function scrollCheck() {
-    let board = document.getElementById("gameboardHolder");
-    if (scrollPositionX.current !== 0) {
-      board.scrollBy(scrollPositionX.current, 0);
-      scrollPositionX.current = 0;
-      scrolledThisTurn.current = false;
-    }
-    if (scrollPositionY.current !== 0) {
-      board.scrollBy(0, scrollPositionY.current);
-      scrollPositionY.current = 0;
-      scrolledThisTurn.current = false;
-    }
-  }
-
-  function autoCell() {
-    let board = document.getElementById("gameboardHolder");
-    let width = board.offsetWidth;
-    let height = board.offsetHeight;
-    renderWidth.current =
-      2 + parseInt(width / cellWidth.current) + renderWidthMin.current;
-    renderHeight.current =
-      2 + parseInt(height / cellHeight.current) + renderHeightMin.current;
-  }
 
   function newButton() {
     clearInterval(renderTimer.current);
     clearInterval(gameTimer.current);
-    autoCell();
+    autoCell(
+      renderWidth,
+      renderWidthMin,
+      renderHeight,
+      renderHeightMin,
+      cellWidth,
+      cellHeight
+    );
     enemyGraveyard.current = [];
     friendlyGraveyard.current = [];
     groundGraveyard.current = [];
@@ -436,8 +321,6 @@ export default function EngineOutput() {
   //renders the gameboard once on page load
   useEffect(() => {
     renderUpdate();
-    xScrollUpdate();
-    yScrollUpdate();
   }, []);
 
   return (
