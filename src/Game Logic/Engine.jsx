@@ -286,7 +286,7 @@ export function engine(newRound, gameState) {
         }
         let touchingGround = 0;
         let blobGroup = blobGrouper();
-        blobGroup.forEach((entity) => {
+        for (const entity of blobGroup) {
           let x = entity.position[0];
           let y = entity.position[1];
           let groundBelow = onBoard(groundBoard.current, [x, y + 1]);
@@ -294,7 +294,7 @@ export function engine(newRound, gameState) {
             touchingGround++;
             return;
           }
-        });
+        }
         if (touchingGround === 0) {
           moveBoard(entityBoard.current, positionBelow, currentEntity);
           return true;
@@ -439,11 +439,11 @@ export function engine(newRound, gameState) {
             return;
           }
           let lowestHpEntity = { hp: Infinity };
-          targets.forEach((entity) => {
+          for (const entity of targets) {
             if (entity.hp < lowestHpEntity.hp) {
               lowestHpEntity = entity;
             }
-          });
+          }
           let hpDiff = parseInt((currentEntity.hp - lowestHpEntity.hp) / 2);
           currentEntity.hp -= hpDiff;
           lowestHpEntity.hp += hpDiff;
@@ -785,7 +785,7 @@ export function engine(newRound, gameState) {
 
     function meleeAttackTargetter(currentEntity, rangeCells) {
       let target;
-      rangeCells.forEach((cell) => {
+      for (const cell of rangeCells) {
         let targetCell = onBoard(entityBoard.current, cell);
         if (
           targetCell !== undefined &&
@@ -793,7 +793,7 @@ export function engine(newRound, gameState) {
         ) {
           return (target = targetCell);
         }
-      });
+      }
       return target;
     }
 
@@ -1187,16 +1187,16 @@ export function engine(newRound, gameState) {
       if (projectile.direction === "up") {
         let enemies = activeEntities.current.filter((entity) => entity.enemy);
         let highest = { position: [1, Infinity] };
-        activeGround.current.forEach((ground) => {
+        for (const ground of activeGround.current) {
           if (ground.position[1] < highest.position[1]) {
             highest = ground;
           }
-        });
-        enemies.forEach((entity) => {
+        }
+        for (const entity of enemies) {
           if (entity.position[1] < highest.position[1]) {
             highest = entity;
           }
-        });
+        }
         if (projectile.position[1] > highest.position[1] - 4) {
           let newPosition = [
             projectile.position[0],
@@ -1620,21 +1620,21 @@ export function engine(newRound, gameState) {
     }
 
     function nextTurn() {
-      activeEntities.current.forEach((entity) => {
+      for (const entity of activeEntities.current) {
         entityTurn(entity);
-      });
-      activeProjectiles.current.forEach((projectile) => {
+      }
+      for (const projectile of activeProjectiles.current) {
         projectileTurn(projectile);
-      });
-      activeGround.current.forEach((ground) => {
+      }
+      for (const ground of activeGround.current) {
         groundTurn(ground);
-      });
-      activeFluid.current.forEach((fluid) => {
+      }
+      for (const fluid of activeFluid.current) {
         fluidTurn(fluid);
-      });
-      activeEffects.current.forEach((effect) => {
+      }
+      for (const effect of activeEffects.current) {
         effectTurn(effect);
-      });
+      }
     }
 
     function victoryChecker() {
@@ -1692,11 +1692,19 @@ export function engine(newRound, gameState) {
         let friendliesAlive = activeEntities.current.filter(
           (entity) => !entity.enemy
         );
-        if (enemiesAlive.length === 0 && friendliesAlive.length !== 0) {
+        if (
+          enemiesAlive.length === 0 &&
+          friendliesAlive.length !== 0 &&
+          enemySpawnCount.current !== 0
+        ) {
           gameStatus.current = "Enemy blob dead";
           return false;
         }
-        if (friendliesAlive.length === 0 && enemiesAlive.length !== 0) {
+        if (
+          friendliesAlive.length === 0 &&
+          enemiesAlive.length !== 0 &&
+          friendlySpawnCount.current !== 0
+        ) {
           gameStatus.current = "Friendly blob dead";
           return false;
         }
@@ -1761,32 +1769,32 @@ export function engine(newRound, gameState) {
         .filter((entity) => entity[1].enemy)
         .map((entity) => entity[1]);
       let parsedEntities = [];
-      entitiesEnemy.forEach((entity) => {
-        Object.entries(entity.lvls).forEach((level) => {
+      for (const entity of entitiesEnemy) {
+        for (const level of Object.entries(entity.lvls)) {
           if (level[1].chance !== undefined) {
             parsedEntities.push([entity.type, level[1].lvl, level[1].chance]);
           }
-        });
-      });
+        }
+      }
       let totalWeight = 0;
-      parsedEntities.forEach((entity) => {
+      for (const entity of parsedEntities) {
         totalWeight = totalWeight + entity[2];
-      });
+      }
       let weightedChance = totalWeight * Math.random();
       let chancePosition = 0;
-      parsedEntities.forEach((entity) => {
+      for (const entity of parsedEntities) {
         entity[2] = entity[2] + chancePosition;
         chancePosition = entity[2];
-      });
+      }
       let closestChance = Infinity;
       let chosenEntity;
-      parsedEntities.forEach((entity) => {
+      for (const entity of parsedEntities) {
         let entityChance = entity[2] - weightedChance;
         if (entityChance > 0 && entityChance < closestChance) {
           closestChance = entityChance;
           chosenEntity = entity;
         }
-      });
+      }
       return chosenEntity;
     }
 
@@ -1828,44 +1836,44 @@ export function engine(newRound, gameState) {
       let endEntities = activeEntities.current.filter(
         (entity) => entity.position[0] === baselinePosition[0]
       );
-      endEntities.forEach((entity) => {
+      for (const entity of endEntities) {
         if (entity.position[1] <= spawnPosition[1]) {
           spawnPosition = [entity.position[0], entity.position[1] - 1];
         }
-      });
+      }
       if (!comparePosition(spawnPosition, baselinePosition)) {
         return spawnPosition;
       }
       let endGrounds = activeGround.current.filter(
         (ground) => ground.position[0] === baselinePosition[0]
       );
-      endGrounds.forEach((ground) => {
+      for (const ground of endGrounds) {
         if (ground.position[1] <= spawnPosition[1]) {
           spawnPosition = [ground.position[0], ground.position[1] - 1];
         }
-      });
+      }
       return spawnPosition;
     }
   }
 
   function ghoster() {
-    activeEntities.current.forEach((entity) => {
+    for (const entity of activeEntities.current) {
       entity.fallSpeed = 0;
       entity.ghost = true;
-    });
-    activeGround.current.forEach((ground) => {
+    }
+    for (const ground of activeGround.current) {
       ground.fallSpeed = 0;
       ground.ghost = true;
-    });
-    activeFluid.current.forEach((fluid) => {
+    }
+    for (const fluid of activeFluid.current) {
       fluid.ghost = true;
-    });
-    activeProjectiles.current.forEach((projectile) => {
+    }
+    for (const projectile of activeProjectiles.current) {
       activeProjectiles.current.splice(
         activeProjectiles.current.indexOf(projectile),
         1
       );
-    });
+    }
   }
 
   if (newRound) {

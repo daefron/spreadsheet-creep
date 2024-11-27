@@ -48,8 +48,8 @@ export default function EngineOutput() {
   const lastFriendlySpawnTime = useRef(0);
   const gameTimer = useRef();
   const renderTimer = useRef();
-  const gameboardWidth = useRef(25);
-  const gameboardHeight = useRef(55);
+  const gameboardWidth = useRef(18);
+  const gameboardHeight = useRef(45);
   const renderWidth = useRef();
   const renderWidthMin = useRef(0);
   const renderHeight = useRef();
