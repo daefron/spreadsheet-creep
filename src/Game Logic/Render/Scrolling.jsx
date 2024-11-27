@@ -1,19 +1,16 @@
-export function handleScroll(
-  gameboardWidth,
-  gameboardHeight,
-  renderWidth,
-  renderWidthMin,
-  renderHeight,
-  renderHeightMin,
-  scrollPositionX,
-  scrollPositionY,
-  scrolledThisTurn,
-  cellWidth,
-  cellHeight
-) {
+export function handleScroll(gamestate) {
+  let gameboardWidth = gamestate.settings.gameboardWidth;
+  let gameboardHeight = gamestate.settings.gameboardHeight;
+  let renderWidth = gamestate.render.renderWidth;
+  let renderWidthMin = gamestate.render.renderWidthMin;
+  let renderHeight = gamestate.render.renderHeight;
+  let renderHeightMin = gamestate.render.renderHeightMin;
+  let scrolledThisTurn = gamestate.render.scrolledThisTurn;
+  let scrollPositionX = gamestate.render.scrollPositionX;
+  let scrollPositionY = gamestate.render.scrollPositionY;
+  let cellWidth = gamestate.render.cellWidth;
+  let cellHeight = gamestate.render.cellHeight;
   let board = document.getElementById("gameboardHolder");
-  xScrollUpdate(gameboardWidth, renderWidth, renderWidthMin, cellWidth);
-  yScrollUpdate(gameboardHeight, renderHeight, renderHeightMin, cellHeight);
   if (!scrolledThisTurn.current) {
     let left = board.scrollLeft;
     let width = board.offsetWidth;
@@ -120,11 +117,10 @@ export function handleScroll(
   }
 }
 
-export function scrollCheck(
-  scrollPositionX,
-  scrollPositionY,
-  scrolledThisTurn
-) {
+export function scrollCheck(gamestate) {
+  let scrolledThisTurn = gamestate.render.scrolledThisTurn;
+  let scrollPositionX = gamestate.render.scrollPositionX;
+  let scrollPositionY = gamestate.render.scrollPositionY;
   let board = document.getElementById("gameboardHolder");
   if (scrollPositionX.current !== 0) {
     board.scrollBy(scrollPositionX.current, 0);
@@ -138,12 +134,11 @@ export function scrollCheck(
   }
 }
 
-export function xScrollUpdate(
-  gameboardWidth,
-  renderWidth,
-  renderWidthMin,
-  cellWidth
-) {
+export function xScrollUpdate(gamestate) {
+  let gameboardWidth = gamestate.settings.gameboardWidth;
+  let renderWidth = gamestate.render.renderWidth;
+  let renderWidthMin = gamestate.render.renderWidthMin;
+  let cellWidth = gamestate.render.cellWidth;
   let board = document.getElementById("gameboardHolder");
   let width = board.offsetWidth - 3;
   let xScroll = document.getElementById("xScroll");
@@ -158,12 +153,11 @@ export function xScrollUpdate(
   xScroll.style.marginLeft = baselineMargin * marginMultiplier + "px";
 }
 
-export function yScrollUpdate(
-  gameboardHeight,
-  renderHeight,
-  renderHeightMin,
-  cellHeight
-) {
+export function yScrollUpdate(gamestate) {
+  let gameboardHeight = gamestate.settings.gameboardHeight;
+  let renderHeight = gamestate.render.renderHeight;
+  let renderHeightMin = gamestate.render.renderHeightMin;
+  let cellHeight = gamestate.render.cellHeight;
   let board = document.getElementById("gameboardHolder");
   let height = board.offsetHeight - 2;
   let yScroll = document.getElementById("yScroll");
@@ -178,13 +172,12 @@ export function yScrollUpdate(
   yScroll.style.marginTop = baselineMargin * marginMultiplier + "px";
 }
 
-export function cellOverlap(
-  renderWidthMin,
-  renderHeightMin,
-  selectedCell,
-  cellWidth,
-  cellHeight
-) {
+export function cellOverlap(gamestate) {
+  let renderWidthMin = gamestate.render.renderWidthMin;
+  let renderHeightMin = gamestate.render.renderHeightMin;
+  let cellWidth = gamestate.render.cellWidth;
+  let cellHeight = gamestate.render.cellHeight;
+  let selectedCell = gamestate.input.selectedCell;
   if (selectedCell.current === undefined) {
     return;
   }
@@ -230,14 +223,13 @@ export function cellOverlap(
   }
 }
 
-export function autoCell(
-  renderWidth,
-  renderWidthMin,
-  renderHeight,
-  renderHeightMin,
-  cellWidth,
-  cellHeight
-) {
+export function autoCell(gamestate) {
+  let renderWidth = gamestate.render.renderWidth;
+  let renderWidthMin = gamestate.render.renderWidthMin;
+  let renderHeight = gamestate.render.renderHeight;
+  let renderHeightMin = gamestate.render.renderHeightMin;
+  let cellWidth = gamestate.render.cellWidth;
+  let cellHeight = gamestate.render.cellHeight;
   let board = document.getElementById("gameboardHolder");
   let width = board.offsetWidth;
   let height = board.offsetHeight;

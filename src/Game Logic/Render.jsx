@@ -103,10 +103,6 @@ export default function EngineOutput() {
       settings: {
         gameboardWidth: gameboardWidth,
         gameboardHeight: gameboardHeight,
-        renderWidth: renderWidth,
-        renderWidthMin: renderWidthMin,
-        renderHeight: renderHeight,
-        renderHeightMin: renderHeightMin,
         groundLevel: groundLevel,
         groundRoughness: groundRoughness,
         waterLevel: waterLevel,
@@ -125,46 +121,32 @@ export default function EngineOutput() {
         cellCursorPosition: cellCursorPosition,
       },
       render: {
+        renderWidth: renderWidth,
+        renderWidthMin: renderWidthMin,
+        renderHeight: renderHeight,
+        renderHeightMin: renderHeightMin,
         cellWidth: cellWidth,
         cellHeight: cellHeight,
+        scrollPositionX: scrollPositionX,
+        scrollPositionY: scrollPositionY,
+        scrolledThisTurn: scrolledThisTurn,
       },
     };
   }
 
   function renderUpdate() {
-    xScrollUpdate(gameboardWidth, renderWidth, renderWidthMin, cellWidth);
-    yScrollUpdate(gameboardHeight, renderHeight, renderHeightMin, cellHeight);
-    autoCell(
-      renderWidth,
-      renderWidthMin,
-      renderHeight,
-      renderHeightMin,
-      cellWidth,
-      cellHeight
-    );
-    cellOverlap(
-      renderWidthMin,
-      renderHeightMin,
-      selectedCell,
-      cellWidth,
-      cellHeight
-    );
+    xScrollUpdate(gameStatePacker());
+    yScrollUpdate(gameStatePacker());
+    autoCell(gameStatePacker());
+    cellOverlap(gameStatePacker());
     setGameboardEntities(updateGameboardEntities(gameStatePacker()));
-    scrollCheck(scrollPositionX, scrollPositionY, scrolledThisTurn);
+    scrollCheck(gameStatePacker());
     cellSelectMoved.current = false;
   }
 
   function newButton() {
     clearInterval(renderTimer.current);
     clearInterval(gameTimer.current);
-    autoCell(
-      renderWidth,
-      renderWidthMin,
-      renderHeight,
-      renderHeightMin,
-      cellWidth,
-      cellHeight
-    );
     enemyGraveyard.current = [];
     friendlyGraveyard.current = [];
     groundGraveyard.current = [];
@@ -295,19 +277,7 @@ export default function EngineOutput() {
     document.addEventListener("click", handleClick);
     let board = document.getElementById("gameboardHolder");
     board.addEventListener("scroll", function () {
-      handleScroll(
-        gameboardWidth,
-        gameboardHeight,
-        renderWidth,
-        renderWidthMin,
-        renderHeight,
-        renderHeightMin,
-        scrollPositionX,
-        scrollPositionY,
-        scrolledThisTurn,
-        cellWidth,
-        cellHeight
-      );
+      handleScroll(gameStatePacker());
     });
     renderUpdate();
     return function cleanup() {

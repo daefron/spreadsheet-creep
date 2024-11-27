@@ -11,10 +11,10 @@ export function updateGameboardEntities(gamestate) {
   let effectBoard = gamestate.active.effectBoard;
   let gameboardWidth = gamestate.settings.gameboardWidth;
   let gameboardHeight = gamestate.settings.gameboardHeight;
-  let renderWidth = gamestate.settings.renderWidth;
-  let renderWidthMin = gamestate.settings.renderWidthMin;
-  let renderHeight = gamestate.settings.renderHeight;
-  let renderHeightMin = gamestate.settings.renderHeightMin;
+  let renderWidth = gamestate.render.renderWidth;
+  let renderWidthMin = gamestate.render.renderWidthMin;
+  let renderHeight = gamestate.render.renderHeight;
+  let renderHeightMin = gamestate.render.renderHeightMin;
   let selectedCell = gamestate.input.selectedCell;
   let currentInput = gamestate.input.currentInput;
   let cellCursorPosition = gamestate.input.cellCursorPosition;
