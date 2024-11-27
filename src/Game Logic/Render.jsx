@@ -1016,8 +1016,9 @@ export default function engineOutput() {
   //makes a list of purchasble entities
   function Purchasables() {
     let entityArray = Object.values(entityList);
-    let friendlyEntityArray = entityArray.filter((entity) => !entity.enemy);
-    friendlyEntityArray.pop();
+    let friendlyEntityArray = entityArray.filter(
+      (entity) => !entity.enemy && entity.type !== "king"
+    );
     let parsedFriendlyEntityArray = [
       [["Purchasable entities:"], [""], [""], [""], [""], [""], [""]],
       [["Name"], ["Level"], ["Cost"], ["HP"], ["Damage"], ["Range"], ["Rate"]],
@@ -1041,19 +1042,26 @@ export default function engineOutput() {
         parsedFriendlyEntityArray.push(thisLevel);
       });
     });
-    let cellCount = 0;
-    parsedFriendlyEntityArray.forEach((row) => {
-      row.forEach((cell) => {
-        cell.push(cellCount + "purchasable");
-        cellCount++;
-      });
-    });
+    for (let i = 0; i < parsedFriendlyEntityArray.length; i++) {
+      let row = parsedFriendlyEntityArray[i];
+      for (let x = 0; x < row.length; x++) {
+        let cell = row[x];
+        cell.push(i + "x" + x + "purchasable");
+      }
+      if (i > 1) {
+        if (row[0][0] !== "") {
+          row[0][2] = {
+            borderTop: "solid 1px black",
+          };
+        }
+      }
+    }
     return (
       <table id="purchasables">
         <tbody>
           {parsedFriendlyEntityArray.map((row) => {
             return (
-              <tr className="purchasableRow" key={row}>
+              <tr className="purchasableRow" key={row} style={row[0][2]}>
                 {row.map((position) => {
                   return (
                     <td key={position[1]}>
@@ -1161,7 +1169,6 @@ export default function engineOutput() {
   const [activeTab, setActiveTab] = useState("gameboardHolder");
   function tabButton(e) {
     setActiveTab(e.target.textContent + "Holder");
-    console.log(e.target, e);
   }
 
   //renders the gameboard once on page load
