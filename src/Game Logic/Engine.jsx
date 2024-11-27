@@ -37,6 +37,7 @@ export function engine(newRound, gameState) {
   let groundGraveyard = gameState.graveyard.groundGraveyard;
   let fluidGraveyard = gameState.graveyard.fluidGraveyard;
   let bank = gameState.engine.bank;
+  let setBank = gameState.engine.setBank;
   let enemySpawnCount = gameState.engine.enemySpawnCount;
   let friendlySpawnCount = gameState.engine.friendlySpawnCount;
   let lastEnemySpawnTime = gameState.engine.lastEnemySpawnTime;
@@ -175,6 +176,7 @@ export function engine(newRound, gameState) {
         newCorpse(entity);
       }
       if (entity.enemy) {
+        setBank(entity.value + bank);
         enemyGraveyard.current.push(
           activeEntities.current.splice(
             activeEntities.current.indexOf(entity),

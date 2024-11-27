@@ -19,7 +19,6 @@ export function clickSelect(e, gameState) {
 }
 //gives the user input a spreadsheet like experience
 export function keyboardSelect(e, gameState) {
-  let gameboardWidth = gameState.settings.gameboardWidth;
   let gameboardHeight = gameState.settings.gameboardHeight;
   let renderWidth = gameState.settings.renderWidth;
   let renderHeight = gameState.settings.renderHeight;
@@ -185,7 +184,7 @@ function friendlySpawner(
   if (validFriendly(friendlyType, friendlyLvl, gameState.settings.gameMode)) {
     let friendlyCost = entityList[friendlyType].lvls["lvl" + friendlyLvl].value;
     if (bankChecker(friendlyCost, gameState.engine.bank)) {
-      gameState.engine.bank -= friendlyCost;
+      gameState.engine.setBank(gameState.engine.bank - friendlyCost);
       friendlyEntityMaker(
         friendlyType,
         friendlyPosition,

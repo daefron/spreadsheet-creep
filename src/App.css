@@ -64,12 +64,14 @@ body {
   padding: 5px;
   font-weight: 420;
 }
-#bottom > button:hover,
-#bottom > button:focus {
+#bottom > button:hover {
   border-color: black;
   border-right: solid black 1px;
   outline: solid black 1px;
   z-index: 100000;
+}
+#bottom > button:focus {
+outline: none;
 }
 #newButton {
   border: solid, black, 1px;

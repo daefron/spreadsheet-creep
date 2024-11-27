@@ -23,7 +23,7 @@ export default function engineOutput() {
   const gameTimer = useRef();
   const renderTimer = useRef();
   const gameboardWidth = useRef(25);
-  const gameboardHeight = useRef(48);
+  const gameboardHeight = useRef(38);
   const renderWidth = useRef();
   const renderWidthMin = useRef(0);
   const renderHeight = useRef();
@@ -70,7 +70,6 @@ export default function engineOutput() {
   const testTime5 = useRef(0);
   const second = useRef(0);
   const [gameboardEntities, setGameboardEntities] = useState([]);
-  const [settingsState, setSettingsState] = useState("none");
   const scrollPositionX = useRef(0);
   const scrollPositionY = useRef(0);
   const cellSelectMoved = useRef(false);
@@ -125,6 +124,7 @@ export default function engineOutput() {
         projectileCount: projectileCount,
         friendlyCount: friendlyCount,
         bank: bank,
+        setBank: setBank,
         timer: gameTimer,
       },
       settings: {
@@ -1161,6 +1161,7 @@ export default function engineOutput() {
   const [activeTab, setActiveTab] = useState("gameboardHolder");
   function tabButton(e) {
     setActiveTab(e.target.textContent + "Holder");
+    console.log(e.target, e);
   }
 
   //renders the gameboard once on page load
@@ -1181,9 +1182,6 @@ export default function engineOutput() {
           Money:
         </p>
         <p className="stat">{bank}</p>
-        <p className="statTitle" id="status" style={{ textAlign: "center" }}>
-          {gameStatus.current}
-        </p>
         <p
           className="statTitle"
           style={{ textAlign: "right", paddingRight: "5px" }}
@@ -1202,6 +1200,9 @@ export default function engineOutput() {
         </p>
         <p className="stat">
           {totalSpawns.current - enemySpawnCount.current}/{totalSpawns.current}
+        </p>
+        <p className="statTitle" id="status" style={{ textAlign: "center" }}>
+          {gameStatus.current}
         </p>
       </div>
       <div id="above">
@@ -1496,7 +1497,7 @@ export default function engineOutput() {
           onClick={tabButton}
           style={
             activeTab === "gameboardHolder"
-              ? { backgroundColor: "#cacaca" }
+              ? { backgroundColor: "#cacaca", fontWeight: 500 }
               : { backgroundColor: "white" }
           }
         >
@@ -1508,7 +1509,7 @@ export default function engineOutput() {
           onClick={tabButton}
           style={
             activeTab === "entitiesHolder"
-              ? { backgroundColor: "#cacaca" }
+              ? { backgroundColor: "#cacaca", fontWeight: 500 }
               : { backgroundColor: "white" }
           }
         >
@@ -1520,7 +1521,7 @@ export default function engineOutput() {
           onClick={tabButton}
           style={
             activeTab === "settingsHolder"
-              ? { backgroundColor: "#cacaca" }
+              ? { backgroundColor: "#cacaca", fontWeight: 500 }
               : { backgroundColor: "white" }
           }
         >
