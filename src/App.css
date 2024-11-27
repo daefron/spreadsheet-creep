@@ -219,8 +219,8 @@ option {
 #xLine {
   width: calc(100% - 4px);
   height: 1px;
-  margin-top: -5px;
-  margin-bottom:4px;
+  margin-top: -4px;
+  margin-bottom:3px;
   z-index: 100000000;
   background-color: black;
 }
@@ -239,7 +239,7 @@ option {
 #yLine {
   width: 1px;
   margin-left: -5px;
-  height: calc(100% - 3px);
+  height: calc(100% - 2px);
   background-color: black;
   z-index: 10000000;
 }

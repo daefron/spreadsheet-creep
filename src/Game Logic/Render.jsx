@@ -199,42 +199,35 @@ export default function EngineOutput() {
     }
   }
 
-  const scrollBufferX = useRef();
   function xScrollUpdate() {
     let board = document.getElementById("gameboardHolder");
-    let width = board.offsetWidth;
+    let width = board.offsetWidth - 3;
     let xScroll = document.getElementById("xScroll");
-    let totalWidth = gameboardWidth.current * (cellWidth.current - 1) - 50;
+    let totalWidth = (gameboardWidth.current - 1) * cellWidth.current + 50;
     let xScrollPercentage = width / totalWidth;
     let xScrollWidth = width * xScrollPercentage;
     xScroll.style.width = xScrollWidth + "px";
-    let renderMax = renderWidth.current * cellWidth.current;
-    if (scrollBufferX.current === undefined) {
-      scrollBufferX.current = renderMax - width;
-    }
-    renderMax -= scrollBufferX.current;
-    let marginPercentage = renderMax / width;
-    let marginLeft = xScrollWidth * marginPercentage - xScrollWidth;
-    xScroll.style.marginLeft = marginLeft + "px";
+    let divider =
+      gameboardWidth.current - (renderWidth.current - renderWidthMin.current);
+    let baselineMargin = (width - xScrollWidth) / divider;
+    let marginMultiplier = renderWidthMin.current;
+    xScroll.style.marginLeft = baselineMargin * marginMultiplier + "px";
   }
 
-  const scrollBufferY = useRef();
   function yScrollUpdate() {
     let board = document.getElementById("gameboardHolder");
-    let height = board.offsetHeight;
+    let height = board.offsetHeight - 2;
     let yScroll = document.getElementById("yScroll");
-    let totalHeight = gameboardHeight.current * (cellHeight.current - 2);
+    let totalHeight = (gameboardHeight.current - 2) * cellHeight.current;
     let yScrollPercentage = height / totalHeight;
     let yScrollHeight = height * yScrollPercentage;
     yScroll.style.height = yScrollHeight + "px";
-    let renderMax = renderHeight.current * cellHeight.current;
-    if (scrollBufferY.current === undefined) {
-      scrollBufferY.current = renderMax - height;
-    }
-    renderMax -= scrollBufferX.current;
-    let marginPercentage = renderMax / height;
-    let marginTop = yScrollHeight * marginPercentage - yScrollHeight + 17;
-    yScroll.style.marginTop = marginTop + "px";
+    let divider =
+      gameboardHeight.current -
+      (renderHeight.current - renderHeightMin.current);
+    let baselineMargin = (height - yScrollHeight) / divider;
+    let marginMultiplier = renderHeightMin.current;
+    yScroll.style.marginTop = baselineMargin * marginMultiplier + "px";
   }
 
   const clickPosition = useRef(undefined);
