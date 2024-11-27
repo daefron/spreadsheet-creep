@@ -149,17 +149,6 @@ export function engine(newRound, gameState) {
     }
   }
 
-  function newCorpse(entity) {
-    let type = "corpse";
-    let position = entity.position;
-    let groundID = type + position[0] + position[1];
-    groundID = new Ground(groundList[type], position, groundID);
-    groundID.enemy = entity.enemy;
-    groundID.parent = entity;
-    toBoard(groundBoard.current, position, groundID);
-    activeGround.current.push(groundID);
-  }
-
   //determines which graveyard entities get sent to
   function entityKiller(entity) {
     if (entity.death !== undefined) {
@@ -174,9 +163,6 @@ export function engine(newRound, gameState) {
     }
     if (entity.class === "entity") {
       toBoard(entityBoard.current, entity.position, undefined);
-      if (entity.corpse) {
-        newCorpse(entity);
-      }
       if (entity.enemy) {
         setBank(entity.value + bank);
         enemyGraveyard.current.push(
