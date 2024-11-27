@@ -543,7 +543,10 @@ export default function engineOutput() {
     function cellType(w, h) {
       let testTimeInitial = Date.now();
       if (selectedCell.current !== undefined) {
-        selectedCell.current.setSelectionRange(cellCursorPosition.current, cellCursorPosition.current);
+        selectedCell.current.setSelectionRange(
+          cellCursorPosition.current,
+          cellCursorPosition.current
+        );
         if (currentInput.current !== "") {
           let inputPosition = selectedCell.current.id.split("x");
           inputPosition[0] = parseInt(inputPosition[0]);
@@ -552,8 +555,8 @@ export default function engineOutput() {
             let style = {
               width: cellWidth.current + "px",
               height: cellHeight.current + "px",
-              "--cell-select-width": cellWidth.current - 2 + "px",
-              "--cell-select-height": cellHeight.current - 2 + "px",
+              "--cell-select-width": cellWidth.current + "px",
+              "--cell-select-height": cellHeight.current + "px",
             };
             testTime1.current += Date.now() - testTimeInitial;
             return [w + "x" + h, currentInput.current, style];
