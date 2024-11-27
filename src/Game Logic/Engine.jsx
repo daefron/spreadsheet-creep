@@ -225,10 +225,6 @@ export function engine(newRound, gameState) {
     }
 
     function blobHolder(currentEntity) {
-      if (currentEntity.ghost) {
-        entityKiller(currentEntity);
-        return;
-      }
       let x = currentEntity.position[0];
       let y = currentEntity.position[1];
       let positionBelow = [x, y + 1];
@@ -286,19 +282,21 @@ export function engine(newRound, gameState) {
       }
 
       function blobFall() {
+        if (currentEntity.ghost) {
+          if (currentEntity.position[1] >= gameboardHeight.current) {
+            entityKiller(currentEntity);
+          }
+          if (groundBelow === undefined && entityBelow === undefined) {
+            moveBoard(entityBoard.current, positionBelow, currentEntity);
+          }
+          return true;
+        }
         if (
           groundBelow !== undefined ||
           entityBelow !== undefined ||
           positionBelow[1] === gameboardHeight.current + 1
         ) {
           return;
-        }
-        if (currentEntity.ghost) {
-          if (positionBelow[1] >= gameboardHeight.current) {
-            entityKiller(currentEntity);
-          }
-          moveBoard(entityBoard.current, positionBelow, currentEntity);
-          return true;
         }
         let touchingGround = 0;
         let blobGroup = blobGrouper();
