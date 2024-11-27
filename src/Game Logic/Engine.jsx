@@ -45,8 +45,8 @@ export function engine(newRound, gameState) {
   let timer = gameState.engine.timer;
   let gameboardWidth = gameState.settings.gameboardWidth;
   let gameboardHeight = gameState.settings.gameboardHeight;
-  let renderWidth = gameState.settings.renderWidth;
-  let renderHeight = gameState.settings.renderHeight;
+  let renderWidth = gameState.render.renderWidth;
+  let renderHeight = gameState.render.renderHeight;
   let groundLevel = gameState.settings.groundLevel;
   let groundRoughness = gameState.settings.groundRoughness;
   let waterLevel = gameState.settings.waterLevel;

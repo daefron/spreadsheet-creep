@@ -9,6 +9,22 @@ import {
   cellOverlap,
   autoCell,
 } from "./Render/Scrolling.jsx";
+import {
+  updateGameboardWidth,
+  updateGameboardHeight,
+  updateGroundHeight,
+  updateWaterLevel,
+  updateGroundRoughness,
+  updateGameSpeed,
+  updateRenderSpeed,
+  updateTotalSpawns,
+  updateSpawnSpeed,
+  updateKingHP,
+  updateGameMode,
+  updateCellWidth,
+  updateCellHeight,
+  tabButton,
+} from "./Render/SettingUpdaters.jsx";
 import { engine } from "./Engine.jsx";
 import EntityList from "./Lists/EntityList.jsx";
 import Purchasables from "./Render/Purchasables.jsx";
@@ -161,74 +177,7 @@ export default function EngineOutput() {
     engine(true, gameStatePacker());
   }
 
-  function updateGameboardWidth(e) {
-    gameboardWidth.current = parseInt(e.target.value);
-    entityBoard.current = initialGameboard(gameboardHeight, gameboardWidth);
-    groundBoard.current = initialGameboard(gameboardHeight, gameboardWidth);
-    projectileBoard.current = initialGameboard(gameboardHeight, gameboardWidth);
-    effectBoard.current = initialGameboard(gameboardHeight, gameboardWidth);
-    fluidBoard.current = initialGameboard(gameboardHeight, gameboardWidth);
-    renderUpdate();
-  }
-  function updateGameboardHeight(e) {
-    gameboardHeight.current = parseInt(e.target.value);
-    entityBoard.current = initialGameboard(gameboardHeight, gameboardWidth);
-    groundBoard.current = initialGameboard(gameboardHeight, gameboardWidth);
-    projectileBoard.current = initialGameboard(gameboardHeight, gameboardWidth);
-    effectBoard.current = initialGameboard(gameboardHeight, gameboardWidth);
-    fluidBoard.current = initialGameboard(gameboardHeight, gameboardWidth);
-    renderUpdate();
-  }
-  function updateGroundHeight(e) {
-    groundLevel.current = parseInt(e.target.value);
-    renderUpdate();
-  }
-  function updateWaterLevel(e) {
-    waterLevel.current = parseInt(e.target.value);
-    renderUpdate();
-  }
-  function updateGroundRoughness(e) {
-    groundRoughness.current = parseFloat(e.target.value);
-    renderUpdate();
-  }
-  function updateGameSpeed(e) {
-    gameSpeed.current = parseFloat(e.target.value);
-    renderUpdate();
-  }
-  function updateRenderSpeed(e) {
-    renderSpeed.current = parseFloat(e.target.value);
-    renderUpdate();
-  }
-  function updateTotalSpawns(e) {
-    totalSpawns.current = parseInt(e.target.value);
-    renderUpdate();
-  }
-  function updateSpawnSpeed(e) {
-    spawnSpeed.current = parseFloat(e.target.value);
-    renderUpdate();
-  }
-  function updateKingHP(e) {
-    kingHP.current = parseInt(e.target.value);
-    entityList.king.lvls.lvl1.hp = kingHP.current + 1;
-    renderUpdate();
-  }
-  function updateGameMode(e) {
-    gameMode.current = e.target.value;
-    renderUpdate();
-  }
-  function updateCellWidth(e) {
-    cellWidth.current = e.target.value;
-    renderUpdate();
-  }
-  function updateCellHeight(e) {
-    cellHeight.current = e.target.value;
-    renderUpdate();
-  }
-
   const [activeTab, setActiveTab] = useState("gameboardHolder");
-  function tabButton(e) {
-    setActiveTab(e.target.textContent + "Holder");
-  }
 
   function Stats() {
     return (
@@ -358,7 +307,19 @@ export default function EngineOutput() {
                   min="2"
                   max="800"
                   value={gameboardWidth.current}
-                  onChange={updateGameboardWidth}
+                  onChange={function (e) {
+                    updateGameboardWidth(
+                      e,
+                      gameboardWidth,
+                      gameboardHeight,
+                      entityBoard,
+                      groundBoard,
+                      projectileBoard,
+                      effectBoard,
+                      fluidBoard,
+                      renderUpdate
+                    );
+                  }}
                 ></input>
               </div>
             </div>
@@ -373,7 +334,19 @@ export default function EngineOutput() {
                   min="1"
                   max="800"
                   value={gameboardHeight.current}
-                  onChange={updateGameboardHeight}
+                  onChange={function (e) {
+                    updateGameboardHeight(
+                      e,
+                      gameboardWidth,
+                      gameboardHeight,
+                      entityBoard,
+                      groundBoard,
+                      projectileBoard,
+                      effectBoard,
+                      fluidBoard,
+                      renderUpdate
+                    );
+                  }}
                 ></input>
               </div>
             </div>
@@ -388,7 +361,9 @@ export default function EngineOutput() {
                   min="0"
                   max={gameboardHeight.current}
                   value={groundLevel.current}
-                  onChange={updateGroundHeight}
+                  onChange={function (e) {
+                    updateGroundHeight(e, groundLevel, renderUpdate);
+                  }}
                 ></input>
               </div>
             </div>
@@ -403,7 +378,9 @@ export default function EngineOutput() {
                   min="0"
                   max={gameboardHeight.current}
                   value={waterLevel.current}
-                  onChange={updateWaterLevel}
+                  onChange={function (e) {
+                    updateWaterLevel(e, waterLevel, renderUpdate);
+                  }}
                 ></input>
               </div>
             </div>
@@ -418,7 +395,9 @@ export default function EngineOutput() {
                   min="0"
                   max="10"
                   value={groundRoughness.current}
-                  onChange={updateGroundRoughness}
+                  onChange={function (e) {
+                    updateGroundRoughness(e, groundRoughness, renderUpdate);
+                  }}
                 ></input>
               </div>
             </div>
@@ -433,7 +412,9 @@ export default function EngineOutput() {
                   min="0"
                   max="10"
                   value={gameSpeed.current}
-                  onChange={updateGameSpeed}
+                  onChange={function (e) {
+                    updateGameSpeed(e, gameSpeed, renderUpdate);
+                  }}
                 ></input>
               </div>
             </div>
@@ -448,7 +429,9 @@ export default function EngineOutput() {
                   min="1"
                   max="10"
                   value={renderSpeed.current}
-                  onChange={updateRenderSpeed}
+                  onChange={function (e) {
+                    updateRenderSpeed(e, renderSpeed, renderUpdate);
+                  }}
                 ></input>
               </div>
             </div>
@@ -463,7 +446,9 @@ export default function EngineOutput() {
                   min="1"
                   max="300"
                   value={totalSpawns.current}
-                  onChange={updateTotalSpawns}
+                  onChange={function (e) {
+                    updateTotalSpawns(e, totalSpawns, renderUpdate);
+                  }}
                 ></input>
               </div>
             </div>
@@ -478,7 +463,9 @@ export default function EngineOutput() {
                   min="1"
                   max="100"
                   value={spawnSpeed.current}
-                  onChange={updateSpawnSpeed}
+                  onChange={function (e) {
+                    updateSpawnSpeed(e, spawnSpeed, renderUpdate);
+                  }}
                 ></input>
               </div>
             </div>
@@ -493,7 +480,9 @@ export default function EngineOutput() {
                   min="10"
                   max="10000"
                   value={kingHP.current}
-                  onChange={updateKingHP}
+                  onChange={function (e) {
+                    updateKingHP(e, kingHP, renderUpdate, entityList);
+                  }}
                 ></input>
               </div>
             </div>
@@ -508,7 +497,9 @@ export default function EngineOutput() {
                   min="1"
                   max="300"
                   value={cellWidth.current}
-                  onChange={updateCellWidth}
+                  onChange={function (e) {
+                    updateCellWidth(e, cellWidth, renderUpdate);
+                  }}
                 ></input>
               </div>
             </div>
@@ -523,7 +514,9 @@ export default function EngineOutput() {
                   min="1"
                   max="300"
                   value={cellHeight.current}
-                  onChange={updateCellHeight}
+                  onChange={function (e) {
+                    updateCellHeight(e, cellHeight, renderUpdate);
+                  }}
                 ></input>
               </div>
             </div>
@@ -532,7 +525,9 @@ export default function EngineOutput() {
               <select
                 id="gamemode.currentSelect"
                 defaultValue={gameMode.current}
-                onChange={updateGameMode}
+                onChange={function (e) {
+                  updateGameMode(e, gameMode, renderUpdate);
+                }}
               >
                 <option value="king">king</option>
                 <option value="battle">battle</option>
@@ -586,7 +581,9 @@ export default function EngineOutput() {
         <button
           className="tab"
           id="gameboardTab"
-          onClick={tabButton}
+          onClick={function (e) {
+            tabButton(e, setActiveTab);
+          }}
           style={
             activeTab === "gameboardHolder"
               ? { backgroundColor: "#cacaca", fontWeight: 500 }
@@ -598,7 +595,9 @@ export default function EngineOutput() {
         <button
           className="tab"
           id="entitiesTab"
-          onClick={tabButton}
+          onClick={function (e) {
+            tabButton(e, setActiveTab);
+          }}
           style={
             activeTab === "entitiesHolder"
               ? { backgroundColor: "#cacaca", fontWeight: 500 }
@@ -610,7 +609,9 @@ export default function EngineOutput() {
         <button
           className="tab"
           id="settingsTab"
-          onClick={tabButton}
+          onClick={function (e) {
+            tabButton(e, setActiveTab);
+          }}
           style={
             activeTab === "settingsHolder"
               ? { backgroundColor: "#cacaca", fontWeight: 500 }
