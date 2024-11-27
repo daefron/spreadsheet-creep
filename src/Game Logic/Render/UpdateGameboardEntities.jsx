@@ -187,6 +187,9 @@ export function updateGameboardEntities(gamestate) {
     return [w + "x" + h, cellText, style, "", w, h];
 
     function attackBar(currentEntity, style) {
+      if (entity.attack === undefined) {
+        return;
+      }
       let maxWidth = cellWidth.current;
       let percentage = currentEntity.rateCharge / currentEntity.rate;
       let currentWidth = maxWidth * percentage;
@@ -206,13 +209,23 @@ export function updateGameboardEntities(gamestate) {
       } else {
         color = "rgb(2 48 32 /" + (1 - percentage / 1.5) + ")";
       }
-      style.boxShadow +=
-        ",inset " +
-        cellWidth.current +
-        "px " +
-        cellHeight.current +
-        "px 0px 0px " +
-        color;
+      if (entity.attack === undefined) {
+        style.boxShadow =
+          "inset " +
+          cellWidth.current +
+          "px " +
+          cellHeight.current +
+          "px 0px 0px " +
+          color;
+      } else {
+        style.boxShadow +=
+          ",inset " +
+          cellWidth.current +
+          "px " +
+          cellHeight.current +
+          "px 0px 0px " +
+          color;
+      }
     }
 
     function entityLine(style) {
