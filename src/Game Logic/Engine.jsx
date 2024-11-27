@@ -563,7 +563,6 @@ export function engine(newRound, gameState) {
         statUpdate(entityID);
         toBoard(entityBoard.current, position, entityID);
         activeEntities.current.push(entityID);
-        enemySpawnCount.current++;
       }
     }
 

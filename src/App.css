@@ -66,8 +66,7 @@ body {
 }
 #bottom > button:hover {
   border-color: black;
-  border-right: solid black 1px;
-  outline: solid black 1px;
+  border: solid 2px;
   z-index: 100000;
 }
 #bottom > button:focus {
@@ -170,10 +169,10 @@ select,
 .settingTitle {
   width: 50%;
   height: 25px;
-  font-size: 13px;
+  font-size: 15px;
   margin: 0;
   padding: 0;
-  text-indent: 5px;
+  padding-right: 5px;
   border-width: 1px;
   border-right-width: 0px;
   border-bottom-width: 0px;
@@ -182,8 +181,10 @@ select,
   background-color: white;
   user-select: none;
   box-sizing: border-box;
+  text-align: right;
 }
 select {
+  font-size: 15px;
   width: 50%;
   height: 25px;
   border: solid 1px grey;

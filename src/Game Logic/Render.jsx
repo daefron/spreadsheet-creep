@@ -181,14 +181,14 @@ export default function EngineOutput() {
   const [activeTab, setActiveTab] = useState("gameboardHolder");
 
   useEffect(() => {
+    document.addEventListener("keydown", handleKeyPress);
     function handleKeyPress(e) {
       keyboardSelect(e, gameStatePacker());
     }
+    document.addEventListener("click", handleClick);
     function handleClick(e) {
       clickSelect(e, gameStatePacker());
     }
-    document.addEventListener("keydown", handleKeyPress);
-    document.addEventListener("click", handleClick);
     let board = document.getElementById("gameboardHolder");
     board.addEventListener("scroll", function () {
       handleScroll(gameStatePacker());
@@ -551,7 +551,7 @@ export default function EngineOutput() {
           }}
           style={
             activeTab === "gameboardHolder"
-              ? { backgroundColor: "#cacaca", fontWeight: 500 }
+              ? { backgroundColor: "#cacaca", fontWeight: 500, border:"solid 2px" }
               : { backgroundColor: "white" }
           }
         >
@@ -565,7 +565,7 @@ export default function EngineOutput() {
           }}
           style={
             activeTab === "entitiesHolder"
-              ? { backgroundColor: "#cacaca", fontWeight: 500 }
+              ? { backgroundColor: "#cacaca", fontWeight: 500, border:"solid 2px" }
               : { backgroundColor: "white" }
           }
         >
@@ -579,7 +579,7 @@ export default function EngineOutput() {
           }}
           style={
             activeTab === "settingsHolder"
-              ? { backgroundColor: "#cacaca", fontWeight: 500 }
+              ? { backgroundColor: "#cacaca", fontWeight: 500, border:"solid 2px" }
               : { backgroundColor: "white" }
           }
         >
