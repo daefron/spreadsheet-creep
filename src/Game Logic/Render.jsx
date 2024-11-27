@@ -131,21 +131,6 @@ export default function EngineOutput() {
     };
   }
 
-  useEffect(() => {
-    function handleKeyPress(e) {
-      keyboardSelect(e, gameStatePacker());
-    }
-    function handleClick(e) {
-      clickSelect(e, gameStatePacker());
-    }
-    document.addEventListener("keydown", handleKeyPress);
-    document.addEventListener("click", handleClick);
-    return function cleanup() {
-      document.removeEventListener("click", handleClick);
-      document.removeEventListener("keydown", handleKeyPress);
-    };
-  }, []);
-
   function renderUpdate() {
     xScrollUpdate(gameboardWidth, renderWidth, renderWidthMin, cellWidth);
     yScrollUpdate(gameboardHeight, renderHeight, renderHeightMin, cellHeight);
@@ -168,25 +153,6 @@ export default function EngineOutput() {
     scrollCheck(scrollPositionX, scrollPositionY, scrolledThisTurn);
     cellSelectMoved.current = false;
   }
-
-  useEffect(() => {
-    let board = document.getElementById("gameboardHolder");
-    board.addEventListener("scroll", function () {
-      handleScroll(
-        gameboardWidth,
-        gameboardHeight,
-        renderWidth,
-        renderWidthMin,
-        renderHeight,
-        renderHeightMin,
-        scrollPositionX,
-        scrollPositionY,
-        scrolledThisTurn,
-        cellWidth,
-        cellHeight
-      );
-    });
-  }, []);
 
   function newButton() {
     clearInterval(renderTimer.current);
@@ -318,9 +284,36 @@ export default function EngineOutput() {
     );
   }
 
-  //renders the gameboard once on page load
   useEffect(() => {
+    function handleKeyPress(e) {
+      keyboardSelect(e, gameStatePacker());
+    }
+    function handleClick(e) {
+      clickSelect(e, gameStatePacker());
+    }
+    document.addEventListener("keydown", handleKeyPress);
+    document.addEventListener("click", handleClick);
+    let board = document.getElementById("gameboardHolder");
+    board.addEventListener("scroll", function () {
+      handleScroll(
+        gameboardWidth,
+        gameboardHeight,
+        renderWidth,
+        renderWidthMin,
+        renderHeight,
+        renderHeightMin,
+        scrollPositionX,
+        scrollPositionY,
+        scrolledThisTurn,
+        cellWidth,
+        cellHeight
+      );
+    });
     renderUpdate();
+    return function cleanup() {
+      document.removeEventListener("click", handleClick);
+      document.removeEventListener("keydown", handleKeyPress);
+    };
   }, []);
 
   return (
