@@ -28,6 +28,7 @@ export function keyboardSelect(e, gameState) {
   let currentInput = gameState.input.currentInput;
   let cellTyping = gameState.input.cellTyping;
   let cellSelectMoved = gameState.input.cellSelectMoved;
+  let cellCursorPosition = gameState.input.cellCursorPosition;
   if (selectedCell.current === undefined) {
     return;
   }
@@ -101,6 +102,7 @@ export function keyboardSelect(e, gameState) {
     }
     if (keyPressed === "ArrowLeft") {
       if (cellTyping.current) {
+        cellCursorPosition.current--;
         return;
       }
       e.preventDefault();
@@ -109,6 +111,7 @@ export function keyboardSelect(e, gameState) {
     }
     if (keyPressed === "ArrowRight") {
       if (cellTyping.current) {
+        cellCursorPosition.current++;
         return;
       }
       e.preventDefault();
@@ -146,12 +149,15 @@ export function keyboardSelect(e, gameState) {
           sliceAtCursor(keyPressed);
         }
       }
+      return;
     }
     if (keyPressed === "Backspace") {
       sliceAtCursor("Backspace");
-    } 
+      return;
+    }
     if (keyPressed === "Delete") {
       sliceAtCursor("Delete");
+      return;
     }
   }
 
@@ -165,13 +171,15 @@ export function keyboardSelect(e, gameState) {
     if (character === "Backspace") {
       firstHalf = currentInput.current.slice(0, cursorPosition - 1);
       character = "";
-    }
-    if (character === "Delete") {
+      cellCursorPosition.current--;
+    } else if (character === "Delete") {
       secondHalf = currentInput.current.slice(
         cursorPosition + 1,
         currentInput.current.length
       );
       character = "";
+    } else {
+      cellCursorPosition.current = cursorPosition + 1;
     }
     currentInput.current = firstHalf + character + secondHalf;
   }

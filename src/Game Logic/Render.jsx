@@ -76,6 +76,8 @@ export default function engineOutput() {
   let entityList = EntityList;
   let groundList = GroundList;
 
+  const cellCursorPosition = useRef();
+
   const entityBoard = useRef(initialGameboard());
   const groundBoard = useRef(initialGameboard());
   const fluidBoard = useRef(initialGameboard());
@@ -149,6 +151,7 @@ export default function engineOutput() {
         cellTyping: cellTyping,
         currentInput: currentInput,
         cellSelectMoved: cellSelectMoved,
+        cellCursorPosition: cellCursorPosition,
       },
       test: {
         engineTime: engineTime,
@@ -540,6 +543,7 @@ export default function engineOutput() {
     function cellType(w, h) {
       let testTimeInitial = Date.now();
       if (selectedCell.current !== undefined) {
+        selectedCell.current.setSelectionRange(cellCursorPosition.current, cellCursorPosition.current);
         if (currentInput.current !== "") {
           let inputPosition = selectedCell.current.id.split("x");
           inputPosition[0] = parseInt(inputPosition[0]);
