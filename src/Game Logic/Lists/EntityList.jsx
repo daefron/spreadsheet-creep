@@ -78,7 +78,7 @@ export default {
         rate: 12,
         speed: 10,
         value: 6,
-        chance: 8000000,
+        chance: 8,
       },
     },
   },

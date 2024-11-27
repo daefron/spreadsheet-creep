@@ -1551,32 +1551,32 @@ export function engine(newRound, gameState) {
         gameStatus.current = "King round in progress";
         timer.current = setInterval(() => {
           kingTurn();
-        }, renderSpeed.current * 4);
+        }, renderSpeed.current);
       } else if (gameMode.current === "battle") {
         gameStatus.current = "Battle round in progress";
         timer.current = setInterval(() => {
           battleTurn();
-        }, renderSpeed.current * 4);
+        }, renderSpeed.current);
       } else if (gameMode.current === "blob") {
         gameStatus.current = "Blob round in progress";
         timer.current = setInterval(() => {
           blobTurn();
-        }, renderSpeed.current * 4);
+        }, renderSpeed.current);
       } else if (gameMode.current === "blob fight") {
         gameStatus.current = "Blob fight in progress";
         timer.current = setInterval(() => {
           blobFightTurn();
-        }, renderSpeed.current * 4);
+        }, renderSpeed.current);
       } else if (gameMode.current === "blob gob") {
         gameStatus.current = "Blob vs enemies round in progress";
         timer.current = setInterval(() => {
           blobGobTurn();
-        }, renderSpeed.current * 4);
+        }, renderSpeed.current);
       } else if (gameMode.current === "sandbox") {
         gameStatus.current = "Sandbox in progress";
         timer.current = setInterval(() => {
           sandboxTurn();
-        }, renderSpeed.current * 4);
+        }, renderSpeed.current);
       }
     }
 

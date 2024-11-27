@@ -5,7 +5,7 @@ import EntityList from "./Lists/EntityList.jsx";
 import Purchasables from "./Render/Purchasables.jsx";
 import { updateGameboardEntities } from "./Render/UpdateGameboardEntities";
 
-export default function engineOutput() {
+export default function EngineOutput() {
   const activeEntities = useRef([]);
   const activeProjectiles = useRef([]);
   const activeGround = useRef([]);
@@ -48,17 +48,14 @@ export default function engineOutput() {
   const scrollPositionX = useRef(0);
   const scrollPositionY = useRef(0);
   const cellSelectMoved = useRef(false);
-  let entityList = EntityList;
-
   const cellCursorPosition = useRef();
-
   const entityBoard = useRef(initialGameboard());
   const groundBoard = useRef(initialGameboard());
   const fluidBoard = useRef(initialGameboard());
   const projectileBoard = useRef(initialGameboard());
   const effectBoard = useRef(initialGameboard());
-
   const gameStatus = useRef();
+  let entityList = EntityList;
 
   function initialGameboard() {
     let grid = [];
@@ -373,7 +370,7 @@ export default function engineOutput() {
       scrollPositionY.current = 0;
     }
   }
-
+  let timetest = 0;
   function newButton() {
     clearInterval(renderTimer.current);
     clearInterval(gameTimer.current);
@@ -388,6 +385,8 @@ export default function engineOutput() {
     lastFriendlySpawnTime.current = 0;
     renderTimer.current = setInterval(() => {
       renderUpdate();
+      timetest++;
+      console.log(timetest);
     }, renderSpeed.current);
     engine(true, gameStatePacker());
   }
@@ -461,16 +460,8 @@ export default function engineOutput() {
     setActiveTab(e.target.textContent + "Holder");
   }
 
-  //renders the gameboard once on page load
-  useEffect(() => {
-    // timeTest();
-    renderUpdate();
-    xScrollUpdate();
-    yScrollUpdate();
-  }, []);
-
-  return (
-    <>
+  function Stats() {
+    return (
       <div id="stats">
         <p
           className="statTitle"
@@ -502,6 +493,19 @@ export default function engineOutput() {
           {gameStatus.current}
         </p>
       </div>
+    );
+  }
+
+  //renders the gameboard once on page load
+  useEffect(() => {
+    renderUpdate();
+    xScrollUpdate();
+    yScrollUpdate();
+  }, []);
+
+  return (
+    <>
+      <Stats></Stats>
       <div id="above">
         <div
           id="gameboardHolder"
