@@ -48,7 +48,7 @@ export default function EngineOutput() {
   const lastFriendlySpawnTime = useRef(0);
   const gameTimer = useRef();
   const renderTimer = useRef();
-  const gameboardWidth = useRef(18);
+  const gameboardWidth = useRef(5000);
   const gameboardHeight = useRef(45);
   const renderWidth = useRef();
   const renderWidthMin = useRef(0);
@@ -66,14 +66,14 @@ export default function EngineOutput() {
   const friendlyCount = useRef(1);
   const projectileCount = useRef(0);
   const selectedCell = useRef();
-  const cellTyping = useRef(false);
+  const cellTyping = useRef();
   const currentInput = useRef("");
   const cellWidth = useRef(120);
   const cellHeight = useRef(20);
   const [gameboardEntities, setGameboardEntities] = useState([]);
   const scrollPositionX = useRef(0);
   const scrollPositionY = useRef(0);
-  const cellSelectMoved = useRef(false);
+  const cellSelectMoved = useRef();
   const cellCursorPosition = useRef();
   const entityBoard = useRef(initialGameboard(gameboardHeight, gameboardWidth));
   const groundBoard = useRef(initialGameboard(gameboardHeight, gameboardWidth));
@@ -83,7 +83,7 @@ export default function EngineOutput() {
   );
   const effectBoard = useRef(initialGameboard(gameboardHeight, gameboardWidth));
   const gameStatus = useRef();
-  const scrolledThisTurn = useRef(false);
+  const scrolledThisTurn = useRef();
   let entityList = EntityList;
 
   function gameStatePacker() {

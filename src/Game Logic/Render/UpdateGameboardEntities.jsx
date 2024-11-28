@@ -53,7 +53,7 @@ export function updateGameboardEntities(gamestate) {
         cellCursorPosition.current,
         cellCursorPosition.current
       );
-      if (currentInput.current !== "") {
+      if (currentInput.current) {
         let inputPosition = selectedCell.current.id.split("x");
         inputPosition[0] = parseInt(inputPosition[0]);
         inputPosition[1] = parseInt(inputPosition[1]);
@@ -142,7 +142,7 @@ export function updateGameboardEntities(gamestate) {
     style.backgroundColor = effect.style.backgroundColor;
     style.color = effect.style.color;
     style.fontStyle = effect.style.fontStyle;
-    if (effect.symbol === "") {
+    if (!effect.symbol) {
       if (onBoard(entityBoard.current, effect.position)) {
         return entityCell(
           onBoard(entityBoard.current, effect.position),
@@ -301,21 +301,10 @@ export function updateGameboardEntities(gamestate) {
     groundLine(ground, style);
     groundHealthBar(ground, style);
     let text = "";
-    if (ground.type === "corpse") {
-      text = "corpse";
-      style.fontStyle = "bold";
-      if (ground.enemy) {
-        style.color = "darkRed";
-      } else style.color = "darkGreen";
-    }
     return [w + "x" + h, text, style, "", w, h];
 
     function groundLine(ground, style) {
-      if (
-        ground.falling ||
-        ground.fallSpeed > ground.fallCharge ||
-        ground.type === "corpse"
-      ) {
+      if (ground.falling || ground.fallSpeed > ground.fallCharge) {
         return;
       }
       let made;
@@ -335,7 +324,7 @@ export function updateGameboardEntities(gamestate) {
         style.boxShadow = "inset 0px 2px 0px grey";
         made = true;
       }
-      if (!groundLeft && ground.position[0] - 1 !== 0) {
+      if (!groundLeft && ground.position[0] - 1) {
         if (!made) {
           style.boxShadow = "inset 2px 0px 0px grey";
           made = true;
@@ -358,19 +347,6 @@ export function updateGameboardEntities(gamestate) {
         "rgb(150 150 150 /" +
         (1 - ground.hp / groundList[ground.type].hp / 2) +
         ")";
-      if (ground.type === "corpse") {
-        if (ground.enemy) {
-          color =
-            "rgb(139 0 0 /" +
-            (1 - ground.hp / groundList[ground.type].hp / 4) +
-            ")";
-        } else {
-          color =
-            "rgb(2 48 32 /" +
-            (1 - ground.hp / groundList[ground.type].hp / 4) +
-            ")";
-        }
-      }
       if (!style.boxShadow) {
         style.boxShadow =
           "inset " +

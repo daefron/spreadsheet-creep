@@ -1,4 +1,4 @@
-import EntityList from "../Lists/EntityList.jsx"
+import EntityList from "../Lists/EntityList.jsx";
 export default function Purchasables() {
   let entityList = EntityList;
   let entityArray = Object.values(entityList);
@@ -9,9 +9,9 @@ export default function Purchasables() {
     [["Purchasable entities:"], [""], [""], [""], [""], [""], [""]],
     [["Name"], ["Level"], ["Cost"], ["HP"], ["Damage"], ["Range"], ["Rate"]],
   ];
-  friendlyEntityArray.forEach((entity) => {
+  for (const entity of friendlyEntityArray) {
     let lvls = Object.values(entity.lvls);
-    lvls.forEach((lvl) => {
+    for (const lvl of lvls) {
       let name = "";
       if (lvl.lvl === 1) {
         name = entity.type;
@@ -26,8 +26,8 @@ export default function Purchasables() {
         [lvl.rate],
       ];
       parsedFriendlyEntityArray.push(thisLevel);
-    });
-  });
+    }
+  }
   for (let i = 0; i < parsedFriendlyEntityArray.length; i++) {
     let row = parsedFriendlyEntityArray[i];
     for (let x = 0; x < row.length; x++) {
@@ -35,7 +35,7 @@ export default function Purchasables() {
       cell.push(i + "x" + x + "purchasable");
     }
     if (i > 1) {
-      if (row[0][0] !== "") {
+      if (row[0][0]) {
         row[0][2] = {
           borderTop: "solid 1px black",
         };

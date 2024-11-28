@@ -8,7 +8,7 @@ class Fluid {
     this.fallCharge = 0;
     this.speed = type.speed;
     this.speedCharge = 0;
-    if (type.speed !== undefined) {
+    if (type.speed) {
       let directionDecider = Math.random() * 10;
       if (directionDecider > 5) {
         this.direction = "left";
