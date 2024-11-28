@@ -48,7 +48,7 @@ export default function EngineOutput() {
   const lastFriendlySpawnTime = useRef(0);
   const gameTimer = useRef();
   const renderTimer = useRef();
-  const gameboardWidth = useRef(5000);
+  const gameboardWidth = useRef(40);
   const gameboardHeight = useRef(45);
   const renderWidth = useRef();
   const renderWidthMin = useRef(0);
@@ -84,6 +84,7 @@ export default function EngineOutput() {
   const effectBoard = useRef(initialGameboard(gameboardHeight, gameboardWidth));
   const gameStatus = useRef();
   const scrolledThisTurn = useRef();
+  const newRound = useRef(true);
   let entityList = EntityList;
 
   function gameStatePacker() {
@@ -116,6 +117,7 @@ export default function EngineOutput() {
         bank: bank,
         setBank: setBank,
         timer: gameTimer,
+        newRound: newRound,
       },
       settings: {
         gameboardWidth: gameboardWidth,
@@ -172,10 +174,11 @@ export default function EngineOutput() {
     friendlySpawnCount.current = 0;
     lastEnemySpawnTime.current = 0;
     lastFriendlySpawnTime.current = 0;
+    newRound.current = true;
     renderTimer.current = setInterval(() => {
+      engine(gameStatePacker());
       renderUpdate();
     }, renderSpeed.current * 4);
-    engine(true, gameStatePacker());
   }
 
   const [activeTab, setActiveTab] = useState("gameboardHolder");

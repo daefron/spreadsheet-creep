@@ -21,7 +21,7 @@ let groundList = GroundList;
 let fluidList = FluidList;
 let effectList = EffectList;
 
-export function engine(newRound, gameState) {
+export function engine(gameState) {
   let activeEntities = gameState.active.activeEntities;
   let entityBoard = gameState.active.entityBoard;
   let activeProjectiles = gameState.active.activeProjectiles;
@@ -57,6 +57,7 @@ export function engine(newRound, gameState) {
   let gameMode = gameState.settings.gameMode;
   let gameStatus = gameState.render.gameStatus;
   let projectileCount = gameState.engine.projectileCount;
+  let newRound = gameState.engine.newRound;
   let blobAtEnd;
 
   function explosion(currentEntity) {
@@ -773,10 +774,7 @@ export function engine(newRound, gameState) {
       let target;
       for (const cell of rangeCells) {
         let targetCell = onBoard(entityBoard.current, cell);
-        if (
-          targetCell &&
-          targetCell.enemy !== currentEntity.enemy
-        ) {
+        if (targetCell && targetCell.enemy !== currentEntity.enemy) {
           return (target = targetCell);
         }
       }
@@ -965,7 +963,7 @@ export function engine(newRound, gameState) {
         function walkChecker(newPosition) {
           let entityCell = onBoard(entityBoard.current, newPosition);
           let groundCell = onBoard(groundBoard.current, newPosition);
-          if (!entityCell & !groundCell) {
+          if (!entityCell && !groundCell) {
             return true;
           }
         }
@@ -1488,34 +1486,22 @@ export function engine(newRound, gameState) {
     if (!gameFinished) {
       if (gameMode.current === "king") {
         gameStatus.current = "King round in progress";
-        timer.current = setInterval(() => {
-          kingTurn();
-        }, renderSpeed.current * 4);
+        kingTurn();
       } else if (gameMode.current === "battle") {
         gameStatus.current = "Battle round in progress";
-        timer.current = setInterval(() => {
-          battleTurn();
-        }, renderSpeed.current * 4);
+        battleTurn();
       } else if (gameMode.current === "blob") {
         gameStatus.current = "Blob round in progress";
-        timer.current = setInterval(() => {
-          blobTurn();
-        }, renderSpeed.current * 4);
+        blobTurn();
       } else if (gameMode.current === "blob fight") {
         gameStatus.current = "Blob fight in progress";
-        timer.current = setInterval(() => {
-          blobFightTurn();
-        }, renderSpeed.current * 4);
+        blobFightTurn();
       } else if (gameMode.current === "blob gob") {
         gameStatus.current = "Blob vs enemies round in progress";
-        timer.current = setInterval(() => {
-          blobGobTurn();
-        }, renderSpeed.current * 4);
+        blobGobTurn();
       } else if (gameMode.current === "sandbox") {
         gameStatus.current = "Sandbox in progress";
-        timer.current = setInterval(() => {
-          sandboxTurn();
-        }, renderSpeed.current * 4);
+        sandboxTurn();
       }
     }
 
@@ -1858,9 +1844,10 @@ export function engine(newRound, gameState) {
     }
   }
 
-  if (newRound) {
+  if (newRound.current) {
     ghoster();
     terrainMaker();
+    newRound.current = false;
   }
   gamemode(false);
 }
