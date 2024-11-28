@@ -1,5 +1,9 @@
 import { onBoard, toBoard, moveBoard, direction } from "../Tools.jsx";
-
+import EntityList from "../Lists/EntityList.jsx";
+import ProjectileList from "../Lists/ProjectileList.jsx";
+import EffectList from "../Lists/EffectList.jsx";
+import Projectile from "../Classes/Projectile.jsx";
+import Effect from "../Classes/Effect.jsx";
 export class Entity {
   constructor(type, lvl, position, ID, gameState) {
     this.name = ID;
@@ -34,21 +38,32 @@ export class Entity {
     this.gameState = gameState;
   }
   get turn() {
-    let activeEntities = gameState.active.activeEntities;
-    let entityBoard = gameState.active.entityBoard;
-    let activeProjectiles = gameState.active.activeProjectiles;
-    let groundBoard = gameState.active.groundBoard;
-    let activeFluid = gameState.active.activeFluid;
-    let fluidBoard = gameState.active.fluidBoard;
-    let activeEffects = gameState.active.activeEffects;
-    let effectBoard = gameState.active.effectBoard;
-    let enemySpawnCount = gameState.engine.enemySpawnCount;
-    let friendlySpawnCount = gameState.engine.friendlySpawnCount;
-    let gameboardWidth = gameState.settings.gameboardWidth;
-    let gameboardHeight = gameState.settings.gameboardHeight;
-    let gameSpeed = gameState.settings.gameSpeed;
-    let gameMode = gameState.settings.gameMode;
-    let projectileCount = gameState.engine.projectileCount;
+    let activeEntities = this.gameState.active.activeEntities;
+    let entityBoard = this.gameState.active.entityBoard;
+    let activeProjectiles = this.gameState.active.activeProjectiles;
+    let projectileBoard = this.gameState.active.projectileBoard;
+    let activeGround = this.gameState.active.activeGround;
+    let groundBoard = this.gameState.active.groundBoard;
+    let activeFluid = this.gameState.active.activeFluid;
+    let fluidBoard = this.gameState.active.fluidBoard;
+    let activeEffects = this.gameState.active.activeEffects;
+    let effectBoard = this.gameState.active.effectBoard;
+    let friendlyGraveyard = this.gameState.graveyard.friendlyGraveyard;
+    let enemyGraveyard = this.gameState.graveyard.enemyGraveyard;
+    let groundGraveyard = this.gameState.graveyard.groundGraveyard;
+    let fluidGraveyard = this.gameState.graveyard.fluidGraveyard;
+    let bank = this.gameState.engine.bank;
+    let setBank = this.gameState.engine.setBank;
+    let enemySpawnCount = this.gameState.engine.enemySpawnCount;
+    let friendlySpawnCount = this.gameState.engine.friendlySpawnCount;
+    let gameboardWidth = this.gameState.settings.gameboardWidth;
+    let gameboardHeight = this.gameState.settings.gameboardHeight;
+    let gameSpeed = this.gameState.settings.gameSpeed;
+    let gameMode = this.gameState.settings.gameMode;
+    let projectileCount = this.gameState.engine.projectileCount;
+    let entityList = EntityList;
+    let projectileList = ProjectileList;
+    let effectList = EffectList;
     if (healthChecker(this)) {
       return;
     }
@@ -72,6 +87,136 @@ export class Entity {
     }
     if (entityAttackGroundHandler(this)) {
       return;
+    }
+
+    function explosion(currentEntity) {
+      let w = currentEntity.explosionRange;
+      let h = currentEntity.explosionRange;
+      let initialW = w;
+      let initialH = h;
+      while (w >= -initialW) {
+        while (h >= -initialH) {
+          let position = [
+            currentEntity.position[0] + w,
+            currentEntity.position[1] + h,
+          ];
+          let entityInCell = onBoard(entityBoard.current, position);
+          let groundInCell = onBoard(groundBoard.current, position);
+          let fluidInCell = onBoard(fluidBoard.current, position);
+          let projectileInCell = onBoard(projectileBoard.current, position);
+          let dmg = parseInt(
+            currentEntity.explosionDmg -
+              (Math.random() * currentEntity.explosionDmg) / 4
+          );
+          if (entityInCell) {
+            entityInCell.hp -= dmg;
+          }
+          if (groundInCell) {
+            groundInCell.hp -= dmg;
+          }
+          if (fluidInCell) {
+            let deathChance = Math.random() * 10;
+            if (deathChance > 5) {
+              entityKiller(fluidInCell);
+            }
+          }
+          if (projectileInCell) {
+            entityKiller(projectileInCell);
+          }
+          let effectType = effectList["explosion"];
+          let effectPosition = [
+            currentEntity.position[0] + w,
+            currentEntity.position[1] + h,
+          ];
+          let effectID =
+            "explosion" +
+            currentEntity.position[0] +
+            w +
+            currentEntity.position[1] +
+            h;
+          effectID = new Effect(effectType, effectPosition, effectID);
+          toBoard(effectBoard.current, effectPosition, effectID);
+          activeEffects.current.push(effectID);
+          h--;
+        }
+        h = initialH;
+        w--;
+      }
+    }
+    function spawn(entity) {
+      let entityID = entity.name;
+      let entityType = entityList[entity.spawnType];
+      let entityLvl = entityType.lvls["lvl" + entity.lvl];
+      entityID = new Entity(
+        entityType,
+        entityLvl,
+        entity.position,
+        entityID,
+        entity.gameState
+      );
+      entityID.enemy = entity.enemy;
+      statUpdate(entityID);
+      activeEntities.current.push(entityID);
+    }
+    function statUpdate(currentEntity) {
+      currentEntity.rate /= gameSpeed.current;
+      currentEntity.speed /= gameSpeed.current;
+      currentEntity.fallSpeed /= gameSpeed.current;
+    }
+
+    function healthChecker(entity) {
+      if (entity.hp <= 0) {
+        entityKiller(entity);
+        return true;
+      }
+    }
+
+    function entityKiller(entity) {
+      if (entity.death) {
+        if (entity.death === "explodes") {
+          if (entity.armed) {
+            entity.armed = false;
+            explosion(entity);
+          }
+        } else if (entity.death === "spawn") {
+          spawn(entity);
+        }
+      }
+      if (entity.class === "entity") {
+        toBoard(entityBoard.current, entity.position, undefined);
+        if (entity.enemy) {
+          setBank(entity.value + bank);
+          enemyGraveyard.current.push(
+            activeEntities.current.splice(
+              activeEntities.current.indexOf(entity),
+              1
+            )
+          );
+        } else {
+          friendlyGraveyard.current.push(
+            activeEntities.current.splice(
+              activeEntities.current.indexOf(entity),
+              1
+            )
+          );
+        }
+      } else if (entity.class === "ground") {
+        toBoard(groundBoard.current, entity.position, undefined);
+        groundGraveyard.current.push(
+          activeGround.current.splice(activeGround.current.indexOf(entity), 1)
+        );
+      } else if (entity.class === "fluid") {
+        toBoard(fluidBoard.current, entity.position, undefined);
+        fluidGraveyard.current.push(
+          activeFluid.current.splice(activeFluid.current.indexOf(entity), 1)
+        );
+      } else if (entity.class === "projectile") {
+        toBoard(projectileBoard.current, entity.position, undefined);
+        activeProjectiles.current.splice(
+          activeProjectiles.current.indexOf(entity),
+          1
+        );
+      }
     }
 
     function blobHolder(currentEntity) {
@@ -415,7 +560,13 @@ export class Entity {
         let entityType = entityList["blob"];
         let entityLvl = entityType.lvls["lvl" + currentEntity.lvl];
         let entityID = "blob" + enemySpawnCount.current;
-        entityID = new Entity(entityType, entityLvl, position, entityID);
+        entityID = new Entity(
+          entityType,
+          entityLvl,
+          position,
+          entityID,
+          currentEntity.gameState
+        );
         entityID.enemy = currentEntity.enemy;
         statUpdate(entityID);
         toBoard(entityBoard.current, position, entityID);

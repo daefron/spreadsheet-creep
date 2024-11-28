@@ -13,13 +13,23 @@ class Ground {
   }
 
   get turn() {
+    let activeEntities = this.gameState.active.activeEntities;
     let entityBoard = this.gameState.active.entityBoard;
+    let activeProjectiles = this.gameState.active.activeProjectiles;
+    let projectileBoard = this.gameState.active.projectileBoard;
     let activeGround = this.gameState.active.activeGround;
     let groundBoard = this.gameState.active.groundBoard;
+    let activeFluid = this.gameState.active.activeFluid;
+    let fluidBoard = this.gameState.active.fluidBoard;
+    let friendlyGraveyard = this.gameState.graveyard.friendlyGraveyard;
+    let enemyGraveyard = this.gameState.graveyard.enemyGraveyard;
     let groundGraveyard = this.gameState.graveyard.groundGraveyard;
+    let fluidGraveyard = this.gameState.graveyard.fluidGraveyard;
+    let bank = this.gameState.engine.bank;
+    let setBank = this.gameState.engine.setBank;
     let gameboardHeight = this.gameState.settings.gameboardHeight;
     if (this.hp <= 0) {
-      kill(this);
+      entityKiller(this);
     }
     if (groundCanFall(this)) {
       return groundFall(this);
@@ -32,7 +42,7 @@ class Ground {
       }
       if (ground.position[1] >= gameboardHeight.current) {
         if (ground.ghost) {
-          kill(ground);
+          entityKiller(ground);
         }
         return false;
       }
@@ -51,12 +61,52 @@ class Ground {
       }
     }
 
-    function kill(entity) {
-      toBoard(groundBoard.current, entity.position, undefined);
-      groundGraveyard.current.push(
-        activeGround.current.splice(activeGround.current.indexOf(entity), 1)
-      );
-      return;
+    function entityKiller(entity) {
+      if (entity.death) {
+        if (entity.death === "explodes") {
+          if (entity.armed) {
+            entity.armed = false;
+            explosion(entity);
+          }
+        } else if (entity.death === "spawn") {
+          spawn(entity);
+        }
+      }
+      if (entity.class === "entity") {
+        toBoard(entityBoard.current, entity.position, undefined);
+        if (entity.enemy) {
+          setBank(entity.value + bank);
+          enemyGraveyard.current.push(
+            activeEntities.current.splice(
+              activeEntities.current.indexOf(entity),
+              1
+            )
+          );
+        } else {
+          friendlyGraveyard.current.push(
+            activeEntities.current.splice(
+              activeEntities.current.indexOf(entity),
+              1
+            )
+          );
+        }
+      } else if (entity.class === "ground") {
+        toBoard(groundBoard.current, entity.position, undefined);
+        groundGraveyard.current.push(
+          activeGround.current.splice(activeGround.current.indexOf(entity), 1)
+        );
+      } else if (entity.class === "fluid") {
+        toBoard(fluidBoard.current, entity.position, undefined);
+        fluidGraveyard.current.push(
+          activeFluid.current.splice(activeFluid.current.indexOf(entity), 1)
+        );
+      } else if (entity.class === "projectile") {
+        toBoard(projectileBoard.current, entity.position, undefined);
+        activeProjectiles.current.splice(
+          activeProjectiles.current.indexOf(entity),
+          1
+        );
+      }
     }
 
     function groundFall(ground) {
@@ -74,7 +124,7 @@ class Ground {
     }
 
     function groundAttack(entityBelow) {
-      kill(entityBelow);
+      entityKiller(entityBelow);
     }
   }
 }

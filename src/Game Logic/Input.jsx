@@ -219,7 +219,8 @@ function friendlySpawner(
         friendlyLvl,
         gameState.engine.friendlyCount,
         gameState.active.activeEntities,
-        gameState.active.entityBoard
+        gameState.active.entityBoard,
+        gameState
       );
     }
   }
@@ -250,14 +251,22 @@ function friendlyEntityMaker(
   entitylvl,
   friendlyCount,
   activeEntities,
-  entityBoard
+  entityBoard,
+  gameState
 ) {
   let ID = friendlyCount.current + 1;
   friendlyCount.current = ID;
   entityType = entityList[entityType];
   entitylvl = entityType.lvls["lvl" + entitylvl];
   let entityID = entityType.type + friendlyCount.current;
-  entityID = new Entity(entityType, entitylvl, entityPosition, entityID);
+  let gameState1 = gameState;
+  entityID = new Entity(
+    entityType,
+    entitylvl,
+    entityPosition,
+    entityID,
+    gameState1
+  );
   toBoard(entityBoard.current, entityPosition, entityID);
   activeEntities.current.push(entityID);
 }
