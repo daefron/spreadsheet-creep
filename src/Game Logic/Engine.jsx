@@ -272,6 +272,7 @@ export function engine(gameState) {
         if (currentEntity.ghost) {
           if (currentEntity.position[1] >= gameboardHeight.current) {
             entityKiller(currentEntity);
+            return true;
           }
           if (!groundBelow && !entityBelow) {
             moveBoard(entityBoard.current, positionBelow, currentEntity);
@@ -285,17 +286,21 @@ export function engine(gameState) {
         ) {
           return;
         }
-        let touchingGround = 0;
+        let touchingGround;
         let blobGroup = blobGrouper();
-        for (const entity of blobGroup) {
-          let x = entity.position[0];
-          let y = entity.position[1];
-          let groundBelow = onBoard(groundBoard.current, [x, y + 1]);
-          if (y === gameboardHeight.current || groundBelow) {
-            touchingGround++;
-            return;
+        (() => {
+          for (const entity of blobGroup) {
+            let y = entity.position[1];
+            if (y === gameboardHeight.current) {
+              return (touchingGround = true);
+            }
+            let x = entity.position[0];
+            let groundBelow = onBoard(groundBoard.current, [x, y + 1]);
+            if (groundBelow) {
+              return (touchingGround = true);
+            }
           }
-        }
+        })();
         if (!touchingGround) {
           moveBoard(entityBoard.current, positionBelow, currentEntity);
           return true;
@@ -303,35 +308,36 @@ export function engine(gameState) {
       }
 
       function blobGrouper() {
-        let allBlobs = activeEntities.current.filter(
-          (entity) =>
-            entity.type === currentEntity.type &&
-            entity.enemy === currentEntity.enemy
-        );
         aroundBlob(currentEntity);
         function aroundBlob(entity) {
-          if (!entity) {
+          if (
+            !entity ||
+            entity.group === currentEntity.name ||
+            entity.enemy !== currentEntity.enemy ||
+            entity.type !== currentEntity.type
+          ) {
             return;
           }
-          if (entity.group !== currentEntity.name) {
-            entity.group = currentEntity.name;
-            let x = entity.position[0];
-            let y = entity.position[1];
-            let positionAbove = [x, y - 1];
-            let positionBelow = [x, y + 1];
-            let positionLeft = [x - 1, y];
-            let positionRight = [x + 1, y];
-            let blobAbove = onBoard(entityBoard.current, positionAbove);
-            let blobBelow = onBoard(entityBoard.current, positionBelow);
-            let blobLeft = onBoard(entityBoard.current, positionLeft);
-            let blobRight = onBoard(entityBoard.current, positionRight);
-            aroundBlob(blobAbove);
-            aroundBlob(blobBelow);
-            aroundBlob(blobLeft);
-            aroundBlob(blobRight);
-            return;
-          }
+          entity.group = currentEntity.name;
+          let x = entity.position[0];
+          let y = entity.position[1];
+          let positionAbove = [x, y - 1];
+          let positionBelow = [x, y + 1];
+          let positionLeft = [x - 1, y];
+          let positionRight = [x + 1, y];
+          let blobAbove = onBoard(entityBoard.current, positionAbove);
+          let blobBelow = onBoard(entityBoard.current, positionBelow);
+          let blobLeft = onBoard(entityBoard.current, positionLeft);
+          let blobRight = onBoard(entityBoard.current, positionRight);
+          aroundBlob(blobAbove);
+          aroundBlob(blobBelow);
+          aroundBlob(blobLeft);
+          aroundBlob(blobRight);
+          return;
         }
+        let allBlobs = activeEntities.current.filter(
+          (entity) => entity.group && entity.group === currentEntity.name
+        );
         return allBlobs.filter((entity) => entity.group === currentEntity.name);
       }
 
@@ -353,9 +359,11 @@ export function engine(gameState) {
             entityBelow &&
             entityBelow.hp === currentEntity.hp &&
             entityBelow.enemy === currentEntity.enemy &&
+            entityBelow.type === currentEntity.type &&
             entityAbove &&
             entityAbove.hp === currentEntity.hp &&
-            entityAbove.enemy === currentEntity.enemy
+            entityAbove.enemy === currentEntity.enemy &&
+            entityAbove.type === currentEntity.type
           ) {
             if (currentEntity.hp === 1) {
               if (blobGrouper().length > 10) {
@@ -514,7 +522,6 @@ export function engine(gameState) {
             } else if (rightFree) {
               return positionRight;
             }
-          } else {
             if (rightFree) {
               return positionRight;
             } else if (leftFree) {
@@ -525,7 +532,7 @@ export function engine(gameState) {
       }
 
       function blobAbove() {
-        if (Math.random() < 0.2 || !positionAbove[1]) {
+        if (Math.random() < 0.2) {
           return;
         }
         if (newBlobChecker(groundAbove, entityAbove, positionAbove)) {
@@ -771,14 +778,12 @@ export function engine(gameState) {
     }
 
     function meleeAttackTargetter(currentEntity, rangeCells) {
-      let target;
       for (const cell of rangeCells) {
         let targetCell = onBoard(entityBoard.current, cell);
         if (targetCell && targetCell.enemy !== currentEntity.enemy) {
-          return (target = targetCell);
+          return targetCell;
         }
       }
-      return target;
     }
 
     function meleeAttack(currentEntity, targetEntity) {
@@ -1481,28 +1486,30 @@ export function engine(gameState) {
     }
   }
 
-  function gamemode(finished) {
-    let gameFinished = finished;
-    if (!gameFinished) {
-      if (gameMode.current === "king") {
-        gameStatus.current = "King round in progress";
-        kingTurn();
-      } else if (gameMode.current === "battle") {
-        gameStatus.current = "Battle round in progress";
-        battleTurn();
-      } else if (gameMode.current === "blob") {
-        gameStatus.current = "Blob round in progress";
-        blobTurn();
-      } else if (gameMode.current === "blob fight") {
-        gameStatus.current = "Blob fight in progress";
-        blobFightTurn();
-      } else if (gameMode.current === "blob gob") {
-        gameStatus.current = "Blob vs enemies round in progress";
-        blobGobTurn();
-      } else if (gameMode.current === "sandbox") {
-        gameStatus.current = "Sandbox in progress";
-        sandboxTurn();
-      }
+  function gamemode() {
+    if (gameMode.current === "king") {
+      gameStatus.current = "King round in progress";
+      return kingTurn();
+    }
+    if (gameMode.current === "battle") {
+      gameStatus.current = "Battle round in progress";
+      return battleTurn();
+    }
+    if (gameMode.current === "blob") {
+      gameStatus.current = "Blob round in progress";
+      return blobTurn();
+    }
+    if (gameMode.current === "blob fight") {
+      gameStatus.current = "Blob fight in progress";
+      return blobFightTurn();
+    }
+    if (gameMode.current === "blob gob") {
+      gameStatus.current = "Blob vs enemies round in progress";
+      return blobGobTurn();
+    }
+    if (gameMode.current === "sandbox") {
+      gameStatus.current = "Sandbox in progress";
+      return sandboxTurn();
     }
 
     function kingTurn() {
@@ -1849,5 +1856,5 @@ export function engine(gameState) {
     terrainMaker();
     newRound.current = false;
   }
-  gamemode(false);
+  gamemode();
 }
