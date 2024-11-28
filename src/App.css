@@ -208,8 +208,8 @@ option {
 .settingSlider {
   -webkit-appearance: none;
   accent-color: #404040;
-  width: 42vw;
-  padding-right: 10vw;
+  width: 40vw;
+  padding-right: 5vw;
   border: none;
 }
 .settingSlider::-webkit-slider-runnable-track {

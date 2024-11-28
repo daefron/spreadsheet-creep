@@ -508,12 +508,12 @@ export function engine(gameState) {
         function blobDirection() {
           let rightFree, leftFree;
           if (
-            positionRight[0] > gameboardWidth.current &&
-            currentEntity.enemy
+            currentEntity.enemy &&
+            positionRight[0] > gameboardWidth.current
           ) {
             rightFree = false;
           } else rightFree = !groundRight || !entityRight;
-          if (positionLeft[0] < 1 && !currentEntity.enemy) {
+          if (!currentEntity.enemy && positionLeft[0] < 1) {
             leftFree = false;
           } else leftFree = !groundLeft || !entityLeft;
           if (Math.random() > 0.5) {
@@ -522,11 +522,11 @@ export function engine(gameState) {
             } else if (rightFree) {
               return positionRight;
             }
-            if (rightFree) {
-              return positionRight;
-            } else if (leftFree) {
-              return positionLeft;
-            }
+          }
+          if (rightFree) {
+            return positionRight;
+          } else if (leftFree) {
+            return positionLeft;
           }
         }
       }
