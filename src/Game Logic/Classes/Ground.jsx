@@ -32,7 +32,7 @@ class Ground {
       }
       if (ground.position[1] >= gameboardHeight.current) {
         if (ground.ghost) {
-          entityKiller(ground);
+          kill(ground);
         }
         return false;
       }
