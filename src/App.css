@@ -32,6 +32,7 @@ body {
 }
 #bottom {
   display: flex;
+  width: calc(100% - 3px);
   height: var(--cell-select-height);
 }
 #gameboardHolder {
@@ -54,6 +55,21 @@ body {
 .statTitle,
 .stat {
   width: 12%;
+  font-size: min(13px, 1.3vw);
+  overflow: hidden;
+  white-space: nowrap;
+  cursor: initial;
+  margin: 0;
+  padding: 0;
+  text-indent: 5px;
+  border-width: 1px;
+  border-right-width: 0px;
+  border-bottom-width: 0px;
+  border-color: grey;
+  border-style: solid;
+  background-color: white;
+  user-select: none;
+  box-sizing: border-box;
 }
 #status {
   width: 28%;
@@ -65,6 +81,7 @@ body {
   border-radius: 0px;
   padding: 5px;
   font-weight: 420;
+  font-size: min(18px, 2vw);
 }
 #bottom > button:hover {
   border-color: black;
@@ -72,7 +89,7 @@ body {
   z-index: 100000;
 }
 #bottom > button:focus {
-outline: none;
+  outline: none;
 }
 #newButton {
   border: solid, black, 1px;
@@ -81,18 +98,8 @@ outline: none;
 .tab {
   border: solid, black, 1px;
   margin-right: -1px;
-  width: 10%;
-}
-#settingsButton {
-  border-radius: 0px;
-  height: 23px;
-  width: 157px;
-}
-#settingsButton:hover {
-  border-color: black;
-}
-#settingsButton:focus {
-  outline-color: black;
+  width: max(200px, 10%);
+  overflow-wrap: anywhere;
 }
 td {
   padding: 0;
@@ -113,9 +120,7 @@ p {
   color: black;
 }
 input,
-select,
-.stat,
-.statTitle {
+select {
   cursor: initial;
   font-size: 13px;
   margin: 0;
@@ -142,11 +147,17 @@ select,
 .purchasableCell:focus {
   outline: none;
 }
+.purchasableCell {
+  width: 8vw;
+  height: 20px;
+  font-size: min(13px, 1.5vw);
+}
 #purchasablesHolder,
 #settingsHolder {
   width: calc(100% - 5px);
   border: solid 1px black;
   overflow: scroll;
+  scrollbar-width:none;
 }
 #purchasables {
   display: flex;
@@ -155,7 +166,7 @@ select,
   outline: solid 1px;
 }
 #settings {
-  width: max(70%, 600px);
+  width: 100%;
   outline: solid 1px;
 }
 .settingHolder {
@@ -220,17 +231,16 @@ option {
   margin: 0px;
 }
 #xLine {
-  width: calc(100% - 4px);
+  width: calc(100% - 3px);
   height: 1px;
   margin-top: -4px;
-  margin-bottom:3px;
+  margin-bottom: 3px;
   z-index: 100000000;
   background-color: black;
 }
 #xScroll {
-  position:sticky;
+  position: sticky;
   height: 4px;
-  margin-top: -3px;
 }
 #xScrollBar {
   height: 100%;
@@ -241,24 +251,16 @@ option {
 }
 #yLine {
   width: 1px;
-  margin-left: -5px;
-  height: calc(100% - 2px);
+  height: 100%;
   background-color: black;
   z-index: 10000000;
 }
 #yScroll {
   position: sticky;
-  margin-left: -3px;
+  margin-left: -1px;
   width: 4px;
 }
 #yScrollBar {
   width: 100%;
   height: 100%;
-}
-::-webkit-scrollbar {
-  width: 3px;
-  height: 3px;
-}
-::-webkit-scrollbar {
-  display: hidden;
 }

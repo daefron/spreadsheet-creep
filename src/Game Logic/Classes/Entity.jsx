@@ -29,7 +29,7 @@ export class Entity {
     }
     this.sponge = type.sponge;
     this.maxHp = lvl.maxHp;
-  }
+    }
 }
 
 export default Entity;

@@ -508,24 +508,24 @@ export default function EngineOutput() {
           </div>
         </div>
         <div
+          id="yLine"
+          style={
+            activeTab === "gameboardHolder"
+              ? { visibility: "visible" }
+              : { visibility: "collapse", width: "0px" }
+          }
+        ></div>
+        <div
           className="customScroll"
           id="yScroll"
           style={
             activeTab === "gameboardHolder"
               ? { visibility: "visible" }
-              : { visibility: "collapse" }
+              : { visibility: "collapse", width: "0px" }
           }
         >
           <div id="yScrollBar"></div>
         </div>
-        <div
-          id="yLine"
-          style={
-            activeTab === "gameboardHolder"
-              ? { visibility: "visible" }
-              : { visibility: "collapse" }
-          }
-        ></div>
       </div>
       <div className="customScroll" id="xScroll">
         <div
@@ -554,7 +554,11 @@ export default function EngineOutput() {
           }}
           style={
             activeTab === "gameboardHolder"
-              ? { backgroundColor: "#cacaca", fontWeight: 500, border:"solid 2px" }
+              ? {
+                  backgroundColor: "#cacaca",
+                  fontWeight: 500,
+                  border: "solid 2px",
+                }
               : { backgroundColor: "white" }
           }
         >
@@ -568,7 +572,11 @@ export default function EngineOutput() {
           }}
           style={
             activeTab === "entitiesHolder"
-              ? { backgroundColor: "#cacaca", fontWeight: 500, border:"solid 2px" }
+              ? {
+                  backgroundColor: "#cacaca",
+                  fontWeight: 500,
+                  border: "solid 2px",
+                }
               : { backgroundColor: "white" }
           }
         >
@@ -582,7 +590,11 @@ export default function EngineOutput() {
           }}
           style={
             activeTab === "settingsHolder"
-              ? { backgroundColor: "#cacaca", fontWeight: 500, border:"solid 2px" }
+              ? {
+                  backgroundColor: "#cacaca",
+                  fontWeight: 500,
+                  border: "solid 2px",
+                }
               : { backgroundColor: "white" }
           }
         >

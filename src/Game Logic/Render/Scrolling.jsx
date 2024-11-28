@@ -145,6 +145,9 @@ export function xScrollUpdate(gamestate) {
   let totalWidth = (gameboardWidth.current - 1) * cellWidth.current + 50;
   let xScrollPercentage = width / totalWidth;
   let xScrollWidth = width * xScrollPercentage;
+  if (xScrollWidth > width) {
+    xScrollWidth = width;
+  }
   xScroll.style.width = xScrollWidth + "px";
   let divider =
     gameboardWidth.current - (renderWidth.current - renderWidthMin.current);
@@ -164,6 +167,9 @@ export function yScrollUpdate(gamestate) {
   let totalHeight = (gameboardHeight.current - 2) * cellHeight.current;
   let yScrollPercentage = height / totalHeight;
   let yScrollHeight = height * yScrollPercentage;
+  if (yScrollHeight > height) {
+    yScrollHeight = height;
+  }
   yScroll.style.height = yScrollHeight + "px";
   let divider =
     gameboardHeight.current - (renderHeight.current - renderHeightMin.current);

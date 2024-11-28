@@ -56,7 +56,6 @@ export default function Purchasables() {
                       className="purchasableCell"
                       type="text"
                       defaultValue={position[0]}
-                      style={{ width: "140px", height: "21px" }}
                       readOnly
                     ></input>
                   </td>
