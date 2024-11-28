@@ -148,16 +148,16 @@ select {
   outline: none;
 }
 .purchasableCell {
-  width: 8vw;
+  width: 13.53vw;
   height: 20px;
-  font-size: min(13px, 1.5vw);
+  font-size: min(13px, 2vw);
 }
 #purchasablesHolder,
 #settingsHolder {
   width: calc(100% - 5px);
   border: solid 1px black;
   overflow: scroll;
-  scrollbar-width:none;
+  scrollbar-width: none;
 }
 #purchasables {
   display: flex;
@@ -176,13 +176,12 @@ select {
 .settingHolder > div > p {
   margin: 0;
   width: 10%;
-  height: 23px;
+  font-size: min(16px, 3vw);
   text-align: center;
 }
 .settingTitle {
   width: 50%;
-  height: 25px;
-  font-size: 15px;
+  font-size: min(16px, 3vw);
   margin: 0;
   padding: 0;
   padding-right: 5px;
@@ -197,9 +196,8 @@ select {
   text-align: right;
 }
 select {
-  font-size: 15px;
+  font-size: min(16px, 3vw);
   width: 50%;
-  height: 25px;
   border: solid 1px grey;
   border-right-width: 0px;
   border-bottom-width: 0px;
@@ -208,8 +206,26 @@ option {
   padding: 0px;
 }
 .settingSlider {
+  -webkit-appearance: none;
   accent-color: #404040;
-  width: 88%;
+  width: 42vw;
+  padding-right: 10vw;
+  border: none;
+}
+.settingSlider::-webkit-slider-runnable-track {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 0.2vw;
+  width: 1vw;
+  background-color: black;
+}
+.settingSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  margin-top: max(-5px, -0.3vw);
+  height: max(5px, 0.8vw);
+  width: max(10px, 1.4vw);
+  background-color: black;
 }
 .settingHolder > div {
   width: 50%;
