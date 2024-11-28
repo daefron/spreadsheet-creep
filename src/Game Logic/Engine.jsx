@@ -50,7 +50,6 @@ export function engine(gameState) {
   let groundLevel = gameState.settings.groundLevel;
   let groundRoughness = gameState.settings.groundRoughness;
   let waterLevel = gameState.settings.waterLevel;
-  let renderSpeed = gameState.settings.renderSpeed;
   let gameSpeed = gameState.settings.gameSpeed;
   let totalSpawns = gameState.settings.totalSpawns;
   let spawnSpeed = gameState.settings.spawnSpeed;
@@ -58,6 +57,7 @@ export function engine(gameState) {
   let gameStatus = gameState.render.gameStatus;
   let projectileCount = gameState.engine.projectileCount;
   let newRound = gameState.engine.newRound;
+  let gameState1 = gameState;
   let blobAtEnd;
 
   function explosion(currentEntity) {
@@ -1289,60 +1289,6 @@ export function engine(gameState) {
     }
   }
 
-  function groundTurn(ground) {
-    if (healthChecker(ground)) {
-      return;
-    }
-    if (groundCanFall(ground)) {
-      return groundFall(ground);
-    } else {
-      return (ground.falling = false);
-    }
-
-    function groundCanFall(ground) {
-      if (ground.position[1] < 0) {
-        return true;
-      }
-      if (ground.position[1] >= gameboardHeight.current) {
-        if (ground.ghost) {
-          entityKiller(ground);
-        }
-        return false;
-      }
-      if (ground.fallCharge < ground.fallSpeed) {
-        ground.fallCharge++;
-        return false;
-      }
-      let positionBelow = [ground.position[0], ground.position[1] + 1];
-      let groundBelow = onBoard(groundBoard.current, positionBelow);
-      if (!groundBelow) {
-        let entityBelow = onBoard(entityBoard.current, positionBelow);
-        if (entityBelow) {
-          groundAttack(ground, entityBelow);
-        }
-        return true;
-      }
-    }
-
-    function groundFall(ground) {
-      ground.fallCharge = 0;
-      if (ground.position[1] < 0) {
-        ground.position = [ground.position[0], ground.position[1] + 1];
-      } else {
-        moveBoard(
-          groundBoard.current,
-          [ground.position[0], ground.position[1] + 1],
-          ground
-        );
-      }
-      ground.falling = true;
-    }
-
-    function groundAttack(entityBelow) {
-      entityKiller(entityBelow);
-    }
-  }
-
   function fluidTurn(fluid) {
     if (fluidCanFall(fluid)) {
       fluid.speed = 5;
@@ -1467,7 +1413,12 @@ export function engine(gameState) {
           }
           let position = [w, h - gameboardHeight.current];
           let groundID = type + position[0] + position[1];
-          groundID = new Ground(groundList[type], position, groundID);
+          groundID = new Ground(
+            groundList[type],
+            position,
+            groundID,
+            gameState1
+          );
           activeGround.current.push(groundID);
         }
       }
@@ -1592,7 +1543,7 @@ export function engine(gameState) {
         projectileTurn(projectile);
       }
       for (const ground of activeGround.current) {
-        groundTurn(ground);
+        ground.turn;
       }
       for (const fluid of activeFluid.current) {
         fluidTurn(fluid);
