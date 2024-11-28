@@ -1,6 +1,6 @@
 import Entity from "./Classes/Entity.jsx";
 import EntityList from "./Lists/EntityList";
-import { cellContents, toBoard } from "./Tools.jsx";
+import { onBoard, toBoard } from "./Tools.jsx";
 let entityList = EntityList;
 export function clickSelect(e, gameState) {
   let selectedCell = gameState.input.selectedCell;
@@ -10,7 +10,7 @@ export function clickSelect(e, gameState) {
     e.target.readOnly = false;
     cellTyping.current = true;
   } else if (e.target.className === "boardCell") {
-    if (selectedCell.current !== undefined) {
+    if (selectedCell.current) {
       selectedCell.current.readOnly = true;
     }
     selectedCell.current = e.target;
@@ -19,19 +19,13 @@ export function clickSelect(e, gameState) {
 }
 
 export function keyboardSelect(e, gameState) {
-  let gameboardHeight = gameState.settings.gameboardHeight;
-  let renderWidth = gameState.render.renderWidth;
-  let renderHeight = gameState.render.renderHeight;
-  let renderWidthMin = gameState.render.renderWidthMin;
-  let renderHeightMin = gameState.render.renderHeightMin;
   let selectedCell = gameState.input.selectedCell;
-  let currentInput = gameState.input.currentInput;
-  let cellTyping = gameState.input.cellTyping;
-  let cellSelectMoved = gameState.input.cellSelectMoved;
-  let cellCursorPosition = gameState.input.cellCursorPosition;
-  if (selectedCell.current === undefined) {
+  if (!selectedCell.current) {
     return;
   }
+  let cellTyping = gameState.input.cellTyping;
+  let currentInput = gameState.input.currentInput;
+  let cellCursorPosition = gameState.input.cellCursorPosition;
   let position = selectedCell.current.id.split("x");
   position[0] = parseInt(position[0]);
   position[1] = parseInt(position[1]);
@@ -39,9 +33,7 @@ export function keyboardSelect(e, gameState) {
   if (!newPosition) {
     return;
   }
-  if (newPosition === undefined) {
-    return;
-  }
+  let renderWidth = gameState.render.renderWidth;
   if (
     newPosition[0] === -1 ||
     newPosition[0] > renderWidth.current ||
@@ -49,6 +41,9 @@ export function keyboardSelect(e, gameState) {
   ) {
     return;
   }
+  let renderHeight = gameState.render.renderHeight;
+  let gameboardHeight = gameState.settings.gameboardHeight;
+  let renderHeightMin = gameState.render.renderHeightMin;
   if (newPosition[1] > renderHeight.current) {
     if (
       newPosition[1] > renderHeight.current &&
@@ -60,23 +55,25 @@ export function keyboardSelect(e, gameState) {
       return;
     }
   }
+  let renderWidthMin = gameState.render.renderWidthMin;
   if (newPosition[0] === renderWidthMin.current) {
-    if (renderWidthMin.current !== 0) {
+    if (renderWidthMin.current) {
       renderWidth.current--;
       renderWidthMin.current--;
       return;
     }
   }
   if (newPosition[1] === renderHeightMin.current) {
-    if (renderHeightMin.current !== 0) {
+    if (renderHeightMin.current) {
       renderHeight.current--;
       renderHeightMin.current--;
       return;
     }
   }
+  let cellSelectMoved = gameState.input.cellSelectMoved;
   selectedCell.current.readOnly = true;
   let newID = newPosition[0] + "x" + newPosition[1];
-  if (document.getElementById(newID) === null) {
+  if (!document.getElementById(newID)) {
     return;
   }
   selectedCell.current = document.getElementById(newID);
@@ -186,8 +183,9 @@ export function keyboardSelect(e, gameState) {
 }
 
 function typingChecker(position, gameState) {
-  let targetCell = cellContents(position, gameState.active);
-  if (targetCell.ground === undefined && targetCell.entity === undefined) {
+  let targetGround = onBoard(gameState.active.groundBoard.current, position);
+  let targetEntity = onBoard(gameState.active.entityBoard.current, position);
+  if (!targetGround && !targetEntity) {
     return true;
   }
 }
@@ -196,7 +194,7 @@ function friendlyInput(position, gameState) {
   let input = gameState.input.currentInput.current;
   let parsedType = "";
   let parsedLvl = "";
-  let hitNumber = false;
+  let hitNumber;
   for (let i = 0; i < input.length; i++) {
     if (isNaN(input[i]) && !hitNumber) {
       parsedType = parsedType.concat(input[i]);
@@ -228,8 +226,8 @@ function friendlySpawner(
 }
 
 function validFriendly(friendlyType, friendlyLvl, gameMode) {
-  if (entityList[friendlyType] !== undefined) {
-    if (entityList[friendlyType].lvls["lvl" + friendlyLvl] !== undefined) {
+  if (entityList[friendlyType]) {
+    if (entityList[friendlyType].lvls["lvl" + friendlyLvl]) {
       if (gameMode.current === "sandbox") {
         return true;
       }

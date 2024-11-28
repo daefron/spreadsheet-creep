@@ -48,7 +48,7 @@ export function updateGameboardEntities(gamestate) {
       "--cell-select-width": cellWidth.current + "px",
       "--cell-select-height": cellHeight.current + "px",
     };
-    if (selectedCell.current !== undefined) {
+    if (selectedCell.current) {
       selectedCell.current.setSelectionRange(
         cellCursorPosition.current,
         cellCursorPosition.current
@@ -69,23 +69,23 @@ export function updateGameboardEntities(gamestate) {
       return firstRowCell(w, h);
     }
     let cell = onBoard(effectBoard.current, [w, h]);
-    if (cell !== undefined) {
+    if (cell) {
       return effectCell(cell, w, h, style);
     }
     cell = onBoard(entityBoard.current, [w, h]);
-    if (cell !== undefined) {
+    if (cell) {
       return entityCell(cell, w, h, style);
     }
     cell = onBoard(groundBoard.current, [w, h]);
-    if (cell !== undefined) {
+    if (cell) {
       return groundCell(cell, w, h, style);
     }
     cell = onBoard(projectileBoard.current, [w, h]);
-    if (cell !== undefined) {
+    if (cell) {
       return projectileCell(cell, w, h, style);
     }
     cell = onBoard(fluidBoard.current, [w, h]);
-    if (cell !== undefined) {
+    if (cell) {
       return fluidCell(cell, w, h, style);
     }
     return blankCell(w, h, style);
@@ -143,7 +143,7 @@ export function updateGameboardEntities(gamestate) {
     style.color = effect.style.color;
     style.fontStyle = effect.style.fontStyle;
     if (effect.symbol === "") {
-      if (onBoard(entityBoard.current, effect.position) !== undefined) {
+      if (onBoard(entityBoard.current, effect.position)) {
         return entityCell(
           onBoard(entityBoard.current, effect.position),
           w,
@@ -151,7 +151,7 @@ export function updateGameboardEntities(gamestate) {
           style
         );
       }
-      if (onBoard(fluidBoard.current, effect.position) !== undefined) {
+      if (onBoard(fluidBoard.current, effect.position)) {
         return fluidCell(
           onBoard(fluidBoard.current, effect.position),
           w,
@@ -187,7 +187,7 @@ export function updateGameboardEntities(gamestate) {
     return [w + "x" + h, cellText, style, "", w, h];
 
     function attackBar(currentEntity, style) {
-      if (entity.attack === undefined) {
+      if (!entity.attack) {
         return;
       }
       let maxWidth = cellWidth.current;
@@ -209,7 +209,7 @@ export function updateGameboardEntities(gamestate) {
       } else {
         color = "rgb(2 48 32 /" + (1 - percentage / 1.5) + ")";
       }
-      if (entity.attack === undefined) {
+      if (!entity.attack) {
         style.boxShadow =
           "inset " +
           cellWidth.current +
@@ -273,23 +273,23 @@ export function updateGameboardEntities(gamestate) {
         blob.position[0],
         blob.position[1] + 1,
       ]);
-      if (entityAbove === undefined || entityAbove.type !== blob.type) {
+      if (!entityAbove || entityAbove.type !== blob.type) {
         style.boxShadow += ",inset 0px 2px 0px " + color;
       }
       if (
-        (entityLeft === undefined || entityLeft.type !== blob.type) &&
+        (!entityLeft || entityLeft.type !== blob.type) &&
         blob.position[0] - 1 !== 0
       ) {
         style.boxShadow += ",inset 2px 0px 0px " + color;
       }
       if (
-        (entityRight === undefined || entityRight.type !== blob.type) &&
+        (!entityRight || entityRight.type !== blob.type) &&
         blob.position[0] < gameboardWidth.current
       ) {
         style.boxShadow += ",inset -2px 0px 0px " + color;
       }
       if (
-        (entityBelow === undefined || entityBelow.type !== blob.type) &&
+        (!entityBelow || entityBelow.type !== blob.type) &&
         blob.position[1] < gameboardHeight.current
       ) {
         style.boxShadow += ",inset 0px -3px 0px " + color;
@@ -331,17 +331,11 @@ export function updateGameboardEntities(gamestate) {
         ground.position[0] + 1,
         ground.position[1],
       ]);
-      if (
-        groundAbove === undefined ||
-        (groundAbove !== undefined && groundAbove.type === "corpse")
-      ) {
+      if (!groundAbove) {
         style.boxShadow = "inset 0px 2px 0px grey";
         made = true;
       }
-      if (
-        (groundLeft === undefined && ground.position[0] - 1 !== 0) ||
-        (groundLeft !== undefined && groundLeft.type === "corpse")
-      ) {
+      if (!groundLeft && ground.position[0] - 1 !== 0) {
         if (!made) {
           style.boxShadow = "inset 2px 0px 0px grey";
           made = true;
@@ -349,11 +343,7 @@ export function updateGameboardEntities(gamestate) {
           style.boxShadow += ",inset 2px 0px 0px grey";
         }
       }
-      if (
-        (groundRight === undefined &&
-          ground.position[0] < gameboardWidth.current) ||
-        (groundRight !== undefined && groundRight.type === "corpse")
-      ) {
+      if (!groundRight && ground.position[0] < gameboardWidth.current) {
         if (!made) {
           style.boxShadow = "inset -2px 0px 0px grey";
           made = true;
@@ -381,7 +371,7 @@ export function updateGameboardEntities(gamestate) {
             ")";
         }
       }
-      if (style.boxShadow === undefined) {
+      if (!style.boxShadow) {
         style.boxShadow =
           "inset " +
           cellWidth.current +
@@ -438,11 +428,11 @@ export function updateGameboardEntities(gamestate) {
         fluid.position[0] + 1,
         fluid.position[1],
       ]);
-      if (fluidAbove === undefined) {
+      if (!fluidAbove) {
         style.boxShadow = "inset 0px 1px 0px blue";
         made = true;
       }
-      if (fluidLeft === undefined && groundLeft === undefined) {
+      if (!fluidLeft && !groundLeft) {
         if (!made) {
           style.boxShadow = "inset 1px 0px 0px blue";
           made = true;
@@ -450,7 +440,7 @@ export function updateGameboardEntities(gamestate) {
           style.boxShadow += ",inset 1px 0px 0px blue";
         }
       }
-      if (fluidRight === undefined && groundRight === undefined) {
+      if (!fluidRight && !groundRight) {
         if (!made) {
           style.boxShadow = "inset -1px 0px 0px blue";
           made = true;
@@ -482,13 +472,13 @@ export function updateGameboardEntities(gamestate) {
       entity.position[0] + 1,
       entity.position[1],
     ]);
-    if (fluidAbove === undefined) {
+    if (!fluidAbove) {
       style.boxShadow += ",inset 0px 1px 0px blue";
     }
-    if (fluidLeft === undefined && groundLeft === undefined) {
+    if (!fluidLeft && !groundLeft) {
       style.boxShadow += ",inset 1px 0px 0px blue";
     }
-    if (fluidRight === undefined && groundRight === undefined) {
+    if (!fluidRight && !groundRight) {
       style.boxShadow += ",inset -1px 0px 0px blue";
     }
     style.fontStyle = "italic";

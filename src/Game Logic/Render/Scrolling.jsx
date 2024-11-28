@@ -24,7 +24,7 @@ export function handleScroll(gamestate) {
         scrolledThisTurn,
         cellWidth
       );
-    } else if (left === 0) {
+    } else if (!left) {
       scrollStartX(
         renderWidth,
         renderWidthMin,
@@ -44,7 +44,7 @@ export function handleScroll(gamestate) {
         scrollPositionY,
         scrolledThisTurn
       );
-    } else if (top === 0) {
+    } else if (!top) {
       scrollStartY(
         renderHeight,
         renderHeightMin,
@@ -122,12 +122,12 @@ export function scrollCheck(gamestate) {
   let scrollPositionX = gamestate.render.scrollPositionX;
   let scrollPositionY = gamestate.render.scrollPositionY;
   let board = document.getElementById("gameboardHolder");
-  if (scrollPositionX.current !== 0) {
+  if (scrollPositionX.current) {
     board.scrollBy(scrollPositionX.current, 0);
     scrollPositionX.current = 0;
     scrolledThisTurn.current = false;
   }
-  if (scrollPositionY.current !== 0) {
+  if (scrollPositionY.current) {
     board.scrollBy(0, scrollPositionY.current);
     scrollPositionY.current = 0;
     scrolledThisTurn.current = false;
@@ -173,14 +173,14 @@ export function yScrollUpdate(gamestate) {
 }
 
 export function cellOverlap(gamestate) {
+  let selectedCell = gamestate.input.selectedCell;
+  if (!selectedCell.current) {
+    return;
+  }
   let renderWidthMin = gamestate.render.renderWidthMin;
   let renderHeightMin = gamestate.render.renderHeightMin;
   let cellWidth = gamestate.render.cellWidth;
   let cellHeight = gamestate.render.cellHeight;
-  let selectedCell = gamestate.input.selectedCell;
-  if (selectedCell.current === undefined) {
-    return;
-  }
   let position = selectedCell.current.id.split("x");
   let left = selectedCell.current.getBoundingClientRect().left;
   let top = selectedCell.current.getBoundingClientRect().top;
@@ -192,7 +192,7 @@ export function cellOverlap(gamestate) {
     let board = document.getElementById("gameboardHolder");
     board.scrollBy(-50, 0);
     let gap = board.scrollLeft;
-    if (gap % cellWidth.current !== 0) {
+    if (gap % cellWidth.current) {
       let loop;
       while (!loop) {
         gap -= cellWidth.current;
@@ -210,7 +210,7 @@ export function cellOverlap(gamestate) {
     let board = document.getElementById("gameboardHolder");
     board.scrollBy(0, -cellHeight.current);
     let gap = board.scrollTop;
-    if (gap % cellHeight.current !== 0) {
+    if (gap % cellHeight.current) {
       let loop;
       while (!loop) {
         gap -= cellHeight.current;
