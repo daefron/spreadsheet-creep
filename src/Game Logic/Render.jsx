@@ -48,7 +48,7 @@ export default function EngineOutput() {
   const lastFriendlySpawnTime = useRef(0);
   const gameTimer = useRef();
   const renderTimer = useRef();
-  const gameboardWidth = useRef(15);
+  const gameboardWidth = useRef(40);
   const gameboardHeight = useRef(45);
   const renderWidth = useRef();
   const renderWidthMin = useRef(0);
@@ -116,7 +116,7 @@ export default function EngineOutput() {
         friendlyCount: friendlyCount,
         bank: bank,
         setBank: setBank,
-        timer: gameTimer,
+        timer: renderTimer,
         newRound: newRound,
       },
       settings: {
