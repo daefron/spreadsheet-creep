@@ -15,7 +15,7 @@ export function handleScroll(gamestate) {
     let left = board.scrollLeft;
     let width = board.offsetWidth;
     let scrollWidth = board.scrollWidth;
-    if (left + width > scrollWidth) {
+    if (left + width >= scrollWidth) {
       scrollEndX(
         gameboardWidth,
         renderWidth,

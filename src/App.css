@@ -39,6 +39,8 @@ body {
   height: 100%;
   width: 100%;
   overflow: scroll;
+  scroll-behavior: auto;
+  scrollbar-width: none;
 }
 #gameboard {
   display: flex;
