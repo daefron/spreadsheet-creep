@@ -64,6 +64,7 @@ export class Entity {
     let entityList = EntityList;
     let projectileList = ProjectileList;
     let effectList = EffectList;
+    let blobAtEnd;
     if (healthChecker(this)) {
       return;
     }
@@ -134,7 +135,12 @@ export class Entity {
             w +
             currentEntity.position[1] +
             h;
-          effectID = new Effect(effectType, effectPosition, effectID);
+          effectID = new Effect(
+            effectType,
+            effectPosition,
+            effectID,
+            currentEntity.gameState
+          );
           toBoard(effectBoard.current, effectPosition, effectID);
           activeEffects.current.push(effectID);
           h--;
@@ -845,7 +851,12 @@ export class Entity {
           );
           activeFluid.current.push(projectileID);
         } else {
-          projectileID = new Projectile(currentEntity, projectileID, type);
+          projectileID = new Projectile(
+            currentEntity,
+            projectileID,
+            type,
+            currentEntity.gameState
+          );
           activeProjectiles.current.push(projectileID);
         }
         currentEntity.rateCharge = 0;
@@ -881,7 +892,12 @@ export class Entity {
                   w +
                   currentEntity.position[1] +
                   h;
-                effectID = new Effect(effectType, position, effectID);
+                effectID = new Effect(
+                  effectType,
+                  position,
+                  effectID,
+                  currentEntity.gameState
+                );
                 toBoard(effectBoard.current, position, effectID);
                 activeEffects.current.push(effectID);
               }
