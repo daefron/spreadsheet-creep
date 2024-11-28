@@ -13,7 +13,7 @@ class Effect {
   }
   get turn() {
     let activeEffects = this.gameState.active.activeEffects;
-    let effectBoard = this.gameState.active.activeEffects;
+    let effectBoard = this.gameState.active.effectBoard;
     if (this.durationCharge < this.duration) {
       this.durationCharge++;
     } else {

@@ -1,6 +1,7 @@
 import { onBoard, toBoard, moveBoard, direction } from "../Tools.jsx";
 import ProjectileList from "../Lists/ProjectileList.jsx";
 import EffectList from "../Lists/EffectList.jsx";
+import Effect from "../Classes/Effect.jsx";
 class Projectile {
   constructor(parent, name, type, gameState) {
     this.type = type.type;
@@ -409,7 +410,7 @@ class Projectile {
             w +
             currentEntity.position[1] +
             h;
-          effectID = new Effect(effectType, effectPosition, effectID);
+          effectID = new Effect(effectType, effectPosition, effectID, currentEntity.gameState);
           toBoard(effectBoard.current, effectPosition, effectID);
           activeEffects.current.push(effectID);
           h--;
