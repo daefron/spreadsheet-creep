@@ -1,4 +1,4 @@
-import { toBoard } from "../Tools.jsx";
+import { toBoard } from "../../Tools.jsx";
 class Effect {
   constructor(type, position, ID, gameState) {
     this.name = ID;

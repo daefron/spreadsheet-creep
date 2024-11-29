@@ -1,9 +1,7 @@
 import { comparePosition, toLetter, onBoard } from "../Tools.jsx";
-import EntityList from "../Lists/EntityList.jsx";
-import GroundList from "../Lists/GroundList.jsx";
+import EntityList from "../Engine/Lists/EntityList.jsx";
+import GroundList from "../Engine/Lists/GroundList.jsx";
 export function updateGameboardEntities(gamestate) {
-  let entityList = EntityList;
-  let groundList = GroundList;
   let entityBoard = gamestate.active.entityBoard;
   let projectileBoard = gamestate.active.projectileBoard;
   let groundBoard = gamestate.active.groundBoard;
@@ -202,7 +200,7 @@ export function updateGameboardEntities(gamestate) {
 
     function entityHealthBar(entity, style) {
       let percentage =
-        entity.hp / entityList[entity.type].lvls["lvl" + entity.lvl].hp;
+        entity.hp / EntityList[entity.type].lvls["lvl" + entity.lvl].hp;
       let color;
       if (entity.enemy) {
         color = "rgb(139 0 0 /" + (1 - percentage / 1.5) + ")";
@@ -345,7 +343,7 @@ export function updateGameboardEntities(gamestate) {
     function groundHealthBar(ground, style) {
       let color =
         "rgb(150 150 150 /" +
-        (1 - ground.hp / groundList[ground.type].hp / 2) +
+        (1 - ground.hp / GroundList[ground.type].hp / 2) +
         ")";
       if (!style.boxShadow) {
         style.boxShadow =

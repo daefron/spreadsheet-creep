@@ -26,7 +26,7 @@ import {
   tabButton,
 } from "./Render/SettingUpdaters.jsx";
 import { engine } from "./Engine.jsx";
-import EntityList from "./Lists/EntityList.jsx";
+import EntityList from "./Engine/Lists/EntityList.jsx";
 import Stats from "./Render/Stats.jsx";
 import Purchasables from "./Render/Purchasables.jsx";
 import { updateGameboardEntities } from "./Render/UpdateGameboardEntities.jsx";
@@ -86,7 +86,6 @@ export default function EngineOutput() {
   const scrolledThisTurn = useRef();
   const newRound = useRef(true);
   const blobAtEnd = useRef();
-  let entityList = EntityList;
 
   function gameStatePacker() {
     return {
@@ -451,7 +450,7 @@ export default function EngineOutput() {
                   max="10000"
                   value={kingHP.current}
                   onChange={function (e) {
-                    updateKingHP(e, kingHP, renderUpdate, entityList);
+                    updateKingHP(e, kingHP, renderUpdate, EntityList);
                   }}
                 ></input>
               </div>

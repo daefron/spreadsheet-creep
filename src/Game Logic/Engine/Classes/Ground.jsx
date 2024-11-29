@@ -1,4 +1,4 @@
-import { onBoard, moveBoard } from "../Tools.jsx";
+import { onBoard, moveBoard } from "../../Tools.jsx";
 import { entityKiller, healthChecker } from "./EntityTools.jsx";
 class Ground {
   constructor(type, position, ID, gameState) {

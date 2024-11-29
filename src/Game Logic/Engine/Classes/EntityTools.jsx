@@ -1,8 +1,8 @@
-import { onBoard, toBoard } from "../Tools.jsx";
+import { onBoard, toBoard } from "../../Tools.jsx";
 import EffectList from "../Lists/EffectList.jsx";
 import EntityList from "../Lists/EntityList.jsx";
-import Effect from "../Classes/Effect.jsx";
-import Entity from "../Classes/Entity.jsx";
+import Effect from "./Effect.jsx";
+import Entity from "./Entity.jsx";
 export function entityKiller(entity) {
   if (entity.death) {
     if (entity.death === "explodes") {
@@ -74,9 +74,8 @@ export function entityKiller(entity) {
     );
   }
   function spawn(entity) {
-    let entityList = EntityList;
     let entityID = entity.name;
-    let entityType = entityList[entity.spawnType];
+    let entityType = EntityList[entity.spawnType];
     let entityLvl = entityType.lvls["lvl" + entity.lvl];
     entityID = new Entity(
       entityType,
@@ -105,7 +104,6 @@ export function healthChecker(entity) {
 }
 
 export function explosion(entity) {
-  let effectList = EffectList;
   let w = entity.explosionRange;
   let h = entity.explosionRange;
   let initialW = w;
@@ -147,7 +145,7 @@ export function explosion(entity) {
       if (projectileInCell) {
         entityKiller(projectileInCell);
       }
-      let effectType = effectList["explosion"];
+      let effectType = EffectList["explosion"];
       let effectPosition = [entity.position[0] + w, entity.position[1] + h];
       let effectID =
         "explosion" + entity.position[0] + w + entity.position[1] + h;

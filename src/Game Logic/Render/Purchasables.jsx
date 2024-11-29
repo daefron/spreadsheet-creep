@@ -1,7 +1,6 @@
-import EntityList from "../Lists/EntityList.jsx";
+import EntityList from "../Engine/Lists/EntityList.jsx";
 export default function Purchasables() {
-  let entityList = EntityList;
-  let entityArray = Object.values(entityList);
+  let entityArray = Object.values(EntityList);
   let friendlyEntityArray = entityArray.filter(
     (entity) => !entity.enemy && entity.type !== "king"
   );

@@ -1,10 +1,10 @@
 import { toBoard, comparePosition } from "../Tools.jsx";
-import Entity from "../Classes/Entity.jsx";
-import Ground from "../Classes/Ground.jsx";
-import Fluid from "../Classes/Fluid.jsx";
-import EntityList from "../Lists/EntityList.jsx";
-import GroundList from "../Lists/GroundList.jsx";
-import FluidList from "../Lists/FluidList.jsx";
+import Entity from "./Classes/Entity.jsx";
+import Ground from "./Classes/Ground.jsx";
+import Fluid from "./Classes/Fluid.jsx";
+import EntityList from "./Lists/EntityList.jsx";
+import GroundList from "./Lists/GroundList.jsx";
+import FluidList from "./Lists/FluidList.jsx";
 export function entitySpawner(entity, enemy, gameState) {
   let entityList = EntityList;
   let enemySpawnCount = gameState.engine.enemySpawnCount;

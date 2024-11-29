@@ -1,4 +1,4 @@
-import { onBoard, moveBoard } from "../Tools.jsx";
+import { onBoard, moveBoard } from "../../Tools.jsx";
 import { entityKiller } from "./EntityTools.jsx";
 class Fluid {
   constructor(type, position, ID, gameState) {

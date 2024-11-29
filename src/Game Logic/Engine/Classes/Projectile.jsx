@@ -1,4 +1,4 @@
-import { onBoard, moveBoard, direction } from "../Tools.jsx";
+import { onBoard, moveBoard, direction } from "../../Tools.jsx";
 import { entityKiller, fluidChecker } from "./EntityTools.jsx";
 import ProjectileList from "../Lists/ProjectileList.jsx";
 
@@ -48,7 +48,6 @@ class Projectile {
     let groundBoard = this.gameState.active.groundBoard;
     let gameboardWidth = this.gameState.settings.gameboardWidth;
     let gameboardHeight = this.gameState.settings.gameboardHeight;
-    let projectileList = ProjectileList;
 
     fluidChecker(this);
     this.speedCharge++;
@@ -175,14 +174,14 @@ class Projectile {
         } else {
           projectile.direction = "right";
           projectile.speed = 4;
-          projectile.symbol = projectileList[projectile.type].rightSymbol;
+          projectile.symbol = ProjectileList[projectile.type].rightSymbol;
           return;
         }
       } else if (projectile.direction === "right") {
         if (belowTargetter(projectile)) {
           projectile.direction = "down";
           projectile.speed = 0;
-          projectile.symbol = projectileList[projectile.type].downSymbol;
+          projectile.symbol = ProjectileList[projectile.type].downSymbol;
           return;
         }
         let newPosition = [projectile.position[0] + 1, projectile.position[1]];

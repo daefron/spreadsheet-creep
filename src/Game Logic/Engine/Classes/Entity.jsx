@@ -1,10 +1,10 @@
-import { onBoard, toBoard, moveBoard, direction } from "../Tools.jsx";
+import { onBoard, toBoard, moveBoard, direction } from "../../Tools.jsx";
 import { entityKiller, healthChecker, fluidChecker } from "./EntityTools.jsx";
 import EntityList from "../Lists/EntityList.jsx";
 import ProjectileList from "../Lists/ProjectileList.jsx";
 import EffectList from "../Lists/EffectList.jsx";
-import Projectile from "../Classes/Projectile.jsx";
-import Effect from "../Classes/Effect.jsx";
+import Projectile from "./Projectile.jsx";
+import Effect from "./Effect.jsx";
 export class Entity {
   constructor(type, lvl, position, ID, gameState) {
     this.name = ID;
@@ -54,9 +54,6 @@ export class Entity {
     let gameMode = this.gameState.settings.gameMode;
     let projectileCount = this.gameState.engine.projectileCount;
     let blobAtEnd = this.gameState.engine.blobAtEnd;
-    let entityList = EntityList;
-    let projectileList = ProjectileList;
-    let effectList = EffectList;
     if (healthChecker(this)) {
       return;
     }
@@ -426,7 +423,7 @@ export class Entity {
 
       function newBlob(position) {
         currentEntity.hp -= 2;
-        let entityType = entityList["blob"];
+        let entityType = EntityList["blob"];
         let entityLvl = entityType.lvls["lvl" + currentEntity.lvl];
         let entityID = "blob" + enemySpawnCount.current;
         entityID = new Entity(
@@ -667,10 +664,10 @@ export class Entity {
           projectileCount.current +
           currentEntity.name;
         projectileCount.current++;
-        let type = projectileList[currentEntity.projectile];
+        let type = ProjectileList[currentEntity.projectile];
         if (currentEntity.projectile === "water") {
           projectileID = new Fluid(
-            fluidList["water"],
+            FluidList["water"],
             [currentEntity.position[0], currentEntity.position[1] - 3],
             projectileID
           );
@@ -710,7 +707,7 @@ export class Entity {
                 ) {
                   entityInCell.hp -= currentEntity.dmg;
                 }
-                let effectType = effectList["aura"];
+                let effectType = EffectList["aura"];
                 let effectID =
                   "aura" +
                   currentEntity.position[0] +

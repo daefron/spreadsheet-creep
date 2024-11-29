@@ -1,7 +1,6 @@
-import Entity from "./Classes/Entity.jsx";
-import EntityList from "./Lists/EntityList";
+import Entity from "./Engine/Classes/Entity.jsx";
+import EntityList from "./Engine/Lists/EntityList.jsx";
 import { onBoard, toBoard } from "./Tools.jsx";
-let entityList = EntityList;
 export function clickSelect(e, gameState) {
   let selectedCell = gameState.input.selectedCell;
   let currentInput = gameState.input.currentInput;
@@ -210,7 +209,7 @@ function friendlySpawner(
   gameState
 ) {
   if (validFriendly(friendlyType, friendlyLvl, gameState.settings.gameMode)) {
-    let friendlyCost = entityList[friendlyType].lvls["lvl" + friendlyLvl].value;
+    let friendlyCost = EntityList[friendlyType].lvls["lvl" + friendlyLvl].value;
     if (bankChecker(friendlyCost, gameState.engine.bank)) {
       gameState.engine.setBank(gameState.engine.bank - friendlyCost);
       friendlyEntityMaker(
@@ -227,12 +226,12 @@ function friendlySpawner(
 }
 
 function validFriendly(friendlyType, friendlyLvl, gameMode) {
-  if (entityList[friendlyType]) {
-    if (entityList[friendlyType].lvls["lvl" + friendlyLvl]) {
+  if (EntityList[friendlyType]) {
+    if (EntityList[friendlyType].lvls["lvl" + friendlyLvl]) {
       if (gameMode.current === "sandbox") {
         return true;
       }
-      if (!entityList[friendlyType].enemy) {
+      if (!EntityList[friendlyType].enemy) {
         return true;
       }
     }
@@ -256,7 +255,7 @@ function friendlyEntityMaker(
 ) {
   let ID = friendlyCount.current + 1;
   friendlyCount.current = ID;
-  entityType = entityList[entityType];
+  entityType = EntityList[entityType];
   entitylvl = entityType.lvls["lvl" + entitylvl];
   let entityID = entityType.type + friendlyCount.current;
   let gameState1 = gameState;
