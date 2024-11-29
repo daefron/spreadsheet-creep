@@ -1,5 +1,5 @@
 import { onBoard, toBoard, moveBoard, direction } from "../Tools.jsx";
-import { entityKiller, healthChecker } from "./EntityTools.jsx";
+import { entityKiller, healthChecker, fluidChecker } from "./EntityTools.jsx";
 import EntityList from "../Lists/EntityList.jsx";
 import ProjectileList from "../Lists/ProjectileList.jsx";
 import EffectList from "../Lists/EffectList.jsx";
@@ -44,7 +44,6 @@ export class Entity {
     let activeProjectiles = this.gameState.active.activeProjectiles;
     let groundBoard = this.gameState.active.groundBoard;
     let activeFluid = this.gameState.active.activeFluid;
-    let fluidBoard = this.gameState.active.fluidBoard;
     let activeEffects = this.gameState.active.activeEffects;
     let effectBoard = this.gameState.active.effectBoard;
     let enemySpawnCount = this.gameState.engine.enemySpawnCount;
@@ -477,44 +476,6 @@ export class Entity {
             }
           }
         }
-      }
-    }
-
-    function fluidChecker(currentEntity) {
-      if (currentEntity.position[1] < 1) {
-        return;
-      }
-      let fluidInPosition = onBoard(fluidBoard.current, currentEntity.position);
-      if (fluidInPosition) {
-        if (currentEntity.sponge) {
-          currentEntity.hp -= 2;
-          entityKiller(fluidInPosition);
-        } else if (!currentEntity.inFluid) {
-          currentEntity.inFluid = true;
-          currentEntity.speed *= 1.5;
-          currentEntity.rate *= 1.5;
-          currentEntity.rateCharge *= 1.5;
-          currentEntity.fallSpeed *= 8;
-          if (currentEntity.breathes) {
-            currentEntity.oxygen = 300 / gameSpeed.current;
-          }
-        } else {
-          currentEntity.oxygen--;
-          if (!currentEntity.oxygen) {
-            currentEntity.hp--;
-            if (currentEntity.hp <= 0) {
-              entityKiller(currentEntity);
-            }
-            currentEntity.oxygen = 50 / gameSpeed.current;
-          }
-        }
-      } else if (currentEntity.inFluid) {
-        currentEntity.inFluid = false;
-        currentEntity.speed /= 1.5;
-        currentEntity.rate /= 1.5;
-        currentEntity.rateCharge /= 1.5;
-        currentEntity.fallSpeed /= 8;
-        currentEntity.oxygen = undefined;
       }
     }
 

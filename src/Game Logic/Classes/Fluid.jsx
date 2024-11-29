@@ -11,8 +11,8 @@ class Fluid {
     this.speed = type.speed;
     this.speedCharge = 0;
     if (type.speed) {
-      let directionDecider = Math.random() * 10;
-      if (directionDecider > 5) {
+      let directionDecider = Math.random();
+      if (directionDecider > 0.5) {
         this.direction = "left";
       } else {
         this.direction = "right";
@@ -64,44 +64,43 @@ class Fluid {
       fluid.fallCharge = 0;
       if (fluid.position[1] < 0) {
         fluid.position = [fluid.position[0], fluid.position[1] + 1];
-      } else {
-        moveBoard(
-          fluidBoard.current,
-          [fluid.position[0], fluid.position[1] + 1],
-          fluid
-        );
+        return;
       }
+      moveBoard(
+        fluidBoard.current,
+        [fluid.position[0], fluid.position[1] + 1],
+        fluid
+      );
     }
 
     function fluidMovement(fluid) {
       if (fluid.speedCharge < fluid.speed) {
         fluid.speedCharge++;
-      } else {
-        let targetPosition;
-        if (fluid.direction === "left") {
-          targetPosition = [fluid.position[0] - 1, fluid.position[1]];
-        } else if (fluid.direction === "right") {
-          targetPosition = [fluid.position[0] + 1, fluid.position[1]];
-        }
-        if (
-          targetPosition[0] === -1 ||
-          targetPosition[0] === gameboardWidth.current
-        ) {
-          return entityKiller(fluid);
-        }
-        let groundTarget = onBoard(groundBoard.current, targetPosition);
-        let fluidTarget = onBoard(fluidBoard.current, targetPosition);
-        if (!groundTarget && !fluidTarget) {
-          moveBoard(fluidBoard.current, targetPosition, fluid);
-          fluid.speedCharge = 0;
-          fluid.speed *= 1.3;
-          return;
-        } else {
-          if (fluid.direction === "left") {
-            fluid.direction = "right";
-          } else fluid.direction = "left";
-        }
+        return;
       }
+      let targetPosition;
+      if (fluid.direction === "left") {
+        targetPosition = [fluid.position[0] - 1, fluid.position[1]];
+      } else if (fluid.direction === "right") {
+        targetPosition = [fluid.position[0] + 1, fluid.position[1]];
+      }
+      if (
+        targetPosition[0] === -1 ||
+        targetPosition[0] === gameboardWidth.current
+      ) {
+        return entityKiller(fluid);
+      }
+      let groundTarget = onBoard(groundBoard.current, targetPosition);
+      let fluidTarget = onBoard(fluidBoard.current, targetPosition);
+      if (!groundTarget && !fluidTarget) {
+        moveBoard(fluidBoard.current, targetPosition, fluid);
+        fluid.speedCharge = 0;
+        fluid.speed *= 1.3;
+        return;
+      }
+      if (fluid.direction === "left") {
+        fluid.direction = "right";
+      } else fluid.direction = "left";
       let fluidBelow = onBoard(fluidBoard.current, [
         fluid.position[0],
         fluid.position[1] + 1,

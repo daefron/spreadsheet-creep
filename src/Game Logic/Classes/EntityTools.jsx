@@ -1,6 +1,8 @@
 import { onBoard, toBoard } from "../Tools.jsx";
 import EffectList from "../Lists/EffectList.jsx";
+import EntityList from "../Lists/EntityList.jsx";
 import Effect from "../Classes/Effect.jsx";
+import Entity from "../Classes/Entity.jsx";
 export function entityKiller(entity) {
   if (entity.death) {
     if (entity.death === "explodes") {
@@ -71,6 +73,28 @@ export function entityKiller(entity) {
       1
     );
   }
+  function spawn(entity) {
+    let entityList = EntityList;
+    let entityID = entity.name;
+    let entityType = entityList[entity.spawnType];
+    let entityLvl = entityType.lvls["lvl" + entity.lvl];
+    entityID = new Entity(
+      entityType,
+      entityLvl,
+      entity.position,
+      entityID,
+      entity.gameState
+    );
+    entityID.enemy = entity.enemy;
+    statUpdate(entityID);
+    entity.gameState.active.activeEntities.current.push(entityID);
+    function statUpdate(entity) {
+      let gameSpeed = entity.gameState.settings.gameSpeed;
+      entity.rate /= gameSpeed.current;
+      entity.speed /= gameSpeed.current;
+      entity.fallSpeed /= gameSpeed.current;
+    }
+  }
 }
 
 export function healthChecker(entity) {
@@ -80,37 +104,33 @@ export function healthChecker(entity) {
   }
 }
 
-export function explosion(currentEntity) {
+export function explosion(entity) {
   let effectList = EffectList;
-  let w = currentEntity.explosionRange;
-  let h = currentEntity.explosionRange;
+  let w = entity.explosionRange;
+  let h = entity.explosionRange;
   let initialW = w;
   let initialH = h;
   while (w >= -initialW) {
     while (h >= -initialH) {
-      let position = [
-        currentEntity.position[0] + w,
-        currentEntity.position[1] + h,
-      ];
+      let position = [entity.position[0] + w, entity.position[1] + h];
       let entityInCell = onBoard(
-        currentEntity.gameState.active.entityBoard.current,
+        entity.gameState.active.entityBoard.current,
         position
       );
       let groundInCell = onBoard(
-        currentEntity.gameState.active.groundBoard.current,
+        entity.gameState.active.groundBoard.current,
         position
       );
       let fluidInCell = onBoard(
-        currentEntity.gameState.active.fluidBoard.current,
+        entity.gameState.active.fluidBoard.current,
         position
       );
       let projectileInCell = onBoard(
-        currentEntity.gameState.active.projectileBoard.current,
+        entity.gameState.active.projectileBoard.current,
         position
       );
       let dmg = parseInt(
-        currentEntity.explosionDmg -
-          (Math.random() * currentEntity.explosionDmg) / 4
+        entity.explosionDmg - (Math.random() * entity.explosionDmg) / 4
       );
       if (entityInCell) {
         entityInCell.hp -= dmg;
@@ -128,31 +148,67 @@ export function explosion(currentEntity) {
         entityKiller(projectileInCell);
       }
       let effectType = effectList["explosion"];
-      let effectPosition = [
-        currentEntity.position[0] + w,
-        currentEntity.position[1] + h,
-      ];
+      let effectPosition = [entity.position[0] + w, entity.position[1] + h];
       let effectID =
-        "explosion" +
-        currentEntity.position[0] +
-        w +
-        currentEntity.position[1] +
-        h;
+        "explosion" + entity.position[0] + w + entity.position[1] + h;
       effectID = new Effect(
         effectType,
         effectPosition,
         effectID,
-        currentEntity.gameState
+        entity.gameState
       );
       toBoard(
-        currentEntity.gameState.active.effectBoard.current,
+        entity.gameState.active.effectBoard.current,
         effectPosition,
         effectID
       );
-      currentEntity.gameState.active.activeEffects.current.push(effectID);
+      entity.gameState.active.activeEffects.current.push(effectID);
       h--;
     }
     h = initialH;
     w--;
+  }
+}
+
+export function fluidChecker(entity) {
+  if (entity.position[1] < 1) {
+    return;
+  }
+  let fluidInPosition = onBoard(
+    entity.gameState.active.fluidBoard.current,
+    entity.position
+  );
+  if (fluidInPosition) {
+    if (entity.sponge) {
+      entity.hp -= 2;
+      entityKiller(fluidInPosition);
+      return;
+    }
+    if (!entity.inFluid) {
+      entity.inFluid = true;
+      entity.speed *= 1.5;
+      entity.rate *= 1.5;
+      entity.rateCharge *= 1.5;
+      entity.fallSpeed *= 8;
+      if (entity.breathes) {
+        entity.oxygen = 300 / entity.gameState.settings.gameSpeed.current;
+      }
+    } else if (entity.breathes) {
+      entity.oxygen--;
+      if (!entity.oxygen) {
+        entity.hp--;
+        if (entity.hp <= 0) {
+          entityKiller(entity);
+        }
+        entity.oxygen = 50 / entity.gameState.settings.gameSpeed.current;
+      }
+    }
+  } else if (entity.inFluid) {
+    entity.inFluid = false;
+    entity.speed /= 1.5;
+    entity.rate /= 1.5;
+    entity.rateCharge /= 1.5;
+    entity.fallSpeed /= 8;
+    entity.oxygen = undefined;
   }
 }

@@ -44,7 +44,7 @@ class Ground {
       if (!groundBelow) {
         let entityBelow = onBoard(entityBoard.current, positionBelow);
         if (entityBelow) {
-          groundAttack(entityBelow);
+          entityKiller(entityBelow);
         }
         return true;
       }
@@ -62,10 +62,6 @@ class Ground {
         );
       }
       ground.falling = true;
-    }
-
-    function groundAttack(entityBelow) {
-      entityKiller(entityBelow);
     }
   }
 }
