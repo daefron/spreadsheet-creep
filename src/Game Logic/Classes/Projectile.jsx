@@ -1,7 +1,7 @@
-import { onBoard, toBoard, moveBoard, direction } from "../Tools.jsx";
+import { onBoard, moveBoard, direction } from "../Tools.jsx";
+import { entityKiller } from "./EntityTools.jsx";
 import ProjectileList from "../Lists/ProjectileList.jsx";
-import EffectList from "../Lists/EffectList.jsx";
-import Effect from "../Classes/Effect.jsx";
+
 class Projectile {
   constructor(parent, name, type, gameState) {
     this.type = type.type;
@@ -46,21 +46,11 @@ class Projectile {
     let projectileBoard = this.gameState.active.projectileBoard;
     let activeGround = this.gameState.active.activeGround;
     let groundBoard = this.gameState.active.groundBoard;
-    let activeFluid = this.gameState.active.activeFluid;
     let fluidBoard = this.gameState.active.fluidBoard;
-    let activeEffects = this.gameState.active.activeEffects;
-    let effectBoard = this.gameState.active.effectBoard;
-    let friendlyGraveyard = this.gameState.graveyard.friendlyGraveyard;
-    let enemyGraveyard = this.gameState.graveyard.enemyGraveyard;
-    let groundGraveyard = this.gameState.graveyard.groundGraveyard;
-    let fluidGraveyard = this.gameState.graveyard.fluidGraveyard;
-    let bank = this.gameState.engine.bank;
-    let setBank = this.gameState.engine.setBank;
     let gameboardWidth = this.gameState.settings.gameboardWidth;
     let gameboardHeight = this.gameState.settings.gameboardHeight;
     let gameSpeed = this.gameState.settings.gameSpeed;
     let projectileList = ProjectileList;
-    let effectList = EffectList;
 
     fluidChecker(this);
     this.speedCharge++;
@@ -316,107 +306,6 @@ class Projectile {
         currentEntity.rateCharge /= 1.5;
         currentEntity.fallSpeed /= 8;
         currentEntity.oxygen = undefined;
-      }
-    }
-    function entityKiller(entity) {
-      if (entity.death) {
-        if (entity.death === "explodes") {
-          if (entity.armed) {
-            entity.armed = false;
-            explosion(entity);
-          }
-        } else if (entity.death === "spawn") {
-          spawn(entity);
-        }
-      }
-      if (entity.class === "entity") {
-        toBoard(entityBoard.current, entity.position, undefined);
-        if (entity.enemy) {
-          setBank(entity.value + bank);
-          enemyGraveyard.current.push(
-            activeEntities.current.splice(
-              activeEntities.current.indexOf(entity),
-              1
-            )
-          );
-        } else {
-          friendlyGraveyard.current.push(
-            activeEntities.current.splice(
-              activeEntities.current.indexOf(entity),
-              1
-            )
-          );
-        }
-      } else if (entity.class === "ground") {
-        toBoard(groundBoard.current, entity.position, undefined);
-        groundGraveyard.current.push(
-          activeGround.current.splice(activeGround.current.indexOf(entity), 1)
-        );
-      } else if (entity.class === "fluid") {
-        toBoard(fluidBoard.current, entity.position, undefined);
-        fluidGraveyard.current.push(
-          activeFluid.current.splice(activeFluid.current.indexOf(entity), 1)
-        );
-      } else if (entity.class === "projectile") {
-        toBoard(projectileBoard.current, entity.position, undefined);
-        activeProjectiles.current.splice(
-          activeProjectiles.current.indexOf(entity),
-          1
-        );
-      }
-    }
-    function explosion(currentEntity) {
-      let w = currentEntity.explosionRange;
-      let h = currentEntity.explosionRange;
-      let initialW = w;
-      let initialH = h;
-      while (w >= -initialW) {
-        while (h >= -initialH) {
-          let position = [
-            currentEntity.position[0] + w,
-            currentEntity.position[1] + h,
-          ];
-          let entityInCell = onBoard(entityBoard.current, position);
-          let groundInCell = onBoard(groundBoard.current, position);
-          let fluidInCell = onBoard(fluidBoard.current, position);
-          let projectileInCell = onBoard(projectileBoard.current, position);
-          let dmg = parseInt(
-            currentEntity.explosionDmg -
-              (Math.random() * currentEntity.explosionDmg) / 4
-          );
-          if (entityInCell) {
-            entityInCell.hp -= dmg;
-          }
-          if (groundInCell) {
-            groundInCell.hp -= dmg;
-          }
-          if (fluidInCell) {
-            let deathChance = Math.random() * 10;
-            if (deathChance > 5) {
-              entityKiller(fluidInCell);
-            }
-          }
-          if (projectileInCell) {
-            entityKiller(projectileInCell);
-          }
-          let effectType = effectList["explosion"];
-          let effectPosition = [
-            currentEntity.position[0] + w,
-            currentEntity.position[1] + h,
-          ];
-          let effectID =
-            "explosion" +
-            currentEntity.position[0] +
-            w +
-            currentEntity.position[1] +
-            h;
-          effectID = new Effect(effectType, effectPosition, effectID, currentEntity.gameState);
-          toBoard(effectBoard.current, effectPosition, effectID);
-          activeEffects.current.push(effectID);
-          h--;
-        }
-        h = initialH;
-        w--;
       }
     }
   }

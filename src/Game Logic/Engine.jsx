@@ -1,7 +1,4 @@
-import {
-  toBoard,
-  comparePosition,
-} from "./Tools.jsx";
+import { toBoard, comparePosition } from "./Tools.jsx";
 import EntityList from "./Lists/EntityList.jsx";
 import GroundList from "./Lists/GroundList.jsx";
 import FluidList from "./Lists/FluidList.jsx";
@@ -37,8 +34,8 @@ export function engine(gameState) {
   let gameMode = gameState.settings.gameMode;
   let gameStatus = gameState.render.gameStatus;
   let newRound = gameState.engine.newRound;
-  let gameState1 = gameState;
-  let blobAtEnd;
+  let blobAtEnd = gameState.engine.blobAtEnd;
+  let gameStatePacked = gameState;
 
   function terrainMaker() {
     for (
@@ -74,7 +71,7 @@ export function engine(gameState) {
             groundList[type],
             position,
             groundID,
-            gameState1
+            gameStatePacked
           );
           activeGround.current.push(groundID);
         }
@@ -88,7 +85,12 @@ export function engine(gameState) {
       for (let w = 1; w <= gameboardWidth.current; w++) {
         let position = [w, h];
         let waterID = "water" + position[0] + position[1];
-        waterID = new Fluid(fluidList["water"], position, waterID, gameState1);
+        waterID = new Fluid(
+          fluidList["water"],
+          position,
+          waterID,
+          gameStatePacked
+        );
         activeFluid.current.push(waterID);
       }
     }
@@ -114,6 +116,7 @@ export function engine(gameState) {
     if (gameMode.current === "blob gob") {
       gameStatus.current = "Blob vs enemies round in progress";
       return blobGobTurn();
+      z;
     }
     if (gameMode.current === "sandbox") {
       gameStatus.current = "Sandbox in progress";
@@ -255,7 +258,7 @@ export function engine(gameState) {
         return true;
       }
       if (gameMode.current === "blob") {
-        if (blobAtEnd) {
+        if (blobAtEnd.current) {
           gameStatus.current = "Blob at end. You lose";
           return false;
         }
@@ -394,7 +397,7 @@ export function engine(gameState) {
         entityLvl,
         position,
         entityID,
-        gameState1
+        gameStatePacked
       );
       if (!enemy) {
         entityID.enemy = false;

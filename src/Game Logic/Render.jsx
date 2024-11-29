@@ -85,6 +85,7 @@ export default function EngineOutput() {
   const gameStatus = useRef();
   const scrolledThisTurn = useRef();
   const newRound = useRef(true);
+  const blobAtEnd = useRef();
   let entityList = EntityList;
 
   function gameStatePacker() {
@@ -118,6 +119,7 @@ export default function EngineOutput() {
         setBank: setBank,
         timer: renderTimer,
         newRound: newRound,
+        blobAtEnd: blobAtEnd,
       },
       settings: {
         gameboardWidth: gameboardWidth,
