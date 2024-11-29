@@ -23,44 +23,40 @@ export function engine(gameState) {
     newRound.current = false;
   }
 
-  gamemode();
+  if (gameMode.current === "king") {
+    return kingTurn(gameStatePacked, nextTurn);
+  }
+  if (gameMode.current === "battle") {
+    return battleTurn(gameStatePacked, nextTurn);
+  }
+  if (gameMode.current === "blob") {
+    return blobTurn(gameStatePacked, nextTurn);
+  }
+  if (gameMode.current === "blob fight") {
+    return blobFightTurn(gameStatePacked, nextTurn);
+  }
+  if (gameMode.current === "blob gob") {
+    return blobGobTurn(gameStatePacked, nextTurn);
+  }
+  if (gameMode.current === "sandbox") {
+    return sandboxTurn(nextTurn);
+  }
 
-  function gamemode() {
-    if (gameMode.current === "king") {
-      return kingTurn(gameStatePacked, nextTurn);
+  function nextTurn() {
+    for (const entity of activeEntities.current) {
+      entity.turn;
     }
-    if (gameMode.current === "battle") {
-      return battleTurn(gameStatePacked, nextTurn);
+    for (const projectile of activeProjectiles.current) {
+      projectile.turn;
     }
-    if (gameMode.current === "blob") {
-      return blobTurn(gameStatePacked, nextTurn);
+    for (const ground of activeGround.current) {
+      ground.turn;
     }
-    if (gameMode.current === "blob fight") {
-      return blobFightTurn(gameStatePacked, nextTurn);
+    for (const fluid of activeFluid.current) {
+      fluid.turn;
     }
-    if (gameMode.current === "blob gob") {
-      return blobGobTurn(gameStatePacked, nextTurn);
-    }
-    if (gameMode.current === "sandbox") {
-      return sandboxTurn(nextTurn);
-    }
-
-    function nextTurn() {
-      for (const entity of activeEntities.current) {
-        entity.turn;
-      }
-      for (const projectile of activeProjectiles.current) {
-        projectile.turn;
-      }
-      for (const ground of activeGround.current) {
-        ground.turn;
-      }
-      for (const fluid of activeFluid.current) {
-        fluid.turn;
-      }
-      for (const effect of activeEffects.current) {
-        effect.turn;
-      }
+    for (const effect of activeEffects.current) {
+      effect.turn;
     }
   }
 }

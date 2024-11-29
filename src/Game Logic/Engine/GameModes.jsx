@@ -37,6 +37,7 @@ export function kingTurn(gameState, nextTurn) {
     return true;
   }
 }
+
 export function battleTurn(gameState, nextTurn) {
   let gameStatus = gameState.render.gameStatus;
   let activeEntities = gameState.active.activeEntities;
