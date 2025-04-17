@@ -1,4 +1,4 @@
-## [Live site here](https://spreadsheetcreep.netlify.app/)  (desktop recommended)
+## [Live site](https://thomasevans.org/)  (desktop recommended)
 
 ## Why this project?
 
